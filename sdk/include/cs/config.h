@@ -10,38 +10,58 @@
 #define CS_CONFIG_H_INCLUDED
 
 #include <cs/defines.h>
+#include <cs/core/macro_platform.h>
 
-#if defined(WIN32)
-#	define CS_PLATFORM_WINDOWS_32
-#	define CS_PLATFORM_ID
-#elif defined(_XBOX) // #if defined(WIN32)
-#	define CS_PLATFORM_XBOX_360
-#	define CS_STATIC_LIBRARIES
-#	define CS_PLATFORM_ID				[xbox_360]
-#else // #elif defined(_XBOX)
-	STATIC_CHECK(false, Unknown_Platform);
-#endif // #elif defined(_XBOX)
+////////////////////////////////////////////////////////////////////////////
+// CS_USE_LUAJIT
+////////////////////////////////////////////////////////////////////////////
+#if CS_USE_LUAJIT
+#	error do not define CS_USE_LUAJIT macro
+#endif // #if CS_USE_LUAJIT
 
-#ifdef DEBUG
-#	define CS_DEBUG_LIBRARIES
-#	define CS_SOLUTION_CONFIGURATION_ID	(debug)
-#else // #ifdef DEBUG
-#	define CS_SOLUTION_CONFIGURATION_ID
-#endif // #ifdef DEBUG
+#if CS_PLATFORM_WINDOWS_32
+#	define CS_USE_LUAJIT		1
+#else // #if CS_PLATFORM_WINDOWS_32
+#	define CS_USE_LUAJIT		0
+#endif // #if CS_PLATFORM_WINDOWS_32
 
-#define CS_LIBRARY_PREFIX				cs.
-#define CS_CALL							__stdcall
-#define CS_PACK_SIZE					4
+////////////////////////////////////////////////////////////////////////////
+// CS_DEBUG_LIBRARIES
+////////////////////////////////////////////////////////////////////////////
+#ifdef CS_DEBUG_LIBRARIES
+#	error do not define CS_DEBUG_LIBRARIES macro
+#endif // #ifdef CS_DEBUG_LIBRARIES
+
+#ifdef NDEBUG
+#	define CS_DEBUG_LIBRARIES	0
+#else // #ifdef NDEBUG
+#	define CS_DEBUG_LIBRARIES	1
+#endif // #ifdef NDEBUG
+
+////////////////////////////////////////////////////////////////////////////
+// CS_CALL
+////////////////////////////////////////////////////////////////////////////
+#ifdef CS_CALL
+#	error do not define CS_CALL macro
+#endif // #ifdef CS_CALL
+
+#define CS_CALL					__stdcall
+
+////////////////////////////////////////////////////////////////////////////
+// CS_PACK_SIZE
+////////////////////////////////////////////////////////////////////////////
+#ifdef CS_PACK_SIZE
+#	error do not define CS_PACK_SIZE macro
+#endif // #ifdef CS_PACK_SIZE
+
+#define CS_PACK_SIZE			4
 
 #ifndef CS_API
 #	ifdef CS_STATIC_LIBRARIES
 #		define CS_API
 #	else // #ifdef CS_STATIC_LIBRARIES
-#		define CS_API					__declspec(dllimport)
+#		define CS_API			__declspec(dllimport)
 #	endif // #ifdef CS_STATIC_LIBRARIES
 #endif // #ifndef CS_API
-
-// exceptions haven't been supported yet
-// #define CS_USE_EXCEPTIONS
 
 #endif // #ifndef CS_CONFIG_H_INCLUDED

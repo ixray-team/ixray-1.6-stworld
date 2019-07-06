@@ -8,8 +8,9 @@
 
 #ifndef BOOST_PP_IS_ITERATING
 
-#	ifndef LUABIND_MEMORY_MANAGER_GENERATOR
-#		define LUABIND_MEMORY_MANAGER_GENERATOR
+#	ifndef LUABIND_MEMORY_MANAGER_GENERATOR_H_INCLUDED
+#		define LUABIND_MEMORY_MANAGER_GENERATOR_H_INCLUDED
+#		include <boost/type_traits/is_pod.hpp>
 
 #		include <boost/preprocessor/repetition.hpp>
 #		include <boost/preprocessor/iteration/iterate.hpp>
@@ -21,7 +22,7 @@
 #		define BOOST_PP_FILENAME_1				<luabind/luabind_memory_manager_generator.h> // this file
 #		include BOOST_PP_ITERATE()
 
-#	endif // #ifndef LUABIND_MEMORY_MANAGER_GENERATOR
+#	endif // #ifndef LUABIND_MEMORY_MANAGER_GENERATOR_H_INCLUDED
 
 #else // #ifndef BOOST_PP_IS_ITERATING
 
@@ -61,7 +62,7 @@ struct luabind_new_detail_copy_constructor {
 	template <typename T BOOST_PP_ENUM_TRAILING_PARAMS(n, class P)>
 	static inline T* initialize (T *result BOOST_PP_ENUM_TRAILING(n,PARAMETERS,BOOST_PP_EMPTY))
 	{
-		return	(luabind_new_detail<__is_pod(T)>::initialize(result BOOST_PP_ENUM_TRAILING_PARAMS(n,p)));
+		return	(luabind_new_detail<boost::is_pod<T>::value>::initialize(result BOOST_PP_ENUM_TRAILING_PARAMS(n,p)));
 	}
 };
 

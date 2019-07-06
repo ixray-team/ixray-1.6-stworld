@@ -30,19 +30,24 @@
 
 #include <boost/preprocessor/enum_params.hpp>
 #include <boost/preprocessor/iteration/iterate.hpp>
+#include <boost/preprocessor/repetition/enum_trailing_params.hpp>
 #include <boost/preprocessor/repeat.hpp>
+#include <vector>
 
 #include <luabind/detail/overload_rep_base.hpp>
 
-#include <luabind/detail/class_rep.hpp>
 #include <luabind/detail/is_indirect_const.hpp>
+
+#ifndef BOOST_MSVC
+#include <luabind/detail/policy.hpp>
+#endif
 
 namespace luabind { namespace detail
 {
 	struct dummy_ {};
 
 	// this class represents a specific overload of a member-function.
-	struct LUABIND_API overload_rep : public overload_rep_base
+	struct overload_rep: public overload_rep_base
 	{
 		#define BOOST_PP_ITERATION_PARAMS_1 (4 \
 			, (0, LUABIND_MAX_ARITY, <luabind/detail/overload_rep.hpp>, 1))
@@ -61,11 +66,11 @@ namespace luabind { namespace detail
 			return true;
 		}
 
-		void set_fun(boost::function1<int, lua_State*, luabind::memory_allocator<boost::function_base> > const& f) 
-		{ call_fun = f; }
+		void set_fun(boost::function1<int, lua_State* > const& f) 
+		{ call_fun.assign(f, luabind::memory_allocator<int>()); }
 
-		void set_fun_static(boost::function1<int, lua_State*, luabind::memory_allocator<boost::function_base> > const& f) 
-		{ call_fun_static = f; }
+		void set_fun_static(boost::function1<int, lua_State* > const& f) 
+		{ call_fun_static.assign(f, luabind::memory_allocator<int>()); }
 
 		int call(lua_State* L, bool force_static_call) const;
 
@@ -76,7 +81,7 @@ namespace luabind { namespace detail
 		// this is the normal function pointer that may be a virtual
 #pragma warning(push)
 #pragma warning(disable:4251)
-		boost::function1<int, lua_State*, luabind::memory_allocator<boost::function_base> > call_fun;
+		boost::function1<int, lua_State* > call_fun;
 #pragma warning(pop)
 
 		// this is the optional function pointer that is only set if
@@ -84,13 +89,13 @@ namespace luabind { namespace detail
 		// to a static function.
 #pragma warning(push)
 #pragma warning(disable:4251)
-		boost::function1<int, lua_State*, luabind::memory_allocator<boost::function_base> > call_fun_static;
+		boost::function1<int, lua_State* > call_fun_static;
 #pragma warning(pop)
 
 		// the types of the parameter it takes
 #pragma warning(push)
 #pragma warning(disable:4251)
-		vector_class<LUABIND_TYPE_INFO> m_params_;
+		luabind::vector<LUABIND_TYPE_INFO> m_params_;
 #pragma warning(pop)
 		// is true if the overload is const (this is a part of the signature)
 		bool m_const;
@@ -103,7 +108,7 @@ namespace luabind { namespace detail
 #elif BOOST_PP_ITERATION_FLAGS() == 1
 
 #define LUABIND_PARAM(z, n, _) m_params_.push_back(LUABIND_TYPEID(A##n));
-#define LUABIND_POLICY_DECL(z,n,text) typedef typename find_conversion_policy<n + 1, Policies>::type BOOST_PP_CAT(p,n);
+#define LUABIND_POLICY_DECL(z,n,offset) typedef typename detail::find_conversion_policy<n + offset, Policies>::type BOOST_PP_CAT(p,n);
 #define LUABIND_ARITY(z,n,text) + BOOST_PP_CAT(p,n)::has_arg
 
 		// overloaded template funtion that initializes the parameter list
@@ -114,7 +119,7 @@ namespace luabind { namespace detail
 		{
 			m_params_.reserve(BOOST_PP_ITERATION());
 			BOOST_PP_REPEAT(BOOST_PP_ITERATION(), LUABIND_PARAM, _)
-			BOOST_PP_REPEAT(BOOST_PP_ITERATION(), LUABIND_POLICY_DECL, _)
+			BOOST_PP_REPEAT(BOOST_PP_ITERATION(), LUABIND_POLICY_DECL, 2)
 			m_arity = 1 BOOST_PP_REPEAT(BOOST_PP_ITERATION(), LUABIND_ARITY, 0);
 		}
 
@@ -124,7 +129,7 @@ namespace luabind { namespace detail
 		{
 			m_params_.reserve(BOOST_PP_ITERATION());
 			BOOST_PP_REPEAT(BOOST_PP_ITERATION(), LUABIND_PARAM, _)
-			BOOST_PP_REPEAT(BOOST_PP_ITERATION(), LUABIND_POLICY_DECL, _)
+			BOOST_PP_REPEAT(BOOST_PP_ITERATION(), LUABIND_POLICY_DECL, 2)
 			m_arity = 1 BOOST_PP_REPEAT(BOOST_PP_ITERATION(), LUABIND_ARITY, 0);
 		}
 
@@ -134,7 +139,7 @@ namespace luabind { namespace detail
 		{
 			m_params_.reserve(BOOST_PP_ITERATION());
 			BOOST_PP_REPEAT(BOOST_PP_ITERATION(), LUABIND_PARAM, _)
-			BOOST_PP_REPEAT(BOOST_PP_ITERATION(), LUABIND_POLICY_DECL, _)
+			BOOST_PP_REPEAT(BOOST_PP_ITERATION(), LUABIND_POLICY_DECL, 1)
 			m_arity = 0 BOOST_PP_REPEAT(BOOST_PP_ITERATION(), LUABIND_ARITY, 0);
 		}
 

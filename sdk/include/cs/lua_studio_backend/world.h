@@ -17,20 +17,23 @@ namespace lua_studio {
 struct engine;
 
 struct DECLSPEC_NOVTABLE world {
-	virtual	void CS_LUA_STUDIO_BACKEND_CALL	add					(lua_State *state) = 0;
-	virtual	void CS_LUA_STUDIO_BACKEND_CALL	remove				(lua_State *state) = 0;
-	virtual	int  CS_LUA_STUDIO_BACKEND_CALL	on_error			(lua_State *state) = 0;
-	virtual	void CS_LUA_STUDIO_BACKEND_CALL	add_log_line		(const char *log_line) = 0;
+	virtual	void CS_LUA_STUDIO_BACKEND_CALL	add					(lua_State* state) = 0;
+	virtual	void CS_LUA_STUDIO_BACKEND_CALL	remove				(lua_State* state) = 0;
+	virtual	int  CS_LUA_STUDIO_BACKEND_CALL	on_error			(lua_State* state) = 0;
+	virtual	void CS_LUA_STUDIO_BACKEND_CALL	add_log_line		(char const* log_line) = 0;
 	virtual	bool CS_LUA_STUDIO_BACKEND_CALL	evaluating_watch	() = 0;
+
+protected:
+	CS_DECLARE_PURE_VIRTUAL_DESTRUCTOR( world )
 }; // struct DECLSPEC_NOVTABLE world
 
 typedef void*	maf_parameter;
-typedef void*	(CS_LUA_STUDIO_BACKEND_CALL *maf_ptr) (maf_parameter parameter, void const *, size_t);
+typedef void*	(CS_LUA_STUDIO_BACKEND_CALL* maf_ptr) (maf_parameter parameter, void const *, size_t);
 
-typedef world*	(CS_LUA_STUDIO_BACKEND_CALL *create_world_function_type)	(engine& engine, bool, bool);
-typedef void	(CS_LUA_STUDIO_BACKEND_CALL *destroy_world_function_type)	(world*& world);
-typedef void	(CS_LUA_STUDIO_BACKEND_CALL *memory_allocator_function_type)(maf_ptr memory_allocator, maf_parameter parameter);
-typedef size_t	(CS_LUA_STUDIO_BACKEND_CALL *memory_stats_function_type)	();
+typedef world*	(CS_LUA_STUDIO_BACKEND_CALL* create_world_function_type)	(engine& engine, bool, bool);
+typedef void	(CS_LUA_STUDIO_BACKEND_CALL* destroy_world_function_type)	(world*& world);
+typedef void	(CS_LUA_STUDIO_BACKEND_CALL* memory_allocator_function_type)(maf_ptr memory_allocator, maf_parameter parameter);
+typedef size_t	(CS_LUA_STUDIO_BACKEND_CALL* memory_stats_function_type)	();
 
 } // namespace lua_studio
 } // namespace cs

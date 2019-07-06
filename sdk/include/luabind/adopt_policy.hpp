@@ -27,12 +27,16 @@
 #include <luabind/config.hpp>
 #include <luabind/detail/policy.hpp>
 #include <luabind/detail/implicit_cast.hpp>
+#include <boost/mpl/bool.hpp>
+#include <luabind/back_reference_fwd.hpp>
 
 namespace luabind { namespace detail 
 {
 	template<class Direction = lua_to_cpp>
 	struct adopt_pointer
 	{
+		typedef adopt_pointer type;
+
 		template<class T>
 		T* apply(lua_State* L, by_pointer<T>, int index)
 		{
@@ -75,6 +79,8 @@ namespace luabind { namespace detail
 	template<>
 	struct adopt_pointer<cpp_to_lua>
 	{
+		typedef adopt_pointer type;
+
 		template<class T>
 		void apply(lua_State* L, T* ptr)
 		{
@@ -87,7 +93,7 @@ namespace luabind { namespace detail
 			// if there is a back_reference, then the
 			// ownership will be removed from the
 			// back reference and put on the lua stack.
-			if (back_reference<T>::move(L, ptr))
+			if (luabind::move_back_reference(L, ptr))
 			{
 				object_rep* obj = static_cast<object_rep*>(lua_touserdata(L, -1));
 				obj->set_flags(obj->flags() | object_rep::owner);
@@ -127,7 +133,7 @@ namespace luabind { namespace detail
 		struct only_accepts_nonconst_pointers {};
 
 		template<class T, class Direction>
-		struct generate_converter
+		struct apply
 		{
 			typedef luabind::detail::is_nonconst_pointer<T> is_nonconst_p;
 			typedef typename boost::mpl::if_<is_nonconst_p, adopt_pointer<Direction>, only_accepts_nonconst_pointers>::type type;
@@ -140,7 +146,10 @@ namespace luabind
 {
 	template<int N>
 	detail::policy_cons<detail::adopt_policy<N>, detail::null_type> 
-	adopt(boost::arg<N>) { return detail::policy_cons<detail::adopt_policy<N>, detail::null_type>(); }
+	adopt(LUABIND_PLACEHOLDER_ARG(N))
+	{ 
+		return detail::policy_cons<detail::adopt_policy<N>, detail::null_type>(); 
+	}
 }
 
 #endif // LUABIND_ADOPT_POLICY_HPP_INCLUDE

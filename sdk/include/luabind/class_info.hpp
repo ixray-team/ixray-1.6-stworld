@@ -27,23 +27,23 @@
 #include <luabind/prefix.hpp>
 #include <luabind/lua_include.hpp>
 #include <luabind/luabind.hpp>
+#include <luabind/object.hpp>
 
 namespace luabind
 {
-	struct class_info
-	{
-		class_info(lua_State* L)
-			: methods(L)
-		{}
-		
-		string_class name;
+	struct LUABIND_API class_info
+	{	
+#pragma warning(push)
+#pragma warning(disable:4251)
+		luabind::string name;
 		object methods;
 		object attributes;
+#pragma warning(pop)
 	};
 
-	class_info get_class_info(const object&);
+    LUABIND_API class_info get_class_info(argument const&);
 
-	void bind_class_info(lua_State*);
+	LUABIND_API void bind_class_info(lua_State*);
 }
 
 #endif

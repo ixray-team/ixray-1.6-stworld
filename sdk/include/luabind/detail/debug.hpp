@@ -47,9 +47,9 @@ namespace luabind { namespace detail
 	};
 
 }}
-#define LUABIND_CHECK_STACK(L) luabind::detail::stack_checker_type stack_checker_object(L)
+#define LUABIND_CHECK_STACK(L) ::luabind::detail::stack_checker_type stack_checker_object(L)
 #else
-#define LUABIND_CHECK_STACK(L) do {} while (0)
+#define LUABIND_CHECK_STACK(L) do {} while ( luabind::detail::identity_value(0) )
 #endif
 
 #endif // LUABIND_DEBUG_HPP_INCLUDED

@@ -9,7 +9,7 @@
 #ifndef CS_LUA_STUDIO_BACKEND_INTERFACES_H_INCLUDED
 #define CS_LUA_STUDIO_BACKEND_INTERFACES_H_INCLUDED
 
-#include <cs/config.h>
+#include <cs/library_names.h>
 
 #define CS_LUA_STUDIO_BACKEND_CALL		__stdcall
 
@@ -23,4 +23,4 @@
 #include <cs/lua_studio_backend/engine.h>
 #include <cs/lua_studio_backend/world.h>
 
-#endif // #ifndef CS_LUA_STUDIO_BACKEND_INTERFACES_H_INCLUDE
+#endif // #ifndef CS_LUA_STUDIO_BACKEND_INTERFACES_H_INCLUDED_INCLUDE

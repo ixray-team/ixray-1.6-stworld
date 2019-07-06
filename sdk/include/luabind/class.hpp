@@ -83,25 +83,30 @@
 #include <boost/preprocessor/repetition/enum_params_with_a_default.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/type_traits/is_same.hpp>
+#include <boost/type_traits/is_member_object_pointer.hpp>
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/lambda.hpp>
 #include <boost/mpl/logical.hpp>
 #include <boost/mpl/find_if.hpp>
-#include <boost/mpl/apply_if.hpp>
+#include <boost/mpl/eval_if.hpp>
 #include <boost/mpl/logical.hpp>
 
 #include <luabind/config.hpp>
 #include <luabind/scope.hpp>
+#include <luabind/raw_policy.hpp>
 #include <luabind/back_reference.hpp>
+#include <luabind/function.hpp>
+#include <luabind/dependency_policy.hpp>
 #include <luabind/detail/constructor.hpp>
 #include <luabind/detail/call.hpp>
-#include <luabind/detail/signature_match.hpp>
+#include <luabind/detail/deduce_signature.hpp>
+#include <luabind/detail/compute_score.hpp>
 #include <luabind/detail/primitives.hpp>
 #include <luabind/detail/property.hpp>
 #include <luabind/detail/typetraits.hpp>
 #include <luabind/detail/class_rep.hpp>
-#include <luabind/detail/method_rep.hpp>
+#include <luabind/detail/call.hpp>
 #include <luabind/detail/construct_rep.hpp>
 #include <luabind/detail/object_rep.hpp>
 #include <luabind/detail/calc_arity.hpp>
@@ -119,6 +124,12 @@
 #pragma warning(disable: 4355)
 #endif
 
+namespace boost
+{
+
+  template <class T> class shared_ptr;
+
+} // namespace boost
 
 namespace luabind
 {	
@@ -127,16 +138,23 @@ namespace luabind
 		struct unspecified {};
 
 		template<class Derived> struct operator_;
-	}
 
-	using detail::type;
+		struct you_need_to_define_a_get_const_holder_function_for_your_smart_ptr {};
+	}
 
 	template<class T, class X1 = detail::unspecified, class X2 = detail::unspecified, class X3 = detail::unspecified>
 	struct class_;
 
 	// TODO: this function will only be invoked if the user hasn't defined a correct overload
 	// maybe we should have a static assert in here?
-	inline detail::null_type* get_const_holder(...)
+	inline detail::you_need_to_define_a_get_const_holder_function_for_your_smart_ptr*
+	get_const_holder(...)
+	{
+		return 0;
+	}
+
+	template <class T>
+	boost::shared_ptr<T const>* get_const_holder(boost::shared_ptr<T>*)
 	{
 		return 0;
 	}
@@ -178,9 +196,9 @@ namespace luabind
 		struct get_predicate
 		{
 			typedef typename boost::mpl::and_<
-						Predicate
-					,	is_not_unspecified<boost::mpl::_1>
-					> type;
+			  	is_not_unspecified<boost::mpl::_1>
+			  , Predicate
+			> type;
 		};
 
 		template<class Parameters, class Predicate, class DefaultValue>
@@ -188,9 +206,13 @@ namespace luabind
 		{
 			typedef typename get_predicate<Predicate>::type pred;
 			typedef typename boost::mpl::find_if<Parameters, pred>::type iterator;
-			typedef typename boost::mpl::apply_if<boost::is_same<iterator, typename boost::mpl::end<Parameters>::type>
-				, boost::mpl::identity<DefaultValue>
-				, iterator
+			typedef typename boost::mpl::eval_if<
+				boost::is_same<
+					iterator
+				  , typename boost::mpl::end<Parameters>::type
+				>
+			  , boost::mpl::identity<DefaultValue>
+			  , boost::mpl::deref<iterator>
 			>::type type;
 		};
 
@@ -201,7 +223,7 @@ namespace luabind
 
 			int operator()(lua_State* L) const
 			{
-				return call(fn, (Class*)0, L, (Policies*)0);
+				return invoke(L, fn, deduce_signature(fn, (Class*)0), Policies());
 			}
 
 			mem_fn_callback(Fn fn_)
@@ -219,7 +241,7 @@ namespace luabind
 
 			int operator()(lua_State* L) const
 			{
-				return match(fn, L, (Class*)0, (Policies*)0);
+				return compute_score(L, deduce_signature(fn, (Class*)0), Policies());
 			}
 
 			mem_fn_matcher(Fn fn_)
@@ -239,7 +261,7 @@ namespace luabind
 		template<class Policies>
 		struct has_pure_virtual
 		{
-			typedef typename boost::mpl::apply_if<
+			typedef typename boost::mpl::eval_if<
 				boost::is_same<pure_virtual_tag, typename Policies::head>
 			  , boost::mpl::true_
 			  , has_pure_virtual<typename Policies::tail>
@@ -258,7 +280,7 @@ namespace luabind
 		// prints the types of the values on the stack, in the
 		// range [start_index, lua_gettop()]
 
-		LUABIND_API string_class stack_content_by_name(lua_State* L, int start_index);
+		LUABIND_API luabind::string stack_content_by_name(lua_State* L, int start_index);
 	
 		struct LUABIND_API create_class
 		{
@@ -297,7 +319,7 @@ namespace luabind
 			typedef void*(*extractor_fun)(void*);
 
 			template<class T>
-			static extractor_fun apply(detail::type<T>)
+			static extractor_fun apply(detail::type_<T>)
 			{
 				return &detail::extract_underlying_type<T, HeldType>::extract;
 			}
@@ -309,7 +331,7 @@ namespace luabind
 			typedef void*(*extractor_fun)(void*);
 
 			template<class T>
-			static extractor_fun apply(detail::type<T>)
+			static extractor_fun apply(detail::type_<T>)
 			{
 				return 0;
 			}
@@ -359,13 +381,13 @@ namespace luabind
 			typedef const void*(*extractor_fun)(void*);
 
 			template<class T>
-			static extractor_fun apply(detail::type<T>)
+			static extractor_fun apply(detail::type_<T>)
 			{
-				return get_extractor(detail::type<T>(), luabind::get_const_holder(static_cast<HeldType*>(0)));
+				return get_extractor(detail::type_<T>(), get_const_holder(static_cast<HeldType*>(0)));
 			}
 		private:
 			template<class T, class ConstHolderType>
-			static extractor_fun get_extractor(detail::type<T>, ConstHolderType*)
+			static extractor_fun get_extractor(detail::type_<T>, ConstHolderType*)
 			{
 				return &detail::extract_underlying_const_type<T, ConstHolderType>::extract;
 			}
@@ -377,7 +399,7 @@ namespace luabind
 			typedef const void*(*extractor_fun)(void*);
 
 			template<class T>
-			static extractor_fun apply(detail::type<T>)
+			static extractor_fun apply(detail::type_<T>)
 			{
 				return 0;
 			}
@@ -435,7 +457,7 @@ namespace luabind
 		{
 			typedef void(*constructor)(void*,void*);
 			template<class T>
-			static constructor apply(detail::type<T>)
+			static constructor apply(detail::type_<T>)
 			{
 				return &internal_construct_holder<HeldType, T>::apply;
 			}
@@ -446,7 +468,7 @@ namespace luabind
 		{
 			typedef void(*constructor)(void*,void*);
 			template<class T>
-			static constructor apply(detail::type<T>)
+			static constructor apply(detail::type_<T>)
 			{
 				return 0;
 			}
@@ -460,15 +482,15 @@ namespace luabind
 		{
 			typedef void(*constructor)(void*,void*);
 			template<class T>
-			static constructor apply(detail::type<T>)
+			static constructor apply(detail::type_<T>)
 			{
-				return get_const_holder_constructor(detail::type<T>(), luabind::get_const_holder(static_cast<HolderType*>(0)));
+				return get_const_holder_constructor(detail::type_<T>(), get_const_holder(static_cast<HolderType*>(0)));
 			}
 
 		private:
 
 			template<class T, class ConstHolderType>
-				static constructor get_const_holder_constructor(detail::type<T>, ConstHolderType*)
+			static constructor get_const_holder_constructor(detail::type_<T>, ConstHolderType*)
 			{
 				return &internal_construct_holder<ConstHolderType, T>::apply;
 			}
@@ -479,7 +501,7 @@ namespace luabind
 		{
 			typedef void(*constructor)(void*,void*);
 			template<class T>
-			static constructor apply(detail::type<T>)
+			static constructor apply(detail::type_<T>)
 			{
 				return 0;
 			}
@@ -494,7 +516,7 @@ namespace luabind
 		{
 			typedef void(*constructor)(void*);
 			template<class T>
-			static constructor apply(detail::type<T>)
+			static constructor apply(detail::type_<T>)
 			{
 				return &internal_default_construct_holder<HeldType, T>::apply;
 			}
@@ -505,7 +527,7 @@ namespace luabind
 		{
 			typedef void(*constructor)(void*);
 			template<class T>
-			static constructor apply(detail::type<T>)
+			static constructor apply(detail::type_<T>)
 			{
 				return 0;
 			}
@@ -521,15 +543,15 @@ namespace luabind
 		{
 			typedef void(*constructor)(void*);
 			template<class T>
-			static constructor apply(detail::type<T>)
+			static constructor apply(detail::type_<T>)
 			{
-				return get_const_holder_default_constructor(detail::type<T>(), luabind::get_const_holder(static_cast<HolderType*>(0)));
+				return get_const_holder_default_constructor(detail::type_<T>(), get_const_holder(static_cast<HolderType*>(0)));
 			}
 
 		private:
 
 			template<class T, class ConstHolderType>
-			static constructor get_const_holder_default_constructor(detail::type<T>, ConstHolderType*)
+			static constructor get_const_holder_default_constructor(detail::type_<T>, ConstHolderType*)
 			{
 				return &internal_default_construct_holder<ConstHolderType, T>::apply;
 			}
@@ -540,7 +562,7 @@ namespace luabind
 		{
 			typedef void(*constructor)(void*);
 			template<class T>
-			static constructor apply(detail::type<T>)
+			static constructor apply(detail::type_<T>)
 			{
 				return 0;
 			}
@@ -554,7 +576,7 @@ namespace luabind
 		template <class HolderType>
 		struct internal_holder_size
 		{
-			static int apply() { return get_internal_holder_size(luabind::get_const_holder(static_cast<HolderType*>(0))); }
+			static int apply() { return get_internal_holder_size(get_const_holder(static_cast<HolderType*>(0))); }
 		private:
 			template<class ConstHolderType>
 			static int get_internal_holder_size(ConstHolderType*)
@@ -578,7 +600,7 @@ namespace luabind
 		{
 			typedef void(*destructor_t)(void*);
 			template<class T>
-			static destructor_t apply(detail::type<T>)
+			static destructor_t apply(detail::type_<T>)
 			{
 				return &detail::destruct_only_s<HeldType>::apply;
 			}
@@ -590,7 +612,7 @@ namespace luabind
 		{
 			typedef void(*destructor_t)(void*);
 			template<class T>
-			static destructor_t apply(detail::type<T>)
+			static destructor_t apply(detail::type_<T>)
 			{
 				return &detail::delete_s<T>::apply;
 			}
@@ -603,9 +625,9 @@ namespace luabind
 		{
 			typedef void(*destructor_t)(void*);
 			template<class T>
-			static destructor_t apply(detail::type<T>)
+			static destructor_t apply(detail::type_<T>)
 			{
-				return const_holder_type_destructor(luabind::get_const_holder(static_cast<HolderType*>(0)));
+				return const_holder_type_destructor(get_const_holder(static_cast<HolderType*>(0)));
 			}
 
 		private:
@@ -624,7 +646,7 @@ namespace luabind
 		{
 			typedef void(*destructor_t)(void*);
 			template<class T>
-			static destructor_t apply(detail::type<T>)
+			static destructor_t apply(detail::type_<T>)
 			{
 				return 0;
 			}
@@ -638,7 +660,7 @@ namespace luabind
 		{
 			static int apply()
 			{
-				return internal_alignment(luabind::get_const_holder(static_cast<HolderType*>(0)));
+				return internal_alignment(get_const_holder(static_cast<HolderType*>(0)));
 			}
 
 		private:
@@ -709,31 +731,30 @@ namespace luabind
 				, void(*const_holder_constructor)(void*,void*)
 				, void(*holder_default_constructor)(void*)
 				, void(*const_holder_default_constructor)(void*)
+				, void(*adopt_fun)(void*)
 				, void(*destructor)(void*)
 				, void(*const_holder_destructor)(void*)
-				, void(*m_adopt_fun)(void*)
 				, int holder_size
 				, int holder_alignment);
 
 			void add_getter(
 				const char* name
-				, const boost::function2<int, lua_State*, int, luabind::memory_allocator<boost::function_base> >& g);
+				, const boost::function2<int, lua_State*, int >& g);
 
 #ifdef LUABIND_NO_ERROR_CHECKING
-			void class_base::add_setter(
+			void add_setter(
 				const char* name
-				, const boost::function2<int, lua_State*, int, luabind::memory_allocator<boost::function_base> >& s);
+				, const boost::function2<int, lua_State*, int >& s);
 #else
-			void class_base::add_setter(
+			void add_setter(
 				const char* name
-				, const boost::function2<int, lua_State*, int, luabind::memory_allocator<boost::function_base> >& s
+				, const boost::function2<int, lua_State*, int >& s
 				, int (*match)(lua_State*, int)
-				, void (*get_sig_ptr)(lua_State*, string_class&));
+				, void (*get_sig_ptr)(lua_State*, luabind::string&));
 #endif
 
 			void add_base(const base_desc& b);
 			void add_constructor(const detail::construct_rep::overload_t& o);	
-			void add_method(const char* name, const detail::overload_rep& o);
 
 #ifndef LUABIND_NO_ERROR_CHECKING
 			void add_operator(
@@ -741,7 +762,7 @@ namespace luabind
 				,  int(*func)(lua_State*)
 				, int(*matcher)(lua_State*)
 				, void(*sig)(lua_State*
-				, string_class&)
+				, luabind::string&)
 				, int arity);
 #else
 			void add_operator(
@@ -750,6 +771,9 @@ namespace luabind
 				, int(*matcher)(lua_State*)
 				, int arity);
 #endif
+
+			void add_member(registration* member);
+			void add_default_member(registration* member);
 
 			const char* name() const;
 
@@ -765,15 +789,180 @@ namespace luabind
 		{
 		    static void execute(void* p)
             {
-			    wrapped_self_t& self = wrap_access::ref(
-					*static_cast<W*>(static_cast<T*>(p))
-				);
+                if (W* wrapper = dynamic_cast<W*>(static_cast<T*>(p)))
+                {
+                    wrapped_self_t& self = wrap_access::ref(*wrapper);
 
-				LUABIND_CHECK_STACK(self.state());
+                    LUABIND_CHECK_STACK(self.state());
 
-				self.get(self.state());
-				self.m_strong_ref.set(self.state());
+                    self.get(self.state());
+                    self.m_strong_ref.set(self.state());
+                }
             }
+        };
+
+		template <class Class, class F, class Policies>
+		struct memfun_registration : registration
+		{
+			memfun_registration(char const* name, F f, Policies const& policies)
+			  : name(name)
+			  , f(f)
+			  , policies(policies)
+			{}
+
+			void register_(lua_State* L) const
+			{
+				object fn = make_function(
+					L, f, deduce_signature(f, (Class*)0), policies);
+
+				add_overload(
+					object(from_stack(L, -1))
+				  , name
+				  , fn
+				);
+			}
+
+			F f;
+			Policies policies;
+			char const* name;
+		};
+
+        template <class Class, class Signature, class Policies>
+        struct constructor_registration : registration
+        {
+            constructor_registration(Policies const& policies)
+              : policies(policies)
+            {}
+
+            void register_(lua_State* L) const
+            {
+                object fn = make_function(
+                    L, construct<Class, Signature>(), Signature(), policies);
+
+                add_overload(
+                    object(from_stack(L, -1))
+                  , "__init"
+                  , fn
+                );
+            }
+
+            Policies policies;
+        };
+
+        template <class T>
+        struct reference_result
+          : mpl::if_<
+                mpl::or_<boost::is_pointer<T>, is_primitive<T> >
+              , T
+              , typename boost::add_reference<T>::type
+            >
+        {};
+
+        template <class T, class Policies>
+        struct inject_dependency_policy
+          : mpl::if_<
+                is_primitive<T>
+              , Policies
+              , policy_cons<dependency_policy<0, 1>, Policies>
+            >
+        {};
+
+        template <
+            class Class
+          , class Get, class GetPolicies
+          , class Set = null_type, class SetPolicies = null_type
+        >
+        struct property_registration : registration
+        {
+            property_registration(
+                char const* name
+              , Get const& get
+              , GetPolicies const& get_policies
+              , Set const& set = Set()
+              , SetPolicies const& set_policies = SetPolicies()
+            )
+              : name(name)
+              , get(get)
+              , get_policies(get_policies)
+              , set(set)
+              , set_policies(set_policies)
+            {}
+
+            void register_(lua_State* L) const
+            {
+                object context(from_stack(L, -1));
+                register_aux(
+                    L
+                  , context
+                  , make_get(L, get, boost::is_member_object_pointer<Get>())
+                  , set
+                );
+            }
+
+            template <class F>
+            object make_get(lua_State* L, F const& f, mpl::false_) const
+            {
+                return make_function(
+                    L, f, deduce_signature(f, (Class*)0), get_policies);
+            }
+
+            template <class T, class D>
+            object make_get(lua_State* L, D T::* mem_ptr, mpl::true_) const
+            {
+                typedef typename reference_result<D>::type result_type;
+                typedef typename inject_dependency_policy<
+                    D, GetPolicies>::type policies;
+
+                return make_function(
+                    L
+                  , access_member_ptr<T, D, result_type>(mem_ptr)
+                  , mpl::vector2<result_type, Class const&>()
+                  , policies()
+                );
+            }
+
+            template <class F>
+            object make_set(lua_State* L, F const& f, mpl::false_) const
+            {
+                return make_function(
+                    L, f, deduce_signature(f, (Class*)0), set_policies);
+            }
+
+            template <class T, class D>
+            object make_set(lua_State* L, D T::* mem_ptr, mpl::true_) const
+            {
+                return make_function(
+                    L
+                  , access_member_ptr<T, D>(mem_ptr)
+                  , mpl::vector3<void, Class&, D const&>()
+                  , set_policies
+                );
+            }
+
+            template <class S>
+            void register_aux(
+                lua_State* L, object const& context
+              , object const& get_, S const&) const
+            {
+                context[name] = property(
+                    get_
+                  , make_set(L, set, boost::is_member_object_pointer<Set>())
+                );
+            }
+
+            void register_aux(
+                lua_State* L, object const& context
+              , object const& get_, null_type) const
+            {
+				(void)L;
+                context[name] = property(get_);
+            }
+
+            char const* name;
+            Get get;
+            GetPolicies get_policies;
+            Set set;
+            SetPolicies set_policies;
         };
 
 	} // namespace detail
@@ -816,7 +1005,7 @@ namespace luabind
 		// in the given class_rep structure. It will be able
 		// to implicitly cast to the given template type
 		template<class To>
-		void gen_base_info(detail::type<To>)
+		void gen_base_info(detail::type_<To>)
 		{
 			// fist, make sure the given base class is registered.
 			// if it's not registered we can't push it's lua table onto
@@ -829,17 +1018,17 @@ namespace luabind
 			// store the information in this class' base class-vector
 			base_desc base;
 			base.type = LUABIND_TYPEID(To);
-			base.ptr_offset = detail::ptr_offset(detail::type<T>(), detail::type<To>());
+			base.ptr_offset = detail::ptr_offset(detail::type_<T>(), detail::type_<To>());
 			add_base(base);
 		}
 
-		void gen_base_info(detail::type<detail::null_type>)
+		void gen_base_info(detail::type_<detail::null_type>)
 		{}
 
-#define LUABIND_GEN_BASE_INFO(z, n, text) gen_base_info(detail::type<B##n>());
+#define LUABIND_GEN_BASE_INFO(z, n, text) gen_base_info(detail::type_<B##n>());
 
 		template<BOOST_PP_ENUM_PARAMS(LUABIND_MAX_BASES, class B)>
-		void generate_baseclass_list(detail::type<bases<BOOST_PP_ENUM_PARAMS(LUABIND_MAX_BASES, B)> >)
+		void generate_baseclass_list(detail::type_<bases<BOOST_PP_ENUM_PARAMS(LUABIND_MAX_BASES, B)> >)
 		{
 			BOOST_PP_REPEAT(LUABIND_MAX_BASES, LUABIND_GEN_BASE_INFO, _)
 		}
@@ -883,134 +1072,127 @@ namespace luabind
 		template<BOOST_PP_ENUM_PARAMS(LUABIND_MAX_ARITY, class A)>
 		class_& def(constructor<BOOST_PP_ENUM_PARAMS(LUABIND_MAX_ARITY, A)> sig)
 		{
-            return this->def_constructor(
-				boost::is_same<WrappedType, detail::null_type>()
-			  , &sig
-			  , detail::null_type()
-			);
+            return this->def_constructor(&sig, detail::null_type());
 		}
 
 		template<BOOST_PP_ENUM_PARAMS(LUABIND_MAX_ARITY, class A), class Policies>
 		class_& def(constructor<BOOST_PP_ENUM_PARAMS(LUABIND_MAX_ARITY, A)> sig, const Policies& policies)
 		{
-            return this->def_constructor(
-				boost::is_same<WrappedType, detail::null_type>()
-			  , &sig
-			  , policies
-			);
+            return this->def_constructor(&sig, policies);
 		}
 
-		template<class Getter>
-		class_& property(const char* name, Getter g)
-		{
-			add_getter(name, boost::bind<int>(detail::get_caller<T, Getter, detail::null_type>(), _1, _2, g));
-			return *this;
-		}
+        template <class Getter>
+        class_& property(const char* name, Getter g)
+        {
+            this->add_member(
+                luabind_new<detail::property_registration<T, Getter, detail::null_type> >(
+                    name, g, detail::null_type()));
+            return *this;
+        }
 
-		template<class Getter, class MaybeSetter>
-		class_& property(const char* name, Getter g, MaybeSetter s)
-		{
-			return property_impl(name, g, s, boost::mpl::bool_<detail::is_policy_cons<MaybeSetter>::value>());
-		}
+        template <class Getter, class MaybeSetter>
+        class_& property(const char* name, Getter g, MaybeSetter s)
+        {
+            return property_impl(
+                name, g, s
+              , boost::mpl::bool_<detail::is_policy_cons<MaybeSetter>::value>()
+            );
+        }
 
-		template<class Getter, class Setter, class GetPolicies>
-		class_& property(const char* name, Getter g, Setter s, const GetPolicies& get_policies)
-		{
-			add_getter(name, boost::bind<int>(detail::get_caller<T, Getter, GetPolicies>(get_policies), _1, _2, g));
-#ifndef LUABIND_NO_ERROR_CHECKING
-			add_setter(
-				name
-				, boost::bind<int>(detail::set_caller<T, Setter, detail::null_type>(), _1, _2, s)
-				, detail::gen_set_matcher((Setter)0, (detail::null_type*)0)
-				, &detail::get_member_signature<Setter>::apply);
-#else
-			add_setter(
-				name
-				, boost::bind<int>(detail::set_caller<T, Setter, detail::null_type>(), _1, _2, s));
-#endif
-			return *this;
-		}
+        template<class Getter, class Setter, class GetPolicies>
+        class_& property(const char* name, Getter g, Setter s, const GetPolicies& get_policies)
+        {
+            typedef detail::property_registration<
+                T, Getter, GetPolicies, Setter, detail::null_type
+            > registration_type;
 
-		template<class Getter, class Setter, class GetPolicies, class SetPolicies>
-		class_& property(const char* name
-									, Getter g, Setter s
-									, const GetPolicies& get_policies
-									, const SetPolicies& set_policies)
-		{
-			add_getter(name, boost::bind<int>(detail::get_caller<T, Getter, GetPolicies>(get_policies), _1, _2, g));
-#ifndef LUABIND_NO_ERROR_CHECKING
-			add_setter(
-				name
-				, boost::bind<int>(detail::set_caller<T, Setter, SetPolicies>(), _1, _2, s)
-				, detail::gen_set_matcher((Setter)0, (SetPolicies*)0)
-				, &detail::get_member_signature<Setter>::apply);
-#else
-			add_setter(name, boost::bind<int>(detail::set_caller<T, Setter, SetPolicies>(set_policies), _1, _2, s));
-#endif
-			return *this;
-		}
+            this->add_member(
+                luabind_new<registration_type>(name, g, get_policies, s));
+            return *this;
+        }
 
-		template<class D>
-		class_& def_readonly(const char* name, D T::*member_ptr)
-		{
-			add_getter(name, boost::bind<int>(detail::auto_get<T,D,detail::null_type>(), _1, _2, member_ptr));
-			return *this;
-		}
+        template<class Getter, class Setter, class GetPolicies, class SetPolicies>
+        class_& property(
+            const char* name
+          , Getter g, Setter s
+          , GetPolicies const& get_policies
+          , SetPolicies const& set_policies)
+        {
+            typedef detail::property_registration<
+                T, Getter, GetPolicies, Setter, SetPolicies
+            > registration_type;
 
-		template<class D, class Policies>
-		class_& def_readonly(const char* name, D T::*member_ptr, const Policies& policies)
-		{
-			add_getter(name, boost::bind<int>(detail::auto_get<T,D,Policies>(policies), _1, _2, member_ptr));
-			return *this;
-		}
+            this->add_member(
+                luabind_new<registration_type>(name, g, get_policies, s, set_policies));
+            return *this;
+        }
 
-		template<class D>
-		class_& def_readwrite(const char* name, D T::*member_ptr)
-		{
-			add_getter(name, boost::bind<int>(detail::auto_get<T,D,detail::null_type>(), _1, _2, member_ptr));
-#ifndef LUABIND_NO_ERROR_CHECKING
-			add_setter(
-				name
-				, boost::bind<int>(detail::auto_set<T,D,detail::null_type>(), _1, _2, member_ptr)
-				, &detail::set_matcher<D, detail::null_type>::apply
-				, &detail::get_setter_signature<D>::apply);
-#else
-			add_setter(name, boost::bind<int>(detail::auto_set<T,D,detail::null_type>(), _1, _2, member_ptr));
-#endif
-			return *this;
-		}
+        template <class C, class D>
+        class_& def_readonly(const char* name, D C::*mem_ptr)
+        {
+            typedef detail::property_registration<T, D C::*, detail::null_type>
+                registration_type;
 
-		template<class D, class GetPolicies>
-		class_& def_readwrite(const char* name, D T::*member_ptr, const GetPolicies& get_policies)
-		{
-			add_getter(name, boost::bind<int>(detail::auto_get<T,D,GetPolicies>(get_policies), _1, _2, member_ptr));
-#ifndef LUABIND_NO_ERROR_CHECKING
-			add_setter(
-				name
-				, boost::bind<int>(detail::auto_set<T,D,detail::null_type>(), _1, _2, member_ptr)
-				, &detail::set_matcher<D, detail::null_type>::apply
-				, &detail::get_setter_signature<D>::apply);
-#else
-			add_setter(name, boost::bind<int>(detail::auto_set<T,D,detail::null_type>(), _1, _2, member_ptr));
-#endif
-			return *this;
-		}
+            this->add_member(
+                luabind_new<registration_type>(name, mem_ptr, detail::null_type()));
+            return *this;
+        }
 
-		template<class D, class GetPolicies, class SetPolicies>
-		class_& def_readwrite(const char* name, D T::*member_ptr, const GetPolicies& get_policies, const SetPolicies& set_policies)
-		{
-			add_getter(name, boost::bind<int>(detail::auto_get<T,D,GetPolicies>(get_policies), _1, _2, member_ptr));
-#ifndef LUABIND_NO_ERROR_CHECKING
-			add_setter(
-				name
-				, boost::bind<int>(detail::auto_set<T,D,SetPolicies>(), _1, _2, member_ptr)
-				, &detail::set_matcher<D, SetPolicies>::apply
-				, &detail::get_setter_signature<D>::apply);
-#else
-			add_setter(name, boost::bind<int>(detail::auto_set<T,D,SetPolicies>(set_policies), _1, _2, member_ptr));
-#endif
-			return *this;
-		}
+        template <class C, class D, class Policies>
+        class_& def_readonly(const char* name, D C::*mem_ptr, Policies const& policies)
+        {
+            typedef detail::property_registration<T, D C::*, Policies>
+                registration_type;
+
+            this->add_member(
+                luabind_new<registration_type>(name, mem_ptr, policies));
+            return *this;
+        }
+
+        template <class C, class D>
+        class_& def_readwrite(const char* name, D C::*mem_ptr)
+        {
+            typedef detail::property_registration<
+                T, D C::*, detail::null_type, D C::*
+            > registration_type;
+
+            this->add_member(
+                luabind_new<registration_type>(
+                    name, mem_ptr, detail::null_type(), mem_ptr));
+            return *this;
+        }
+
+        template <class C, class D, class GetPolicies>
+        class_& def_readwrite(
+            const char* name, D C::*mem_ptr, GetPolicies const& get_policies)
+        {
+            typedef detail::property_registration<
+                T, D C::*, GetPolicies, D C::*
+            > registration_type;
+
+            this->add_member(
+                luabind_new<registration_type>(
+                    name, mem_ptr, get_policies, mem_ptr));
+            return *this;
+        }
+
+        template <class C, class D, class GetPolicies, class SetPolicies>
+        class_& def_readwrite(
+            const char* name
+          , D C::*mem_ptr
+          , GetPolicies const& get_policies
+          , SetPolicies const& set_policies
+        )
+        {
+            typedef detail::property_registration<
+                T, D C::*, GetPolicies, D C::*, SetPolicies
+            > registration_type;
+
+            this->add_member(
+                luabind_new<registration_type>(
+                    name, mem_ptr, get_policies, mem_ptr, set_policies));
+            return *this;
+        }
 
 		template<class Derived, class Policies>
 		class_& def(detail::operator_<Derived>, Policies const& policies)
@@ -1135,8 +1317,6 @@ namespace luabind
 
 		void init()
 		{
-			set_back_reference((back_reference<T>*)0);
-
 			typedef typename detail::extract_parameter<
 					boost::mpl::list3<X1,X2,X3>
 				,	boost::mpl::or_<
@@ -1156,21 +1336,21 @@ namespace luabind
 				, detail::internal_holder_type<HeldType>::apply()
 				, detail::pointee_typeid(
 					get_const_holder(static_cast<HeldType*>(0)))
-				, detail::internal_holder_extractor<HeldType>::apply(detail::type<T>())
-				, detail::internal_const_holder_extractor<HeldType>::apply(detail::type<T>())
+				, detail::internal_holder_extractor<HeldType>::apply(detail::type_<T>())
+				, detail::internal_const_holder_extractor<HeldType>::apply(detail::type_<T>())
 				, detail::const_converter<HeldType>::apply(
-					luabind::get_const_holder((HeldType*)0))
-				, detail::holder_constructor<HeldType>::apply(detail::type<T>())
-				, detail::const_holder_constructor<HeldType>::apply(detail::type<T>())
-				, detail::holder_default_constructor<HeldType>::apply(detail::type<T>())
-				, detail::const_holder_default_constructor<HeldType>::apply(detail::type<T>())
+					get_const_holder((HeldType*)0))
+				, detail::holder_constructor<HeldType>::apply(detail::type_<T>())
+				, detail::const_holder_constructor<HeldType>::apply(detail::type_<T>())
+				, detail::holder_default_constructor<HeldType>::apply(detail::type_<T>())
+				, detail::const_holder_default_constructor<HeldType>::apply(detail::type_<T>())
 				, get_adopt_fun((WrappedType*)0) // adopt fun
-				, detail::internal_holder_destructor<HeldType>::apply(detail::type<T>())
-				, detail::internal_const_holder_destructor<HeldType>::apply(detail::type<T>())
+				, detail::internal_holder_destructor<HeldType>::apply(detail::type_<T>())
+				, detail::internal_const_holder_destructor<HeldType>::apply(detail::type_<T>())
 				, detail::internal_holder_size<HeldType>::apply()
 				, detail::get_holder_alignment<HeldType>::apply());
 
-			generate_baseclass_list(detail::type<Base>());
+			generate_baseclass_list(detail::type_<Base>());
 		}
 
 		template<class Getter, class GetPolicies>
@@ -1179,7 +1359,9 @@ namespace luabind
 									 GetPolicies policies,
 									 boost::mpl::bool_<true>)
 		{
-			add_getter(name, boost::bind<int>(detail::get_caller<T,Getter,GetPolicies>(policies), _1, _2, g));
+            this->add_member(
+                luabind_new<detail::property_registration<T, Getter, GetPolicies> >(
+                    name, g, policies));
 			return *this;
 		}
 
@@ -1189,132 +1371,64 @@ namespace luabind
 									 Setter s,
 									 boost::mpl::bool_<false>)
 		{
-			add_getter(name, boost::bind<int>(detail::get_caller<T,Getter,detail::null_type>(), _1, _2, g));
-#ifndef LUABIND_NO_ERROR_CHECKING
-			add_setter(
-				name
-				, boost::bind<int>(detail::set_caller<T, Setter, detail::null_type>(), _1, _2, s)
-				, detail::gen_set_matcher((Setter)0, (detail::null_type*)0)
-				, &detail::get_member_signature<Setter>::apply);
-#else
-			add_setter(name, boost::bind<int>(detail::set_caller<T,Setter,detail::null_type>(), _1, _2, s));
-#endif
+            typedef detail::property_registration<
+                T, Getter, detail::null_type, Setter, detail::null_type
+            > registration_type;
+
+            this->add_member(
+                luabind_new<registration_type>(name, g, detail::null_type(), s));
 			return *this;
 		}
 
 		// these handle default implementation of virtual functions
 		template<class F, class Policies>
 		class_& virtual_def(char const* name, F const& fn
-			, Policies const& policies, detail::null_type, boost::mpl::true_)
+			, Policies const&, detail::null_type, boost::mpl::true_)
 		{
-			// normal def() call
-			detail::overload_rep o(fn, static_cast<Policies*>(0));
-
-			o.set_match_fun(detail::mem_fn_matcher<F, T, Policies>(fn));
-			o.set_fun(detail::mem_fn_callback<F, T, Policies>(fn));
-
-#ifndef LUABIND_NO_ERROR_CHECKING
-			o.set_sig_fun(&detail::get_member_signature<F>::apply);
-#endif
-			this->add_method(name, o);
+			this->add_member(
+				luabind_new<detail::memfun_registration<T, F, Policies> >(
+					name, fn, Policies()));
 			return *this;
 		}
 
 		template<class F, class Default, class Policies>
 		class_& virtual_def(char const* name, F const& fn
-			, Default const& default_, Policies const& policies, boost::mpl::false_)
+			, Default const& default_, Policies const&, boost::mpl::false_)
 		{
-			// default_ is a default implementation
-			// policies is either null_type or a policy list
+			this->add_member(
+				luabind_new<detail::memfun_registration<T, F, Policies> >(
+					name, fn, Policies()));
 
-			// normal def() call
-			detail::overload_rep o(fn, (Policies*)0);
+			this->add_default_member(
+				luabind_new<detail::memfun_registration<T, Default, Policies> >(
+					name, default_, Policies()));
 
-			o.set_match_fun(detail::mem_fn_matcher<F, T, Policies>(fn));
-			o.set_fun(detail::mem_fn_callback<F, T, Policies>(fn));
-
-			o.set_fun_static(
-				detail::mem_fn_callback<Default, T, Policies>(default_));
-
-#ifndef LUABIND_NO_ERROR_CHECKING
-			o.set_sig_fun(&detail::get_member_signature<F>::apply);
-#endif
-
-			this->add_method(name, o);
-			// register virtual function
 			return *this;
 		}
 
         template<class Signature, class Policies>
-		class_& def_constructor(
-			boost::mpl::true_ /* HasWrapper */
-          , Signature*
-          , Policies const& policies)
-        {	
-			detail::construct_rep::overload_t o;
+		class_& def_constructor(Signature*, Policies const&)
+        {
+            typedef typename Signature::signature signature;
 
-			o.set_constructor(
-				&detail::construct_class<
-					T
-				  , Policies
-				  , Signature
-				>::apply);
+            typedef typename boost::mpl::if_<
+                boost::is_same<WrappedType, detail::null_type>
+              , T
+              , WrappedType
+            >::type construct_type;
 
-			o.set_match_fun(
-				&detail::constructor_match<
-				    Signature
-			      , 2
-			      , Policies
-			    >::apply);
+            this->add_member(
+                luabind_new<detail::constructor_registration<
+                    construct_type, signature, Policies> >(
+                        Policies()));
 
-#ifndef LUABIND_NO_ERROR_CHECKING
-			o.set_sig_fun(&detail::get_signature<Signature>::apply);
-#endif
-			o.set_arity(detail::calc_arity<Signature::arity>::apply(Signature(), (Policies*)0));
-			this->add_constructor(o);
+            this->add_default_member(
+                luabind_new<detail::constructor_registration<
+                    construct_type, signature, Policies> >(
+                        Policies()));
+
             return *this;
         }
-
-        template<class Signature, class Policies>
-		class_& def_constructor(
-			boost::mpl::false_ /* !HasWrapper */
-          , Signature*
-          , Policies const& policies)
-		{
-			detail::construct_rep::overload_t o;
-
-			o.set_constructor(
-				&detail::construct_wrapped_class<
-					T
-				  , WrappedType
-				  , Policies
-				  , Signature
-				>::apply);
-
-			o.set_match_fun(
-				&detail::constructor_match<
-				    Signature
-			      , 2
-			      , Policies
-			    >::apply);
-
-#ifndef LUABIND_NO_ERROR_CHECKING
-			o.set_sig_fun(&detail::get_signature<Signature>::apply);
-#endif
-			o.set_arity(detail::calc_arity<Signature::arity>::apply(Signature(), (Policies*)0));
-			this->add_constructor(o);
-            return *this;
-        }
-
-		void set_back_reference(detail::default_back_reference*)
-		{
-			back_reference<T>::has_wrapper 
-				= !boost::is_same<WrappedType, detail::null_type>::value;
-		}
-
-		void set_back_reference(void*)
-		{
-		}
 
 		typedef void(*adopt_fun_t)(void*);
 
@@ -1330,13 +1444,16 @@ namespace luabind
 		}
 	};
 
-	namespace 
-	{
-		LUABIND_ANONYMOUS_FIX detail::policy_cons<
-			detail::pure_virtual_tag
-		  , detail::null_type
-		> pure_virtual;
-	}
+	detail::policy_cons<
+		detail::pure_virtual_tag, detail::null_type> const pure_virtual = {};
+
+    namespace detail
+    {
+      inline void ignore_unused_pure_virtual()
+      {
+          (void)pure_virtual;
+      }
+    }
 }
 
 #ifdef _MSC_VER

@@ -43,7 +43,7 @@ namespace luabind { namespace detail
 		struct can_only_convert_from_cpp_to_lua {};
 
 		template<class T, class Direction>
-		struct generate_converter
+		struct apply
 		{
 			typedef typename boost::mpl::if_<boost::is_same<Direction, cpp_to_lua>
 				, discard_converter
@@ -56,10 +56,16 @@ namespace luabind { namespace detail
 
 namespace luabind
 {
-	namespace 
-	{
-		LUABIND_ANONYMOUS_FIX detail::policy_cons<detail::discard_result_policy, detail::null_type> discard_result;
-	}
+  detail::policy_cons<
+      detail::discard_result_policy, detail::null_type> const discard_result = {};
+
+  namespace detail
+  {
+    inline void ignore_unused_discard_result()
+    {
+        (void)discard_result;
+    }
+  }
 }
 
 #endif // LUABIND_DISCARD_RESULT_POLICY_HPP_INCLUDED

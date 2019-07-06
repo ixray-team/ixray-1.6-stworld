@@ -9,12 +9,16 @@
 #ifndef CS_DEFINES_H_INCLUDED
 #define CS_DEFINES_H_INCLUDED
 
-// STATIC_CHECK macro
+////////////////////////////////////////////////////////////////////////////
+// STATIC_CHECK
+////////////////////////////////////////////////////////////////////////////
 #ifndef STATIC_CHECK
-#	define STATIC_CHECK(expr, msg)			typedef char ERROR_##msg[1][(expr)]
+#	define STATIC_CHECK(expr, msg)			typedef char ERROR_##msg[1][2*(expr)-1]
 #endif // #ifndef STATIC_CHECK
 
-// DECLSPEC_NOVTABLE macro
+////////////////////////////////////////////////////////////////////////////
+// DECLSPEC_NOVTABLE
+////////////////////////////////////////////////////////////////////////////
 #ifndef DECLSPEC_NOVTABLE
 #	if (_MSC_VER >= 1100) && defined(__cplusplus)
 #		define DECLSPEC_NOVTABLE			__declspec(novtable)
@@ -23,40 +27,24 @@
 #	endif // #if (_MSC_VER >= 1100) && defined(__cplusplus)
 #endif // #ifndef DECLSPEC_NOVTABLE
 
-// CS_STRING_CONCAT macro
+////////////////////////////////////////////////////////////////////////////
+// CS_STRING_CONCAT + CS_STRING_CONCAT_HELPER
+////////////////////////////////////////////////////////////////////////////
 #if defined(CS_STRING_CONCAT) || defined(CS_STRING_CONCAT_HELPER)
-	STATIC_CHECK(false, CS_STRING_CONCAT_or_CS_STRING_CONCAT_HELPER_or_CS_STRING_CONCAT4_macro_already_defined);
+#	error do not define CS_STRING_CONCAT and CS_STRING_CONCAT_HELPER macros
 #endif // #if defined(CS_STRING_CONCAT) || defined(CS_STRING_CONCAT_HELPER)
 
 #define CS_STRING_CONCAT_HELPER(a,b)		a##b
 #define CS_STRING_CONCAT(a,b)				CS_STRING_CONCAT_HELPER(a,b)
 
-// CS_MAKE_STRING macro
+////////////////////////////////////////////////////////////////////////////
+// CS_MAKE_STRING
+////////////////////////////////////////////////////////////////////////////
 #if defined(CS_MAKE_STRING) || defined(CS_MAKE_STRING_HELPER)
-	STATIC_CHECK(false, CS_MAKE_STRING_or_CS_MAKE_STRING_HELPER_macro_already_defined);
+#	error do not define CS_MAKE_STRING and CS_MAKE_STRING_HELPER macros
 #endif // #if defined(CS_MAKE_STRING) || defined(CS_MAKE_STRING_HELPER)
 
 #define CS_MAKE_STRING_HELPER(a)			#a
 #define CS_MAKE_STRING(a)					CS_MAKE_STRING_HELPER(a)
-
-#define CS_LIBRARY_NAME(library, extension)	\
-	CS_MAKE_STRING(\
-		CS_STRING_CONCAT(\
-			CS_LIBRARY_PREFIX,\
-			CS_STRING_CONCAT(\
-				library,\
-				CS_STRING_CONCAT(\
-					CS_PLATFORM_ID,\
-					CS_STRING_CONCAT(\
-						CS_SOLUTION_CONFIGURATION_ID,\
-						CS_STRING_CONCAT(\
-							.,\
-							extension\
-						)\
-					)\
-				)\
-			)\
-		)\
-	)
 
 #endif // #ifndef CS_DEFINES_H_INCLUDED

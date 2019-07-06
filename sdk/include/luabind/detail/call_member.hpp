@@ -30,17 +30,22 @@
 #include <luabind/detail/convert_to_lua.hpp>
 #include <luabind/detail/pcall.hpp>
 #include <luabind/error.hpp>
+#include <luabind/detail/stack_utils.hpp>
+#include <luabind/object.hpp> // TODO: REMOVE DEPENDENCY
+
+#include <boost/tuple/tuple.hpp>
 
 #include <boost/preprocessor/control/if.hpp>
 #include <boost/preprocessor/facilities/expand.hpp>
+
+#include <boost/mpl/apply_wrap.hpp>
 
 namespace luabind
 {
 	namespace detail
 	{
 
-
-
+		namespace mpl = boost::mpl;
 
 		// if the proxy_member_caller returns non-void
 			template<class Ret, class Tuple>
@@ -89,7 +94,7 @@ namespace luabind
 	
 						assert(0 && "the lua function threw an error and exceptions are disabled."
 								"If you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+			  			abort();
 #endif
 					}
 					// pops the return values from the function
@@ -98,7 +103,7 @@ namespace luabind
 
 				operator Ret()
 				{
-					typename default_policy::template generate_converter<Ret, lua_to_cpp>::type converter;
+					typename mpl::apply_wrap2<default_policy,Ret,lua_to_cpp>::type converter;
 
 					m_called = true;
 
@@ -120,7 +125,7 @@ namespace luabind
 	
 						assert(0 && "the lua function threw an error and exceptions are disabled."
 							"If you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+			  			abort();
 #endif
 					}
 
@@ -140,7 +145,7 @@ namespace luabind
 
 						assert(0 && "the lua function's return value could not be converted."
 							"If you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+			  			abort();
 #endif
 					}
 #endif
@@ -151,7 +156,7 @@ namespace luabind
 				Ret operator[](const Policies& p)
 				{
 					typedef typename find_conversion_policy<0, Policies>::type converter_policy;
-					typename converter_policy::template generate_converter<Ret, lua_to_cpp>::type converter;
+					typename mpl::apply_wrap2<converter_policy,Ret,lua_to_cpp>::type converter;
 
 					m_called = true;
 
@@ -174,7 +179,7 @@ namespace luabind
 	
 						assert(0 && "the lua function threw an error and exceptions are disabled."
 							"If you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+			  			abort();
 #endif
 					}
 
@@ -183,7 +188,7 @@ namespace luabind
 
 #ifndef LUABIND_NO_ERROR_CHECKING
 
-						if (converter.match(L, LUABIND_DECORATE_TYPE(Ret), -1) < 0)
+					if (converter.match(L, LUABIND_DECORATE_TYPE(Ret), -1) < 0)
 					{
 						assert(lua_gettop(L) == top + 1);
 #ifndef LUABIND_NO_EXCEPTIONS
@@ -194,7 +199,7 @@ namespace luabind
 
 						assert(0 && "the lua function's return value could not be converted."
 							"If you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+			  			abort();
 #endif
 					}
 #endif
@@ -213,7 +218,7 @@ namespace luabind
 			template<class Tuple>
 			class proxy_member_void_caller
 			{
-			friend class luabind::object;
+			friend class luabind::adl::object;
 			public:
 
 				proxy_member_void_caller(lua_State* L_, const Tuple args)
@@ -256,7 +261,7 @@ namespace luabind
 	
 						assert(0 && "the lua function threw an error and exceptions are disabled."
 							"If you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+			  			abort();
 #endif
 					}
 					// pops the return values from the function
@@ -287,7 +292,7 @@ namespace luabind
 	
 						assert(0 && "the lua function threw an error and exceptions are disabled."
 							"If you want to handle this error use luabind::set_error_callback()");
-						std::terminate();
+						abort();
 #endif
 					}
 					// pops the return values from the function
@@ -336,18 +341,18 @@ namespace luabind
 		// once the call has been made
 
 		// get the function
-		obj.pushvalue();
-		lua_pushstring(obj.lua_state(), name);
-		lua_gettable(obj.lua_state(), -2);
+		obj.push(obj.interpreter());
+		lua_pushstring(obj.interpreter(), name);
+		lua_gettable(obj.interpreter(), -2);
 		// duplicate the self-object
-		lua_pushvalue(obj.lua_state(), -2);
+		lua_pushvalue(obj.interpreter(), -2);
 		// remove the bottom self-object
-		lua_remove(obj.lua_state(), -3);
+		lua_remove(obj.interpreter(), -3);
 
 		// now the function and self objects
 		// are on the stack. These will both
 		// be popped by pcall
-		return proxy_type(obj.lua_state(), args);
+		return proxy_type(obj.interpreter(), args);
 	}
 
 #undef LUABIND_OPERATOR_PARAMS

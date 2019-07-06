@@ -1,5 +1,5 @@
 /*
-** $Id: luaconf.h,v 1.82.1.6 2008/01/18 17:07:48 roberto Exp $
+** $Id: luaconf.h,v 1.82.1.7 2008/02/11 16:25:08 roberto Exp $
 ** Configuration file for Lua
 ** See Copyright Notice in lua.h
 */
@@ -29,14 +29,14 @@
 #endif
 
 
-#if !defined(LUA_ANSI) && defined(_WIN32)
+#if !defined(LUA_ANSI) && defined(_WIN32) && !defined(_XBOX)
 #define LUA_WIN
 #endif
 
 #if defined(LUA_USE_LINUX)
 #define LUA_USE_POSIX
 #define LUA_USE_DLOPEN		/* needs an extra library: -ldl */
-/* #define LUA_USE_READLINE */	/* needs some extra libraries */
+#define LUA_USE_READLINE	/* needs some extra libraries */
 #endif
 
 #if defined(LUA_USE_MACOSX)
@@ -151,10 +151,6 @@
 ** the libraries, you may want to use the following definition (define
 ** LUA_BUILD_AS_DLL to get it).
 */
-#ifdef WIN32
-#	define LUA_BUILD_AS_DLL
-#endif // #ifdef WIN32
-
 #if defined(LUA_BUILD_AS_DLL)
 
 #if defined(LUA_CORE) || defined(LUA_LIB)
@@ -186,6 +182,9 @@
 #define LUAI_FUNC	static
 #define LUAI_DATA	/* empty */
 
+#elif defined(__SNC__)
+#define LUAI_FUNC	extern
+#define LUAI_DATA	extern
 #elif defined(__GNUC__) && ((__GNUC__*100 + __GNUC_MINOR__) >= 302) && \
       defined(__ELF__)
 #define LUAI_FUNC	__attribute__((visibility("hidden"))) extern
@@ -255,7 +254,7 @@
 ** CHANGE it if your stand-alone interpreter has a different name and
 ** your system is not able to detect that name automatically.
 */
-#define LUA_PROGNAME		"luajit"
+#define LUA_PROGNAME		"lua"
 
 
 /*
@@ -322,8 +321,6 @@
 @@ LUA_COMPAT_GETN controls compatibility with old getn behavior.
 ** CHANGE it (define it) if you want exact compatibility with the
 ** behavior of setn/getn in Lua 5.0.
-**
-** Note: this is not supported by LuaJIT. Leave it undefined.
 */
 #undef LUA_COMPAT_GETN
 
@@ -338,12 +335,8 @@
 @@ LUA_COMPAT_VARARG controls compatibility with old vararg feature.
 ** CHANGE it to undefined as soon as your programs use only '...' to
 ** access vararg parameters (instead of the old 'arg' table).
-**
-** Note: this has a slightly negative performance impact with LuaJIT
-** for all vararg functions. Leave it off if possible and upgrade your
-** code (replace unpack(arg) with ... and/or add local arg = {...}).
 */
-#undef LUA_COMPAT_VARARG
+#define LUA_COMPAT_VARARG
 
 /*
 @@ LUA_COMPAT_MOD controls compatibility with old math.mod function.
@@ -450,10 +443,11 @@
 @* can use.
 ** CHANGE it if you need lots of (Lua) stack space for your C
 ** functions. This limit is arbitrary; its only purpose is to stop C
-** functions to consume unlimited stack space.
+** functions to consume unlimited stack space. (must be smaller than
+** -LUA_REGISTRYINDEX)
 */
-#define LUAI_MCS_AUX   ((int)(INT_MAX / (4*sizeof(LUA_NUMBER))))
-#define LUAI_MAXCSTACK (LUAI_MCS_AUX > SHRT_MAX ? SHRT_MAX : LUAI_MCS_AUX)
+#define LUAI_MAXCSTACK	8000
+
 
 
 /*
@@ -589,24 +583,6 @@ union luai_Cast { double l_d; long l_l; };
 #define lua_number2int(i,d)	((i)=(int)(d))
 #define lua_number2integer(i,d)	((i)=(lua_Integer)(d))
 
-#endif
-
-
-/*
-@@ LUA_TVALUE_ALIGN specifies extra alignment constraints for the
-@@ tagged value structure to get better lua_Number alignment.
-** CHANGE it to an empty define if you want to save some space
-** at the cost of execution time. Note that this is only needed
-** for the x86 ABI on most POSIX systems, but not on Windows and
-** not for most other CPUs. If you change it then you need to follow
-** the instructions in ljit_x86.dash, too (look for TVALUE_SIZE).
-*/
-
-#if defined(LUA_NUMBER_DOUBLE) && defined(__GNUC__) && \
-    (defined(__i386) || defined(__i386__)) && !defined(_WIN32)
-#define LUA_TVALUE_ALIGN	__attribute__ ((aligned(8)))
-#else
-#define LUA_TVALUE_ALIGN
 #endif
 
 /* }================================================================== */

@@ -23,11 +23,22 @@
 #ifndef OPERATOR_040729_HPP
 #define OPERATOR_040729_HPP
 
-#include <boost/mpl/apply_if.hpp>
+#include <boost/mpl/eval_if.hpp>
 #include <boost/mpl/identity.hpp>
+#include <boost/mpl/apply_wrap.hpp>
+#include <boost/preprocessor/repetition/enum_trailing.hpp>
+#include <boost/preprocessor/repetition/enum_trailing_params.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <luabind/detail/other.hpp>
 #include <luabind/raw_policy.hpp>
+
+#if defined(__GNUC__) && __GNUC__ < 3
+# define LUABIND_NO_STRINGSTREAM
+#else
+# if defined(BOOST_NO_STRINGSTREAM)
+#  define LUABIND_NO_STRINGSTREAM
+# endif
+#endif
 
 namespace luabind { namespace detail {
 
@@ -36,12 +47,14 @@ namespace luabind { namespace detail {
 
     struct operator_void_return {};
 
+#if !BOOST_WORKAROUND(BOOST_MSVC, <= 1300)
     template<class T>
     inline T const& operator,(T const& x, operator_void_return)
     {
         return x;
     }
-
+#endif
+    
 }} // namespace luabind
 
 namespace luabind { namespace operators {
@@ -54,7 +67,7 @@ namespace luabind { namespace operators {
 
 #include <boost/preprocessor/iteration/local.hpp>
 
-namespace luabind { namespace detail {
+namespace luabind {
 
     template<class Derived>
     struct self_base
@@ -90,13 +103,15 @@ namespace luabind { namespace detail {
     {
     };
 
+namespace detail {
+
     template<class W, class T>
     struct unwrap_parameter_type
     {
-        typedef typename boost::mpl::apply_if<
+        typedef typename boost::mpl::eval_if<
             boost::is_same<T, self_type>
           , boost::mpl::identity<W&>
-          , boost::mpl::apply_if<
+          , boost::mpl::eval_if<
                 boost::is_same<T, const_self_type>
               , boost::mpl::identity<W const&>
               , unwrap_other<T>
@@ -157,6 +172,8 @@ namespace luabind { namespace detail {
     {
     }
 
+    namespace mpl = boost::mpl;
+
     template<class T, class Policies>
     inline void operator_result(lua_State* L, T const& x, Policies*)
     {
@@ -165,10 +182,7 @@ namespace luabind { namespace detail {
           , Policies
         >::type cv_policy;
 
-        typename cv_policy::template generate_converter<
-            T
-          , cpp_to_lua
-        >::type cv;
+        typename mpl::apply_wrap2<cv_policy,T,cpp_to_lua>::type cv;
 
         cv.apply(L, x);
     }
@@ -205,7 +219,7 @@ namespace luabind {
       , U \
       , T \
     > \
-    inline operator op(detail::self_base<U>, T const&) \
+    inline operator op(self_base<U>, T const&) \
     { \
         return 0; \
     } \
@@ -216,47 +230,47 @@ namespace luabind {
       , T \
       , U \
     > \
-    inline operator op(T const&, detail::self_base<U>) \
+    inline operator op(T const&, self_base<U>) \
     { \
         return 0; \
     } \
     \
     detail::binary_operator< \
         operators::name_ \
-      , detail::self_type \
-      , detail::self_type \
+      , self_type \
+      , self_type \
     > \
-    inline operator op(detail::self_type, detail::self_type) \
+    inline operator op(self_type, self_type) \
     { \
         return 0; \
     } \
     \
     detail::binary_operator< \
         operators::name_ \
-      , detail::self_type \
-      , detail::const_self_type \
+      , self_type \
+      , const_self_type \
     > \
-    inline operator op(detail::self_type, detail::const_self_type) \
+    inline operator op(self_type, const_self_type) \
     { \
         return 0; \
     } \
     \
     detail::binary_operator< \
         operators::name_ \
-      , detail::const_self_type \
-      , detail::self_type \
+      , const_self_type \
+      , self_type \
     > \
-    inline operator op(detail::const_self_type, detail::self_type) \
+    inline operator op(const_self_type, self_type) \
     { \
         return 0; \
     } \
     \
     detail::binary_operator< \
         operators::name_ \
-      , detail::const_self_type \
-      , detail::const_self_type \
+      , const_self_type \
+      , const_self_type \
     > \
-    inline operator op(detail::const_self_type, detail::const_self_type) \
+    inline operator op(const_self_type, const_self_type) \
     { \
         return 0; \
     }
@@ -266,11 +280,9 @@ namespace luabind {
     LUABIND_BINARY_OPERATOR(mul, *)
     LUABIND_BINARY_OPERATOR(div, /)
     LUABIND_BINARY_OPERATOR(pow, ^)
-    LUABIND_BINARY_OPERATOR(lt,  <)
-    LUABIND_BINARY_OPERATOR(le,  <=)
-	LUABIND_BINARY_OPERATOR(gt,  >)
-	LUABIND_BINARY_OPERATOR(ge,  >=)
-    LUABIND_BINARY_OPERATOR(eq,  ==)
+    LUABIND_BINARY_OPERATOR(lt, <)
+    LUABIND_BINARY_OPERATOR(le, <=)
+    LUABIND_BINARY_OPERATOR(eq, ==)
 
 #undef LUABIND_UNARY_OPERATOR
 
@@ -301,13 +313,13 @@ namespace luabind {
         operators::name_ \
       , T \
     > \
-    inline fn(detail::self_base<T>) \
+    inline fn(self_base<T>) \
     { \
         return 0; \
     }
 
     template<class T>
-    T const& tostring_operator(T const& x)
+    luabind::string tostring_operator(T const& x)
     {
         return x;
     };
@@ -319,8 +331,8 @@ namespace luabind {
 
     namespace {
 
-        LUABIND_ANONYMOUS_FIX detail::self_type self;
-        LUABIND_ANONYMOUS_FIX detail::const_self_type const_self;
+        LUABIND_ANONYMOUS_FIX self_type self;
+        LUABIND_ANONYMOUS_FIX const_self_type const_self;
 
     } // namespace unnamed
     

@@ -51,7 +51,7 @@ namespace luabind { namespace detail
 
 		struct cmp
 		{
-			bool operator()(const type_info* a, const type_info* b) const
+			bool operator()(const std::type_info* a, const std::type_info* b) const
 			{
 				return a->before(*b) != 0;
 			}
@@ -75,7 +75,7 @@ namespace luabind { namespace detail
 		}
 	
 	private:
-		typedef map_class<LUABIND_TYPE_INFO, class_rep*, cmp> CLASS_REGISTRY;
+		typedef luabind::map<LUABIND_TYPE_INFO, class_rep*, cmp> CLASS_REGISTRY;
 
 #pragma warning(push)
 #pragma warning(disable:4251)
@@ -103,6 +103,7 @@ namespace luabind { namespace detail
 		// this metatable only contains a destructor
 		// for luabind::Detail::free_functions::function_rep
 		int m_lua_function_metatable;
+
 	};
 
 }}

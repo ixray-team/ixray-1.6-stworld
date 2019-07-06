@@ -1,4 +1,4 @@
-// luabind::auto_ptr implementation is copied from the stlport std::auto_ptr (v5.1)
+// luabind::auto_ptr implementation is copied from the stlport luabind::auto_ptr (v5.1)
 
 #ifndef LUABIND_AUTO_PTR_H_INCLUDED
 #define LUABIND_AUTO_PTR_H_INCLUDED
@@ -8,7 +8,7 @@ namespace luabind {
 class __ptr_base {
 public:
   void* _M_p;
-  void  __set(const void* p) { _M_p = __CONST_CAST(void*,p); }
+  void  __set(const void* p) { _M_p = const_cast<void*>(p); }
   void  __set(void* p) { _M_p = p; }
 }; // class __ptr_base
 
@@ -57,13 +57,13 @@ public:
 
 	_Tp* operator->	() const
 	{
-		VERIFY2		(get(), "auto_ptr is null");
+		ASSERT		(get(), "auto_ptr is null");
 		return		get();
 	}
 
 	_Tp& operator*	() const
 	{
-		VERIFY2		(get(), "auto_ptr is null");
+		ASSERT		(get(), "auto_ptr is null");
 		return		*get();
 	}
 

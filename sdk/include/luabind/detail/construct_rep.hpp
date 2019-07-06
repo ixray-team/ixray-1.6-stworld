@@ -33,7 +33,7 @@
 #include <boost/function/function1.hpp>
 #include <boost/function/function2.hpp>
 
-#include <luabind/detail/signature_match.hpp>
+//#include <luabind/detail/signature_match.hpp>
 #include <luabind/detail/overload_rep_base.hpp>
 #include <luabind/weak_ref.hpp>
 
@@ -51,7 +51,7 @@ namespace luabind { namespace detail
 
 			typedef void*(*construct_ptr)(lua_State*, weak_ref const&);
 			typedef void*(*wrapped_construct_ptr)(lua_State*, weak_ref const&);
-			typedef void(*get_signature_ptr)(lua_State*, string_class&);
+			typedef void(*get_signature_ptr)(lua_State*, luabind::string&);
 
 			inline void set_constructor(construct_ptr f) { construct_fun = f; }
 			inline void set_wrapped_constructor(wrapped_construct_ptr f) { wrapped_construct_fun = f; }
@@ -78,7 +78,7 @@ namespace luabind { namespace detail
 			std::swap(x.overloads, overloads);
 		}
 
-		vector_class<overload_t> overloads;
+		luabind::vector<overload_t> overloads;
 	};
 
 }}

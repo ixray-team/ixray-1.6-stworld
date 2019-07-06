@@ -38,14 +38,14 @@ namespace luabind
 	// from C++ failed with an error code. You will have to
 	// read the error code from the top of the lua stack
 	// the reason why this exception class doesn't contain
-	// the message itself is that string_class's copy constructor
+	// the message itself is that luabind::string's copy constructor
 	// may throw, if the copy constructor of an exception that is
 	// being thrown throws another exception, terminate will be called
 	// and the entire application is killed.
-	class error : public std::exception
+	class LUABIND_API error : public std::exception
 	{
 	public:
-		error(lua_State* L): m_L(L) {}
+		explicit error(lua_State* L): m_L(L) {}
 		lua_State* state() const throw() { return m_L; }
 		virtual const char* what() const throw()
 		{
@@ -58,7 +58,7 @@ namespace luabind
 	// if an object_cast<>() fails, this is thrown
 	// it is also thrown if the return value of
 	// a lua function cannot be converted
-	class cast_failed : public std::exception
+	class LUABIND_API cast_failed : public std::exception
 	{
 	public:
 		cast_failed(lua_State* L, LUABIND_TYPE_INFO i): m_L(L), m_info(i) {}
@@ -90,12 +90,6 @@ namespace luabind
 	LUABIND_API void set_pregister_callback(pregister_callback_fun e);
 	LUABIND_API pregister_callback_fun get_pregister_callback();
 }
-
-#ifdef LUABIND_NO_EXCEPTIONS
-	namespace boost {
-	inline void throw_exception(const std::exception &){}
-	}
-#endif // LUABIND_NO_EXCEPTIONS
 
 #endif // LUABIND_ERROR_HPP_INCLUDED
 

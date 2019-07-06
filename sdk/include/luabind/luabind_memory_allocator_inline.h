@@ -48,11 +48,11 @@ typename MEMORY_ALLOCATOR::const_pointer MEMORY_ALLOCATOR::address		(const_refer
 }
 
 TEMPLATE_SPECIALIZATION
-typename MEMORY_ALLOCATOR::pointer MEMORY_ALLOCATOR::allocate			(size_type const n, void const* const p=0) const
+typename MEMORY_ALLOCATOR::pointer MEMORY_ALLOCATOR::allocate			(size_type const n, void const* const p) const
 {
-	pointer			result = (pointer)call_allocator(p,n*sizeof(T));
+	pointer			result = (pointer)::luabind::call_allocator(p,n*sizeof(T));
 	if (!n)
-		result		= (pointer)call_allocator(p,1*sizeof(T));
+		result		= (pointer)::luabind::call_allocator(p,1*sizeof(T));
 
 	return			(result);
 }
@@ -66,6 +66,7 @@ char *MEMORY_ALLOCATOR::__charalloc										(size_type const n)
 TEMPLATE_SPECIALIZATION
 void MEMORY_ALLOCATOR::deallocate										(pointer const p, size_type const n) const
 {
+	(void)n;
 	call_allocator	(p,0);
 }
 
