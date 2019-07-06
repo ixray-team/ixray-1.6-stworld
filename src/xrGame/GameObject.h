@@ -9,15 +9,12 @@
 #include "../xrEngine/xr_object.h"
 #include "xrServer_Space.h"
 #include "alife_space.h"
-#include "UsableScriptObject.h"
-#include "script_binder.h"
 #include "Hit.h"
 #include "game_object_space.h"
 
 class CPhysicsShell;
 class CSE_Abstract;
 class CPHSynchronize;
-class CScriptGameObject;
 class CInventoryItem;
 class CEntity;
 class CEntityAlive;
@@ -28,36 +25,24 @@ class CParticlesPlayer;
 class CCustomZone;
 class IInputReceiver;
 class CArtefact;
-class CCustomMonster;
-class CAI_Stalker;
-class CScriptEntity;
-class CAI_ObjectLocation;
 class CWeapon;
 class CExplosive;
 class CHolderCustom;
 class CAttachmentOwner;
-class CBaseMonster;
 class CSpaceRestrictor;
 class CAttachableItem;
-class animation_movement_controller;
 class CBlend;
-class ai_obstacle;
 
 class IKinematics;
 
-template <typename _return_type>
-class CScriptCallbackEx;
+class animation_movement_controller;
 
 class CGameObject : 
-	public CObject, 
-	public CUsableScriptObject,
-	public CScriptBinder
+	public CObject
 {
 	typedef CObject inherited;
 	bool							m_spawned;
-	Flags32							m_server_flags;
-	CAI_ObjectLocation				*m_ai_location;
-	ALife::_STORY_ID				m_story_id;
+//.	Flags32							m_server_flags;
 	animation_movement_controller	*m_anim_mov_ctrl;
 protected:
 	//время удаления объекта
@@ -79,22 +64,18 @@ public:
 	virtual IInputReceiver*				cast_input_receiver			()						{return NULL;}
 	virtual CParticlesPlayer*			cast_particles_player		()						{return NULL;}
 	virtual CArtefact*					cast_artefact				()						{return NULL;}
-	virtual CCustomMonster*				cast_custom_monster			()						{return NULL;}
-	virtual CAI_Stalker*				cast_stalker				()						{return NULL;}
-	virtual CScriptEntity*				cast_script_entity			()						{return NULL;}
 	virtual CWeapon*					cast_weapon					()						{return NULL;}
 	virtual CExplosive*					cast_explosive				()						{return NULL;}
 	virtual CSpaceRestrictor*			cast_restrictor				()						{return NULL;}
 	virtual CAttachableItem*			cast_attachable_item		()						{return NULL;}
 	virtual CHolderCustom*				cast_holder_custom			()						{return NULL;}
-	virtual CBaseMonster*				cast_base_monster			()						{return NULL;}
 
 public:
 	virtual BOOL						feel_touch_on_contact	(CObject *)					{return TRUE;}
-	virtual bool						use						(CGameObject* who_use)		{return CUsableScriptObject::use(who_use);};
+	virtual bool						use						(CGameObject* who_use)		{return true;}
 
 public:
-	CInifile				*m_ini_file;
+//	CInifile				*m_ini_file;
 
 	// Utilities
 	static void				u_EventGen			(NET_Packet& P, u32 type, u32 dest	);
@@ -107,17 +88,13 @@ public:
 	virtual	void			net_Relcase			( CObject* O );	
 	virtual void			UpdateCL			( );
 	virtual void			OnChangeVisual		( );
+
 	//object serialization
-	virtual void			net_Save			(NET_Packet &net_packet);
-	virtual void			net_Load			(IReader	&ireader);
 	virtual BOOL			net_SaveRelevant	();
-	virtual void			save				(NET_Packet &output_packet);
-	virtual void			load				(IReader &input_packet);
 
 	virtual BOOL			net_Relevant		()	{ return getLocal();	}	// send messages only if active and local
 	virtual void			spatial_move		();
 	virtual BOOL			Ready				()	{ return getReady();	}	// update only if active and fully initialized by/for network
-//	virtual float			renderable_Ambient	();
 
 	virtual void			shedule_Update		(u32 dt);	
 	virtual bool			shedule_Needed		();
@@ -145,9 +122,6 @@ public:
 	// Position stack
 	virtual	SavedPosition	ps_Element			(u32 ID) const;
 
-			void			setup_parent_ai_locations(bool assign_position = true);
-			void			validate_ai_locations(bool decrement_reference = true);
-
 	//animation_movement_controller
 	virtual	void			create_anim_mov_ctrl			( CBlend *b, Fmatrix *start_pose, bool local_animation  );
 	virtual	void			destroy_anim_mov_ctrl			( );
@@ -157,8 +131,6 @@ const animation_movement_controller* animation_movement		( ) const	{ return	m_an
 	  animation_movement_controller* animation_movement		( )			{ return	m_anim_mov_ctrl; }
 	// Game-specific events
 
-	virtual BOOL			UsedAI_Locations				();
-			BOOL			TestServerFlag					(u32 Flag) const;
 	virtual	bool			can_validate_position_on_spawn	(){return true;}
 #ifdef DEBUG
 	virtual void			OnRender			();
@@ -197,11 +169,6 @@ public:
 		return				(rotation);
 	};
 
-	virtual bool			use_parent_ai_locations	() const
-	{
-		return				(true);
-	}
-
 public:
 	typedef void __stdcall visual_callback(IKinematics *);
 	typedef svector<visual_callback*,6>			CALLBACK_VECTOR;
@@ -220,30 +187,11 @@ public:
 	}
 
 
-private:
-	mutable CScriptGameObject	*m_lua_game_object;
-	int						m_script_clsid;
 public:
-			CScriptGameObject	*lua_game_object() const;
-			int				clsid			() const
-	{
-		THROW				(m_script_clsid >= 0);
-		return				(m_script_clsid);
-	}
-public:
-	IC		CInifile		*spawn_ini			()
-	{
-		return				(m_ini_file);
-	}
-protected:
-	virtual	void			spawn_supplies		();
-
-public:
-	IC		CAI_ObjectLocation	&ai_location		() const
-	{
-		VERIFY				(m_ai_location);
-		return				(*m_ai_location);
-	}
+	//IC		CInifile		*spawn_ini			()
+	//{
+	//	return				(m_ini_file);
+	//}
 
 private:
 	u32						m_spawn_time;
@@ -255,59 +203,15 @@ public:
 		return				(m_spawn_time);
 	}
 
-	IC		const ALife::_STORY_ID &story_id	() const
-	{
-		return				(m_story_id);
-	}
-	
 public:
-	virtual u32				ef_creature_type	() const;
-	virtual u32				ef_equipment_type	() const;
-	virtual u32				ef_main_weapon_type	() const;
-	virtual u32				ef_anomaly_type		() const;
-	virtual u32				ef_weapon_type		() const;
-	virtual u32				ef_detector_type	() const;
-	virtual bool			natural_weapon		() const {return true;}
-	virtual bool			natural_detector	() const {return true;}
 	virtual bool			use_center_to_aim	() const {return false;}
 	// [12.11.07] Alexander Maniluk: added this method for moving object
 	virtual void MoveTo(Fvector const & position) {};
 
 public:
-	
-	typedef CScriptCallbackEx<void> CScriptCallbackExVoid;
-
-private:
-	
-	DEFINE_MAP				(GameObject::ECallbackType, CScriptCallbackExVoid, CALLBACK_MAP, CALLBACK_MAP_IT);
-	CALLBACK_MAP			*m_callbacks;
-
-public:
-	CScriptCallbackExVoid	&callback			(GameObject::ECallbackType type) const;
 	virtual	LPCSTR			visual_name			(CSE_Abstract *server_entity);
 
 	virtual	void			On_B_NotCurrentEntity () {};
-
-	// for moving objects
-private:
-			u32				new_level_vertex_id	() const;
-			void			update_ai_locations	(bool decrement_reference);
-
-private:
-	ai_obstacle				*m_ai_obstacle;
-	Fmatrix					m_previous_matrix;
-
-public:
-	virtual	bool			is_ai_obstacle		() const;
-
-public:
-	IC		ai_obstacle		&obstacle			() const
-	{
-		VERIFY				(m_ai_obstacle);
-		return				(*m_ai_obstacle);
-	}
-
-	virtual void			on_matrix_change	(const Fmatrix &previous);
 };
 
 #endif // !defined(AFX_GAMEOBJECT_H__3DA72D03_C759_4688_AEBB_89FA812AA873__INCLUDED_)

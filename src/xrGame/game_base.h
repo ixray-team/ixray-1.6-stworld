@@ -3,13 +3,14 @@
 #include "game_base_space.h"
 #include "alife_space.h"
 #include "gametype_chooser.h"
-#include "player_account.h"
+//#include "player_account.h"
 
 #pragma pack(push,1)
 
 
 struct	game_PlayerState;//fw
 class	NET_Packet;
+class player_account;
 
 struct		RPoint
 {
@@ -33,7 +34,7 @@ struct Bonus_Money_Struct {
 
 struct game_PlayerState 
 {
-	//string64	name;
+	string64	name;
 	u8			team;
 	
 	//for statistics
@@ -43,13 +44,12 @@ struct game_PlayerState
 	s16			m_iKillsInRowCurr;
 	s16			m_iKillsInRowMax;
 	s16			m_iDeaths;
-	//money that player have at the current moment
+
 	s32			money_for_round;
 
 	float		experience_Real;
 	float		experience_New;
 	
-	//count delivered artefacts (in CTA and AH)
 	u8			rank;
 	u8			af_count;			
 	u16			flags__;
@@ -72,13 +72,10 @@ struct game_PlayerState
 	MONEY_BONUS	m_aBonusMoney;
 	bool		m_bPayForSpawn;
 	u32			m_online_time;
-	player_account	m_account;
+//	player_account*	m_player_account;
 	
 	shared_str	m_player_ip;
-	shared_str	m_player_digest;
 
-	//if account_info == NULL then constructor call load_account method.
-	//so it MUST be use ONLY for local_player !
 	explicit		game_PlayerState		(NET_Packet* account_info);
 					~game_PlayerState		();
 
@@ -86,19 +83,17 @@ struct game_PlayerState
 			bool	testFlag				(u16 f) const;
 			void	setFlag					(u16 f);
 			void	resetFlag				(u16 f);
-			LPCSTR	getName					() const {return m_account.name().c_str();}
-			//void	setName					(LPCSTR s){xr_strcpy(name,s);}
+			LPCSTR	getName					() const {return name;}
+			void	setName					( LPCSTR n );
 			void	SetGameID				(u16 NewID);
 			bool	HasOldID				(u16 ID);
 			bool	IsSkip					() const {return testFlag(GAME_PLAYER_FLAG_SKIP);}
 
 			s16		frags					() const {return m_iRivalKills - m_iSelfKills - m_iTeamKills;} 
 
-#ifndef AI_COMPILER
 	virtual void	net_Export				(NET_Packet& P, BOOL Full = FALSE);
 	virtual void	net_Import				(NET_Packet& P);
 	static	void	skip_Import				(NET_Packet& P);
-#endif
 	//---------------------------------------
 	
 	DEF_VECTOR(PLAYER_ITEMS_LIST, u16);
@@ -111,7 +106,6 @@ struct game_PlayerState
 	s16					m_s16LastSRoint;
 
 	s32					LastBuyAcount;
-	bool				m_bClearRun;
 };
 
 struct	game_TeamState
@@ -136,7 +130,6 @@ enum ETeam
 class	game_GameState : public DLL_Pure
 {
 protected:
-	EGameIDs						m_type;
 	u16								m_phase;
 	s32								m_round;
 	u32								m_start_time;
@@ -150,12 +143,10 @@ protected:
 public:
 									game_GameState			();
 	virtual							~game_GameState			()								{}
-	IC			EGameIDs const&		Type					() const						{return m_type;};
 				u16					Phase					() const						{return m_phase;};
 				s32					Round					() const						{return m_round;};
 				u32					StartTime				() const						{return m_start_time;};
 	virtual		void				Create					(shared_str& options)				{};
-	virtual		LPCSTR				type_name				() const						{return "base game";};
 //for scripting enhancement
 	static		CLASS_ID			getCLASS_ID				(LPCSTR game_type_name, bool bServer);
 	virtual		game_PlayerState*	createPlayerState		(NET_Packet* account_info)		{return xr_new<game_PlayerState>(account_info); };

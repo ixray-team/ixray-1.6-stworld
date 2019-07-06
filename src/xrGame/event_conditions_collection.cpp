@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "event_conditions_collection.h"
-#include "object_broker.h"
 #include "game_state_accumulator.h"
 #include "level.h"
 #include "game_cl_base.h"
@@ -207,7 +206,7 @@ void event_conditions_collection::execute_root_condtiion(event_root_conditions_t
 	if (!rcond.m_rise_count)
 		return;
 	
-	if ((rcond.m_game_mask & Game().Type()) == 0)
+	if ((rcond.m_game_mask & g_pGamePersistent->GameType()) == 0)
 		return;
 
 	VERIFY(rcond.m_root_condition);

@@ -112,7 +112,6 @@ CSE_Abstract* item_respawn_manager::make_respawn_entity(shared_str const & secti
 
 	temp_entity->ID					=	0xffff;								// server must generate ID
 	temp_entity->ID_Parent			=	0xffff;								// no-parent
-	temp_entity->ID_Phantom			=	0xffff;								// no-phantom
 	temp_entity->RespawnTime		=	0;									// no-respawn
 	CSE_ALifeItemWeapon*	pWeapon	=	smart_cast<CSE_ALifeItemWeapon*>(temp_entity);
 	
@@ -335,8 +334,8 @@ u16 item_respawn_manager::respawn_item(CSE_Abstract* item_object)
 	item_object->Spawn_Write(spawn_packet_store, false);
 	u16 skip_header;
 	spawn_packet_store.r_begin(skip_header);
-	CSE_Abstract* spawned_item = m_server->Process_spawn(
-		spawn_packet_store, m_server->GetServerClient()->ID);
+
+	CSE_Abstract* spawned_item = m_server->Process_spawn(spawn_packet_store, m_server->GetServerClient()->ID);
 	if (!spawned_item)
 		return 0;
 	return spawned_item->ID;

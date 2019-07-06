@@ -25,7 +25,6 @@
 #	include "engine_impl.hpp"
 #endif // #ifdef INGAME_EDITOR
 
-#include "xrSash.h"
 #include "igame_persistent.h"
 
 #pragma comment( lib, "d3dx9.lib"		)
@@ -103,9 +102,6 @@ void CRenderDevice::Clear	()
 	m_pRender->Clear();
 }
 
-extern void CheckPrivilegySlowdown();
-
-
 void CRenderDevice::End		(void)
 {
 #ifndef DEDICATED_SERVER
@@ -141,24 +137,12 @@ void CRenderDevice::End		(void)
 #ifdef FIND_CHUNK_BENCHMARK_ENABLE
 			g_find_chunk_counter.flush();
 #endif // FIND_CHUNK_BENCHMARK_ENABLE
-
-			CheckPrivilegySlowdown							();
-			
-			if(g_pGamePersistent->GameType()==1)//haCk
-			{
-				WINDOWINFO	wi;
-				GetWindowInfo(m_hWnd,&wi);
-				if(wi.dwWindowStatus!=WS_ACTIVECAPTION)
-					Pause(TRUE,TRUE,TRUE,"application start");
-			}
 		}
 	}
 
 	g_bRendering		= FALSE;
 	// end scene
 	//	Present goes here, so call OA Frame end.
-	if (g_SASH.IsBenchmarkRunning())
-		g_SASH.DisplayFrame(Device.fTimeGlobal);
 	m_pRender->End();
 	//RCache.OnFrameEnd	();
 	//Memory.dbg_check		();
@@ -252,10 +236,6 @@ void CRenderDevice::on_idle		()
 		return;
 	}else 
 	{
-		if ( (!Device.dwPrecacheFrame) && (!g_SASH.IsBenchmarkRunning())
-			&& g_bLoaded)
-			g_SASH.StartBenchmark();
-
 		FrameMove						( );
 	}
 
@@ -407,8 +387,6 @@ void CRenderDevice::Run			()
 	}
 
 	// Start all threads
-//	InitializeCriticalSection	(&mt_csEnter);
-//	InitializeCriticalSection	(&mt_csLeave);
 	mt_csEnter.Enter			();
 	mt_bMustExit				= FALSE;
 	thread_spawn				(mt_Thread,"X-RAY Secondary thread",0,0);
@@ -416,8 +394,9 @@ void CRenderDevice::Run			()
 	// Message cycle
 	seqAppStart.Process			(rp_AppStart);
 
-	//CHK_DX(HW.pDevice->Clear(0,0,D3DCLEAR_TARGET,D3DCOLOR_XRGB(0,0,0),1,0));
+#ifndef DEDICATED_SERVER
 	m_pRender->ClearTarget		();
+#endif
 
 	message_loop				();
 
@@ -427,8 +406,6 @@ void CRenderDevice::Run			()
 	mt_bMustExit			= TRUE;
 	mt_csEnter.Leave		();
 	while (mt_bMustExit)	Sleep(0);
-//	DeleteCriticalSection	(&mt_csEnter);
-//	DeleteCriticalSection	(&mt_csLeave);
 }
 
 u32 app_inactive_time		= 0;
@@ -438,8 +415,6 @@ void ProcessLoading(RP_FUNC *f);
 void CRenderDevice::FrameMove()
 {
 	dwFrame			++;
-
-	Core.dwFrame = dwFrame;
 
 	dwTimeContinual	= TimerMM.GetElapsed_ms() - app_inactive_time;
 
@@ -480,7 +455,7 @@ void CRenderDevice::FrameMove()
 
 	//	TODO: HACK to test loading screen.
 	//if(!g_bLoaded) 
-		ProcessLoading				(rp_Frame);
+	ProcessLoading				(rp_Frame);
 	//else
 	//	seqFrame.Process			(rp_Frame);
 	Statistic->EngineTOTAL.End	();

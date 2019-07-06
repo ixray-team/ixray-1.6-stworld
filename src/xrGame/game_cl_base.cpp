@@ -1,27 +1,21 @@
-#include "pch_script.h"
+#include "stdafx.h"
 #include "game_cl_base.h"
 #include "level.h"
 #include "GamePersistent.h"
 #include "UIGameCustom.h"
-#include "script_engine.h"
 #include "xr_Level_controller.h"
 #include "ui/UIMainIngameWnd.h"
-#include "UI/UIGameTutorial.h"
 #include "UI/UIMessagesWindow.h"
 #include "UI/UIDialogWnd.h"
 #include "string_table.h"
 #include "game_cl_base_weapon_usage_statistic.h"
 #include "game_sv_mp_vote_flags.h"
-
-EGameIDs ParseStringToGameType	(LPCSTR str);
-LPCSTR GameTypeToString			(EGameIDs gt, bool bShort);
+#include "../xrEngine/Environment.h"
 
 game_cl_GameState::game_cl_GameState()
 {
 	local_player				= createPlayerState(NULL);	//initializing account info
 	m_WeaponUsageStatistic		= NULL;
-
-	m_game_type_name			= 0;
 
 	shedule.t_min				= 5;
 	shedule.t_max				= 20;
@@ -62,7 +56,8 @@ void	game_cl_GameState::net_import_GameTime		(NET_Packet& P)
 
 	u64 OldTime = Level().GetEnvironmentGameTime();
 	Level().SetEnvironmentGameTimeFactor	(GameEnvironmentTime,EnvironmentTimeFactor);
-	if (OldTime > GameEnvironmentTime)
+
+	if(!g_dedicated_server && OldTime > GameEnvironmentTime)
 		GamePersistent().Environment().Invalidate();
 }
 
@@ -100,11 +95,13 @@ struct not_exsiting_clients_deleter
 	}
 }; //not_present_clients_deleter
 
-void	game_cl_GameState::net_import_state	(NET_Packet& P)
+void game_cl_GameState::net_import_state(NET_Packet& P)
 {
 	// Generic
 	P.r_clientID	(local_svdpnid);
-	P.r_u32			((u32&)m_type);
+	u32 t =			P.r_u32();
+	R_ASSERT(g_pGamePersistent->GameType() == t);// or set it !
+	//P.r_u32			((u32&)m_type);
 	
 	u16 ph;
 	P.r_u16			(ph);
@@ -145,13 +142,13 @@ void	game_cl_GameState::net_import_state	(NET_Packet& P)
 			IP->net_Import(P);
 			//-----------------------------------------------
 			if (OldFlags != IP->flags__)
-				if (Type() != eGameIDSingle) OnPlayerFlagsChanged(IP);
+				OnPlayerFlagsChanged(IP);
 			if (OldVote != IP->m_bCurrentVoteAgreed)
 				OnPlayerVoted(IP);
 			//***********************************************
 			valid_players.push_back(ID);
 		}else{
-			if (ID == local_svdpnid)//Level().GetClientID())
+			if (ID == local_svdpnid)
 			{
 				game_PlayerState::skip_Import(P);	//this mean that local_player not created yet ..
 				continue;
@@ -159,8 +156,7 @@ void	game_cl_GameState::net_import_state	(NET_Packet& P)
 			
 			IP = createPlayerState	(&P);
 			
-			if (Type() != eGameIDSingle)
-				OnPlayerFlagsChanged(IP);
+			OnPlayerFlagsChanged(IP);
 
 			players.insert			(mk_pair(ID,IP));
 			valid_players.push_back	(ID);
@@ -201,7 +197,7 @@ void	game_cl_GameState::net_import_update(NET_Packet& P)
 		IP->net_Import(P);
 		//-----------------------------------------------
 		if (OldFlags != IP->flags__)
-			if (Type() != eGameIDSingle) OnPlayerFlagsChanged(IP);
+			OnPlayerFlagsChanged(IP);
 		if (OldVote != IP->m_bCurrentVoteAgreed)
 			OnPlayerVoted(IP);
 		//***********************************************
@@ -223,7 +219,7 @@ void	game_cl_GameState::net_signal		(NET_Packet& P)
 
 void game_cl_GameState::TranslateGameMessage	(u32 msg, NET_Packet& P)
 {
-	CStringTable st;
+//	CStringTable st;
 
 	string512 Text;
 	char	Color_Main[]	= "%c[255,192,192,192]";
@@ -245,13 +241,14 @@ void game_cl_GameState::TranslateGameMessage	(u32 msg, NET_Packet& P)
 			}
 			VERIFY2(PS, "failed to create player state");
 			
-			if (Type() != eGameIDSingle)
+			players.insert(mk_pair(newClientId, PS));
+			OnNewPlayerConnected(newClientId);
+
+			if(CurrentGameUI()) 
 			{
-				players.insert(mk_pair(newClientId, PS));
-				OnNewPlayerConnected(newClientId);
+				xr_sprintf(Text, "%s%s %s%s",Color_Teams[0],PS->getName(),Color_Main,*CStringTable().translate("mp_connected"));
+				CurrentGameUI()->CommonMessageOut(Text);
 			}
-			xr_sprintf(Text, "%s%s %s%s",Color_Teams[0],PS->getName(),Color_Main,*st.translate("mp_connected"));
-			if(CurrentGameUI()) CurrentGameUI()->CommonMessageOut(Text);
 			//---------------------------------------
 			Msg("%s connected", PS->getName());
 		}break;
@@ -260,8 +257,11 @@ void game_cl_GameState::TranslateGameMessage	(u32 msg, NET_Packet& P)
 			string64 PlayerName;
 			P.r_stringZ(PlayerName);
 
-			xr_sprintf(Text, "%s%s %s%s",Color_Teams[0],PlayerName,Color_Main,*st.translate("mp_disconnected"));
-			if(CurrentGameUI()) CurrentGameUI()->CommonMessageOut(Text);
+			if(CurrentGameUI()) 
+			{
+				xr_sprintf(Text, "%s%s %s%s",Color_Teams[0],PlayerName,Color_Main,*CStringTable().translate("mp_disconnected"));
+				CurrentGameUI()->CommonMessageOut(Text);
+			}
 			//---------------------------------------
 			Msg("%s disconnected", PlayerName);
 		}break;
@@ -270,8 +270,11 @@ void game_cl_GameState::TranslateGameMessage	(u32 msg, NET_Packet& P)
 			string64 PlayerName;
 			P.r_stringZ(PlayerName);
 
-			xr_sprintf(Text, "%s%s %s%s",Color_Teams[0],PlayerName,Color_Main,*st.translate("mp_entered_game"));
-			if(CurrentGameUI()) CurrentGameUI()->CommonMessageOut(Text);
+			if(CurrentGameUI()) 
+			{
+				xr_sprintf(Text, "%s%s %s%s",Color_Teams[0],PlayerName,Color_Main,*CStringTable().translate("mp_entered_game"));
+				CurrentGameUI()->CommonMessageOut(Text);
+			}
 		}break;
 	default:
 		{
@@ -292,7 +295,7 @@ void	game_cl_GameState::OnGameMessage	(NET_Packet& P)
 
 game_PlayerState* game_cl_GameState::lookat_player()
 {
-	CObject* current_entity = Level().CurrentEntity();
+	CObject* current_entity = Level().CurrentActor();
 	if (current_entity)
 	{
 		return GetPlayerByGameID(current_entity->ID());
@@ -342,8 +345,7 @@ void game_cl_GameState::shedule_Update		(u32 dt)
 	{
 	case GAME_PHASE_INPROGRESS:
 		{
-			if (!IsGameTypeSingle())
-				m_WeaponUsageStatistic->Update();
+//.			m_WeaponUsageStatistic->Update();
 		}break;
 	default:
 		{
@@ -428,18 +430,8 @@ void game_cl_GameState::SendPickUpEvent(u16 ID_who, u16 ID_what)
 	u_EventSend		(P);
 };
 
-void game_cl_GameState::set_type_name(LPCSTR s)	
-{ 
-	EGameIDs gid =			ParseStringToGameType	(s);
-	m_game_type_name		= GameTypeToString		(gid, false); 
-	if(OnClient())
-	{
-		xr_strcpy					(g_pGamePersistent->m_game_params.m_game_type, m_game_type_name.c_str());
-		g_pGamePersistent->OnGameStart();
-	}
-};
-
 void game_cl_GameState::OnConnected()
 {
-	m_game_ui_custom	= CurrentGameUI();
+	if(!g_dedicated_server)
+		m_game_ui_custom	= CurrentGameUI();
 }

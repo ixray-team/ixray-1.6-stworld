@@ -10,11 +10,6 @@
 #include "../xrphysics/PhysicsShell.h"
 #include "Actor.h"
 #include "CharacterPhysicsSupport.h"
-#include "ai_object_location.h"
-#include "ai_space.h"
-#include "game_graph.h"
-//#include "PHCollideValidator.h"
-//#include "PHShell.h"
 #include "../xrphysics/MathUtils.h"
 #ifdef DEBUG
 #include "../xrphysics/IPHWorld.h"
@@ -81,23 +76,12 @@ void CPHDestroyable::InitServerObject(CSE_Abstract* D)
 	VERIFY							(l_tpALifeDynamicObject);
 	
 
-	l_tpALifeDynamicObject->m_tGraphID	=obj->ai_location().game_vertex_id();
-	l_tpALifeDynamicObject->m_tNodeID	= obj->ai_location().level_vertex_id();
 
-
-	//	l_tpALifePhysicObject->startup_animation=m_startup_anim;
-	
 	D->set_name_replace	("");
-//.	D->s_gameid			=	u8(GameID());
 	D->s_RP				=	0xff;
 	D->ID				=	0xffff;
 
-	D->ID_Phantom		=	0xffff;
 	D->o_Position		=	obj->Position();
-	if (ai().get_alife())
-		l_tpALifeDynamicObject->m_tGraphID = ai().game_graph().current_level_vertex();
-	else
-		l_tpALifeDynamicObject->m_tGraphID = 0xffff;
 	obj->XFORM().getXYZ	(D->o_Angle);
 	D->s_flags.assign	(M_SPAWN_OBJECT_LOCAL);
 	D->RespawnTime		=	0;
@@ -150,12 +134,6 @@ void CPHDestroyable::Destroy(u16 source_id/*=u16(-1)*/,LPCSTR section/*="ph_skel
 		m_flags.set(fl_released,FALSE);
 	}
 	xr_vector<shared_str>::iterator i=m_destroyed_obj_visual_names.begin(),e=m_destroyed_obj_visual_names.end();
-
-	if (IsGameTypeSingle())
-	{
-		for(;e!=i;i++)
-			GenSpawnReplace(source_id,section,*i);
-	};	
 ///////////////////////////////////////////////////////////////////////////
 	m_flags.set(fl_destroyed,TRUE);
 	return;

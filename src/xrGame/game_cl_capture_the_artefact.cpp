@@ -7,7 +7,6 @@
 #include "Artefact.h"
 #include "ui/UIMainIngameWnd.h"
 #include "ui/UISkinSelector.h"
-#include "ui/UIPDAWnd.h"
 #include "ui/UIMapDesc.h"
 #include "ui/UIVote.h"
 #include "ui/TeamInfo.h"
@@ -21,7 +20,6 @@
 
 #include "../xrEngine/IGame_Persistent.h"
 #include "ui/UIActorMenu.h"
-#include "ui/UIDemoPlayControl.h"
 
 #include "game_cl_capturetheartefact_snd_msg.h"
 #include "game_cl_teamdeathmatch_snd_messages.h"
@@ -115,16 +113,16 @@ void game_cl_CaptureTheArtefact::shedule_Update(u32 dt)
 	if (g_dedicated_server)
 		return;
 
-	if ((Level().IsDemoPlayStarted() || Level().IsDemoPlayFinished())  && m_game_ui)
-	{
-		game_PlayerState* lookat_player = Game().lookat_player();
-		if (lookat_player)
-		{
-			m_game_ui->SetRank(static_cast<ETeam>(lookat_player->team),
-									lookat_player->rank);
-			UpdateMoneyIndicator();
-		}
-	}
+	//if((Level().IsDemoPlayStarted() || Level().IsDemoPlayFinished()) && m_game_ui)
+	//{
+	//	game_PlayerState* lookat_player = Game().lookat_player();
+	//	if (lookat_player)
+	//	{
+	//		m_game_ui->SetRank(static_cast<ETeam>(lookat_player->team),
+	//								lookat_player->rank);
+	//		UpdateMoneyIndicator();
+	//	}
+	//}
 
 	switch (Phase())
 	{
@@ -134,10 +132,10 @@ void game_cl_CaptureTheArtefact::shedule_Update(u32 dt)
 				{
 					if (local_player && !local_player->IsSkip())
 					{
-						if (!m_bReadMapDesc && Level().CurrentEntity())
+						if (!m_bReadMapDesc && Level().CurrentActor())
 						{
-							m_bReadMapDesc = m_game_ui->ShowServerInfo() ? TRUE : FALSE;
-							GetActiveVoting				();
+							m_bReadMapDesc		= TRUE; // showServerInfo was here
+							GetActiveVoting		( );
 						}
 
 						UpdateMoneyIndicator();
@@ -145,8 +143,6 @@ void game_cl_CaptureTheArtefact::shedule_Update(u32 dt)
 						if ((local_player->testFlag(GAME_PLAYER_FLAG_VERY_VERY_DEAD)) &&
 							(static_cast<ETeam>(local_player->team) != etSpectatorsTeam))
 						{
-							/*if (!sendedSpawnMe)
-								SpawnMe();*/
 
 							if ((local_player->money_for_round + spawn_cost + buy_amount) >= 0)
 							{
@@ -952,8 +948,8 @@ bool game_cl_CaptureTheArtefact::OnKeyboardPress(int key)
 {
 	if(inherited::OnKeyboardPress(key))	return true;
 
-	if (Level().IsDemoPlay() && (key != kSCORES) && (key != kCROUCH))
-		return false;
+	//if (Level().IsDemoPlay() && (key != kSCORES) && (key != kCROUCH))
+	//	return false;
 
 	if ((Phase() == GAME_PHASE_INPROGRESS) && 
 		(m_game_ui) && 
@@ -1109,7 +1105,7 @@ bool game_cl_CaptureTheArtefact::NeedToSendReady_Spectator(int key, game_PlayerS
 
 void game_cl_CaptureTheArtefact::OnBuySpawnMenu_Ok		()
 {
-	CObject*		curr = Level().CurrentEntity();
+	CObject*		curr = Level().CurrentActor();
 	if (!curr)
 		return;
 
@@ -1414,11 +1410,12 @@ void game_cl_CaptureTheArtefact::OnVoteEnd(NET_Packet& P)
 
 void game_cl_CaptureTheArtefact::OnTeamMenuBack()
 {
-	if (local_player->testFlag(GAME_PLAYER_FLAG_SPECTATOR))
-	{
-		m_game_ui->ShowServerInfo();
-	}
+	//if (local_player->testFlag(GAME_PLAYER_FLAG_SPECTATOR))
+	//{
+	//	m_game_ui->ShowServerInfo();
+	//}
 }
+
 void game_cl_CaptureTheArtefact::OnTeamMenu_Cancel()
 {
 	if (m_bTeamSelected) 

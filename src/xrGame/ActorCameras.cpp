@@ -6,7 +6,6 @@
 #endif
 #include "hit.h"
 #include "PHDestroyable.h"
-#include "Car.h"
 
 #include "Weapon.h"
 #include "Inventory.h"
@@ -55,8 +54,11 @@ void CActor::cam_SetLadder()
 void CActor::camUpdateLadder(float dt)
 {
 	if(!character_physics_support()->movement()->ElevatorState())
-															return;
-	if(cameras[eacFirstEye]->bClampYaw) return;
+		return;
+
+	if(cameras[eacFirstEye]->bClampYaw) 
+		return;
+
 	float yaw				= (-XFORM().k.getH());
 
 	float & cam_yaw			= cameras[eacFirstEye]->yaw;
@@ -285,14 +287,13 @@ static const float	ik_cam_shift_speed = 0.01f;
 
 void CActor::cam_Update(float dt, float fFOV)
 {
-	if(m_holder)		return;
-
 	if( (mstate_real & mcClimb) && (cam_active!=eacFreeLook) )
 		camUpdateLadder(dt);
+
 	on_weapon_shot_update();
 	float y_shift =0;
 	
-	if( GamePersistent().GameType() != eGameIDSingle && ik_cam_shift && character_physics_support() && character_physics_support()->ik_controller() )
+	if( ik_cam_shift && character_physics_support() && character_physics_support()->ik_controller() )
 	{
 		y_shift = character_physics_support()->ik_controller()->Shift();
 		float cam_smooth_k = 1.f;
@@ -357,16 +358,12 @@ void CActor::cam_Update(float dt, float fFOV)
 		cameras[eacFirstEye]->Update	(point,dangle);
 		cameras[eacFirstEye]->f_fov		= fFOV;
 	} 
-	if (Level().CurrentEntity() == this)
-	{
-		collide_camera( *cameras[eacFirstEye], _viewport_near, this );
-	}
-	if( psActorFlags.test(AF_PSP) )
-	{
-		Cameras().UpdateFromCamera			(C);
-	}else
+
+
+	if (Level().CurrentActor() == this)
 	{
 		Cameras().UpdateFromCamera			(cameras[eacFirstEye]);
+		collide_camera( *cameras[eacFirstEye], _viewport_near, this );
 	}
 
 	fCurAVelocity			= vPrevCamDir.sub(cameras[eacFirstEye]->vDirection).magnitude()/Device.fTimeDelta;
@@ -380,7 +377,7 @@ void CActor::cam_Update(float dt, float fFOV)
 	}
 #endif
 
-	if (Level().CurrentEntity() == this)
+	if (Level().CurrentActor() == this)
 	{
 		Level().Cameras().UpdateFromCamera	(C);
 		if(eacFirstEye == cam_active && !Level().Cameras().GetCamEffector(cefDemo)){
@@ -419,25 +416,24 @@ void CActor::update_camera (CCameraShotEffector* effector)
 
 
 #ifdef DEBUG
+
 void dbg_draw_frustum (float FOV, float _FAR, float A, Fvector &P, Fvector &D, Fvector &U);
 extern	Flags32	dbg_net_Draw_Flags;
-extern	BOOL g_bDrawBulletHit;
 
 void CActor::OnRender	()
 {
-#ifdef DEBUG
 	if (inventory().ActiveItem())
 		inventory().ActiveItem()->OnRender();
-#endif
+
 	if (!bDebug)				return;
 
 	if ((dbg_net_Draw_Flags.is_any(dbg_draw_actor_phys)))
 		character_physics_support()->movement()->dbg_Draw	();
 
 	
-
 	OnRender_Network();
 
 	inherited::OnRender();
 }
+
 #endif

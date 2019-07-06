@@ -8,11 +8,6 @@
 #include "PHSynchronize.h"
 #include "../xrphysics/MathUtils.h"
 #include "../Include/xrRender/Kinematics.h"
-//#include "PHObject.h"
-//#include "../xrphysics/PHCollideValidator.h"
-#include "ai_object_location.h"
-#include "ai_space.h"
-#include "game_graph.h"
 #include "PHDestroyable.h"
 
 #define F_MAX         3.402823466e+38F
@@ -146,7 +141,7 @@ void CPHSkeleton::Update(u32 dt)
 {
 	CPhysicsShellHolder* obj=PPhysicsShellHolder();
 	CPhysicsShell* pPhysicsShell=obj->PPhysicsShell();
-	if ( pPhysicsShell && pPhysicsShell->isFractured()) //!ai().get_alife() &&
+	if ( pPhysicsShell && pPhysicsShell->isFractured()) 
 	{
 		PHSplit();
 	}
@@ -428,29 +423,19 @@ void CPHSkeleton::InitServerObject(CSE_Abstract * D)
 {
 
 	CPhysicsShellHolder* obj=PPhysicsShellHolder();
-	CSE_ALifeDynamicObject		*l_tpALifeDynamicObject = smart_cast<CSE_ALifeDynamicObject*>(D);
-	R_ASSERT					(l_tpALifeDynamicObject);
 	CSE_ALifePHSkeletonObject		*l_tpALifePhysicObject = smart_cast<CSE_ALifePHSkeletonObject*>(D);
 	R_ASSERT					(l_tpALifePhysicObject);
 
-	l_tpALifePhysicObject->m_tGraphID	=obj->ai_location().game_vertex_id();
-	l_tpALifeDynamicObject->m_tNodeID	= obj->ai_location().level_vertex_id();
 	l_tpALifePhysicObject->set_visual	(*obj->cNameVisual());
 
 	l_tpALifePhysicObject->source_id	= u16(obj->ID());
 	l_tpALifePhysicObject->startup_animation=m_startup_anim;
 	D->s_name			= "ph_skeleton_object";//*cNameSect()
 	D->set_name_replace	("");
-//.	D->s_gameid			=	u8(GameID());
 	D->s_RP				=	0xff;
 	D->ID				=	0xffff;
 	D->ID_Parent		=	0xffff;//u16(ID());//
-	D->ID_Phantom		=	0xffff;
 	D->o_Position		=	obj->Position();
-	if (ai().get_alife())
-		l_tpALifeDynamicObject->m_tGraphID = ai().game_graph().current_level_vertex();
-	else
-		l_tpALifeDynamicObject->m_tGraphID = 0xffff;
 	obj->XFORM().getHPB	(D->o_Angle);
 	D->s_flags.assign	(M_SPAWN_OBJECT_LOCAL);
 	D->RespawnTime		=	0;

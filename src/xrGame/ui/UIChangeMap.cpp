@@ -7,10 +7,8 @@
 #include "UIListBoxItem.h"
 #include "../level.h"
 #include "../game_cl_teamdeathmatch.h"
-#include "../../xrEngine/xr_ioconsole.h"
-#include "UIMapList.h"
+#include "../../xrEngine/xr_ioc_cmd.h"
 
-#include "object_broker.h"
 #include "../UIGameCustom.h"
 #include "../UIDialogHolder.h"
 
@@ -136,7 +134,7 @@ void CUIChangeMap::OnBtnOk()
 
 		string512					command;
 		xr_sprintf					(command, "cl_votestart changemap %s %s", name.c_str(), ver.c_str());
-		Console->Execute			(command);
+		pConsoleCommands->Execute			(command);
 		HideDialog					();
 	}
 }

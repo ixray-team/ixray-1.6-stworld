@@ -7,7 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 //#include "stdafx.h"
-#include "pch_script.h"
+#include "stdafx.h"
 #include "inventory_item_object.h"
 
 
@@ -115,17 +115,6 @@ void CInventoryItemObject::net_Export		(NET_Packet& P)
 	CInventoryItem::net_Export			(P);
 }
 
-void CInventoryItemObject::save				(NET_Packet &packet)
-{
-	CPhysicItem::save					(packet);
-	CInventoryItem::save				(packet);
-}
-
-void CInventoryItemObject::load				(IReader &packet)
-{
-	CPhysicItem::load					(packet);
-	CInventoryItem::load				(packet);
-}
 
 void CInventoryItemObject::renderable_Render()
 {
@@ -192,11 +181,6 @@ void CInventoryItemObject::OnRender			()
 void CInventoryItemObject::modify_holder_params	(float &range, float &fov) const
 {
 	CInventoryItem::modify_holder_params		(range,fov);
-}
-
-u32	 CInventoryItemObject::ef_weapon_type		() const
-{
-	return								(0);
 }
 
 bool CInventoryItemObject::NeedToDestroyObject	() const

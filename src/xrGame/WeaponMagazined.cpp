@@ -1,4 +1,4 @@
-#include "pch_script.h"
+#include "stdafx.h"
 
 #include "WeaponMagazined.h"
 #include "actor.h"
@@ -13,14 +13,11 @@
 #include "EffectorZoomInertion.h"
 #include "xr_level_controller.h"
 #include "UIGameCustom.h"
-#include "object_broker.h"
 #include "string_table.h"
 #include "MPPlayersBag.h"
 #include "ui/UIXmlInit.h"
 #include "ui/UIStatic.h"
 #include "game_object_space.h"
-#include "script_callback_ex.h"
-#include "script_game_object.h"
 
 ENGINE_API	bool	g_dedicated_server;
 
@@ -146,7 +143,7 @@ void CWeaponMagazined::FireStart		()
 		}
 	}else
 	{//misfire
-		if(smart_cast<CActor*>(this->H_Parent()) && (Level().CurrentViewEntity()==H_Parent()) )
+		if(smart_cast<CActor*>(this->H_Parent()) && (Level().CurrentViewActor()==H_Parent()) )
 			CurrentGameUI()->AddCustomStatic("gun_jammed",true);
 
 		OnEmptyClick();
@@ -173,12 +170,6 @@ bool CWeaponMagazined::TryReload()
 {
 	if(m_pInventory) 
 	{
-		if(IsGameTypeSingle() && ParentIsActor())
-		{
-			int	AC					= GetSuitableAmmoTotal();
-			Actor()->callback(GameObject::eWeaponNoAmmoAvailable)(lua_game_object(), AC);
-		}
-
 		m_pCurrentAmmo = smart_cast<CWeaponAmmo*>(m_pInventory->GetAny( m_ammoTypes[m_ammoType].c_str() ));
 		
 		if(IsMisfire() && iAmmoElapsed)
@@ -390,7 +381,7 @@ void CWeaponMagazined::OnStateSwitch	(u32 S)
 		switch2_Fire	();
 		break;
 	case eMisfire:
-		if(smart_cast<CActor*>(this->H_Parent()) && (Level().CurrentViewEntity()==H_Parent()) )
+		if(smart_cast<CActor*>(this->H_Parent()) && (Level().CurrentViewActor()==H_Parent()) )
 			CurrentGameUI()->AddCustomStatic("gun_jammed", true);
 		break;
 	case eMagEmpty:
@@ -635,10 +626,6 @@ void CWeaponMagazined::switch2_Idle	()
 	PlayAnimIdle		();
 }
 
-#ifdef DEBUG
-#include "ai\stalker\ai_stalker.h"
-#include "object_handler_planner.h"
-#endif
 void CWeaponMagazined::switch2_Fire	()
 {
 	CInventoryOwner* io		= smart_cast<CInventoryOwner*>(H_Parent());
@@ -651,15 +638,6 @@ void CWeaponMagazined::switch2_Fire	()
 	if (ii != io->inventory().ActiveItem())
 		Msg					("! not an active item, item %s, owner %s, active item %s",*cName(),*H_Parent()->cName(),io->inventory().ActiveItem() ? *io->inventory().ActiveItem()->object().cName() : "no_active_item");
 
-	if ( !(io && (ii == io->inventory().ActiveItem())) ) 
-	{
-		CAI_Stalker			*stalker = smart_cast<CAI_Stalker*>(H_Parent());
-		if (stalker) {
-			stalker->planner().show						();
-			stalker->planner().show_current_world_state	();
-			stalker->planner().show_target_world_state	();
-		}
-	}
 #else
 	if (!io)
 		return;
@@ -679,7 +657,7 @@ void CWeaponMagazined::switch2_Fire	()
 	m_bFireSingleShot = true;
 	m_iShotNum = 0;
 
-    if((OnClient() || Level().IsDemoPlay())&& !IsWorking())
+    if((OnClient() )&& !IsWorking())
 		FireStart();
 
 }

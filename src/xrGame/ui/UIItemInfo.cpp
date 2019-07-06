@@ -1,4 +1,4 @@
-#include "pch_script.h"
+#include "stdafx.h"
 
 #include "uiiteminfo.h"
 #include "uistatic.h"
@@ -8,15 +8,12 @@
 #include "UIScrollView.h"
 #include "UIFrameWindow.h"
 
-#include "ai_space.h"
-#include "alife_simulator.h"
 #include "../string_table.h"
 #include "../Inventory_Item.h"
 #include "UIInventoryUtilities.h"
 #include "../PhysicsShellHolder.h"
 #include "UIWpnParams.h"
 #include "ui_af_params.h"
-#include "UIInvUpgradeProperty.h"
 #include "UIOutfitInfo.h"
 #include "UIBoosterInfo.h"
 #include "../Weapon.h"
@@ -39,9 +36,7 @@ CUIItemInfo::CUIItemInfo()
 	UIWeight					= NULL;
 	UIItemImage					= NULL;
 	UIDesc						= NULL;
-//	UIConditionWnd				= NULL;
 	UIWpnParams					= NULL;
-	UIProperties				= NULL;
 	UIOutfitInfo				= NULL;
 	UIBoosterInfo				= NULL;
 	UIArtefactParams			= NULL;
@@ -54,10 +49,8 @@ CUIItemInfo::CUIItemInfo()
 
 CUIItemInfo::~CUIItemInfo()
 {
-//	xr_delete	(UIConditionWnd);
 	xr_delete	(UIWpnParams);
 	xr_delete	(UIArtefactParams);
-	xr_delete	(UIProperties);
 	xr_delete	(UIOutfitInfo);
 	xr_delete	(UIBoosterInfo);
 }
@@ -140,12 +133,6 @@ void CUIItemInfo::InitItemInfo(LPCSTR xml_name)
 		//UIDesc_line->SetAutoDelete		(true);
 		//xml_init.InitStatic				(uiXml, "description_line", 0, UIDesc_line);
 
-		if ( ai().get_alife() ) // (-designer)
-		{
-			UIProperties					= xr_new<UIInvUpgPropertiesWnd>();
-			UIProperties->init_from_xml		("actor_menu_item.xml");
-		}
-
 		UIDesc							= xr_new<CUIScrollView>(); 
 		AttachChild						(UIDesc);		
 		UIDesc->SetAutoDelete			(true);
@@ -181,8 +168,6 @@ void CUIItemInfo::InitItemInfo(Fvector2 pos, Fvector2 size, LPCSTR xml_name)
 	inherited::SetWndSize	(size);
     InitItemInfo			(xml_name);
 }
-
-bool	IsGameTypeSingle();
 
 void CUIItemInfo::InitItem(CUICellItem* pCellItem, CInventoryItem* pCompareItem, u32 item_price, LPCSTR trade_tip)
 {
@@ -235,19 +220,8 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, CInventoryItem* pCompareItem,
 			UIWeight->SetWndPos	(pos);
 		}
 	}
-	if ( UICost && IsGameTypeSingle() && item_price!=u32(-1) )
-	{
-		xr_sprintf				(str, "%d RU", item_price);// will be owerwritten in multiplayer
-		UICost->SetText		(str);
-		pos.x = UICost->GetWndPos().x;
-		if ( m_complex_desc )
-		{
-			UICost->SetWndPos	(pos);
-		}
-		UICost->Show(true);
-	}
-	else
-		UICost->Show(false);
+
+	UICost->Show(false);
 	
 //	CActor* actor = smart_cast<CActor*>( Level().CurrentViewEntity() );
 //	if ( g_pGameLevel && Level().game && actor )
@@ -256,25 +230,6 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, CInventoryItem* pCompareItem,
 //		IBuyWnd* buy_menu = gs_mp->pCurBuyMenu->GetItemPrice();
 //		GetItemPrice();
 //	}
-	if ( UITradeTip && IsGameTypeSingle())
-	{
-		pos.y = UITradeTip->GetWndPos().y;
-		if ( UIWeight && m_complex_desc )
-		{
-			pos.y = UIWeight->GetWndPos().y + UIWeight->GetHeight() + 4.0f;
-		}
-
-		if(trade_tip==NULL)
-			UITradeTip->Show(false);
-		else
-		{
-			UITradeTip->SetText(CStringTable().translate(trade_tip).c_str());
-			UITradeTip->AdjustHeightToText();
-			UITradeTip->SetWndPos(pos);
-			UITradeTip->Show(true);
-		}
-	}
-	
 	if ( UIDesc )
 	{
 		pos = UIDesc->GetWndPos();
@@ -294,7 +249,9 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, CInventoryItem* pCompareItem,
 			pItem->SetFont						(m_desc_info.pDescFont);
 			pItem->SetWidth						(UIDesc->GetDesiredChildWidth());
 			pItem->SetTextComplexMode			(true);
-			pItem->SetText						(*pInvItem->ItemDescription());
+
+			shared_str desc = CStringTable().translate( pSettings->r_string(pInvItem->object().cNameSect(), "description") );
+			pItem->SetText						(desc.c_str());
 			pItem->AdjustHeightToText			();
 			UIDesc->AddWindow					(pItem, true);
 		}
@@ -395,11 +352,6 @@ void CUIItemInfo::TryAddOutfitInfo( CInventoryItem& pInvItem, CInventoryItem* pC
 
 void CUIItemInfo::TryAddUpgradeInfo( CInventoryItem& pInvItem )
 {
-	if ( pInvItem.upgardes().size() && UIProperties )
-	{
-		UIProperties->set_item_info( pInvItem );
-		UIDesc->AddWindow( UIProperties, false );
-	}
 }
 
 void CUIItemInfo::TryAddBoosterInfo(CInventoryItem& pInvItem)

@@ -8,7 +8,6 @@
 class CUISkinSelectorWnd;
 class CUIDialogWnd;
 class CUIGameDM;
-class CUIPdaWnd;
 class CUIInventoryWnd;
 class CUIMapDesc;
 class CWeaponMagazinedWGrenade;

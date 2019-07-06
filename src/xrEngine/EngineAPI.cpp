@@ -6,8 +6,6 @@
 #include "EngineAPI.h"
 #include "../xrcdb/xrXRC.h"
 
-#include "securom_api.h"
-
 extern xr_token* vid_quality_token;
 
 //////////////////////////////////////////////////////////////////////
@@ -20,11 +18,8 @@ CEngineAPI::CEngineAPI	()
 {
 	hGame			= 0;
 	hRender			= 0;
-	hTuner			= 0;
 	pCreate			= 0;
 	pDestroy		= 0;
-	tune_pause		= dummy	;
-	tune_resume		= dummy	;
 }
 
 CEngineAPI::~CEngineAPI()
@@ -48,12 +43,7 @@ ENGINE_API bool is_enough_address_space_available	()
 {
 	SYSTEM_INFO		system_info;
 
-	SECUROM_MARKER_HIGH_SECURITY_ON(12)
-
 	GetSystemInfo	( &system_info );
-
-	SECUROM_MARKER_HIGH_SECURITY_OFF(12)
-
 	return			(*(u32*)&system_info.lpMaximumApplicationAddress) > 0x90000000;	
 }
 
@@ -61,8 +51,6 @@ ENGINE_API bool is_enough_address_space_available	()
 
 void CEngineAPI::InitializeNotDedicated()
 {
-	SECUROM_MARKER_HIGH_SECURITY_ON(2)
-
 	LPCSTR			r2_name	= "xrRender_R2.dll";
 	LPCSTR			r3_name	= "xrRender_R3.dll";
 	LPCSTR			r4_name	= "xrRender_R4.dll";
@@ -110,8 +98,6 @@ void CEngineAPI::InitializeNotDedicated()
 		else
 			g_current_renderer	= 2;
 	}
-
-	SECUROM_MARKER_HIGH_SECURITY_OFF(2)
 }
 #endif // DEDICATED_SERVER
 
@@ -152,20 +138,6 @@ void CEngineAPI::Initialize(void)
 		R_ASSERT2		(hGame,"Game DLL raised exception during loading or there is no game DLL at all");
 		pCreate			= (Factory_Create*)		GetProcAddress(hGame,"xrFactory_Create"		);	R_ASSERT(pCreate);
 		pDestroy		= (Factory_Destroy*)	GetProcAddress(hGame,"xrFactory_Destroy"	);	R_ASSERT(pDestroy);
-	}
-
-	//////////////////////////////////////////////////////////////////////////
-	// vTune
-	tune_enabled		= FALSE;
-	if (strstr(Core.Params,"-tune"))	{
-		LPCSTR			g_name	= "vTuneAPI.dll";
-		Log				("Loading DLL:",g_name);
-		hTuner			= LoadLibrary	(g_name);
-		if (0==hTuner)	R_CHK			(GetLastError());
-		R_ASSERT2		(hTuner,"Intel vTune is not installed");
-		tune_enabled	= TRUE;
-		tune_pause		= (VTPause*)	GetProcAddress(hTuner,"VTPause"		);	R_ASSERT(tune_pause);
-		tune_resume		= (VTResume*)	GetProcAddress(hTuner,"VTResume"	);	R_ASSERT(tune_resume);
 	}
 }
 
@@ -322,65 +294,5 @@ void CEngineAPI::CreateRendererList()
 		Msg							("[%s]",_tmp[i]);
 #endif // DEBUG
 	}
-
-	/*
-	if(vid_quality_token != NULL)		return;
-
-	D3DCAPS9					caps;
-	CHW							_HW;
-	_HW.CreateD3D				();
-	_HW.pD3D->GetDeviceCaps		(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,&caps);
-	_HW.DestroyD3D				();
-	u16		ps_ver_major		= u16 ( u32(u32(caps.PixelShaderVersion)&u32(0xf << 8ul))>>8 );
-
-	xr_vector<LPCSTR>			_tmp;
-	u32 i						= 0;
-	for(; i<5; ++i)
-	{
-		bool bBreakLoop = false;
-		switch (i)
-		{
-		case 3:		//"renderer_r2.5"
-			if (ps_ver_major < 3)
-				bBreakLoop = true;
-			break;
-		case 4:		//"renderer_r_dx10"
-			bBreakLoop = true;
-			break;
-		default:	;
-		}
-
-		if (bBreakLoop) break;
-
-		_tmp.push_back				(NULL);
-		LPCSTR val					= NULL;
-		switch (i)
-		{
-		case 0: val ="renderer_r1";			break;
-		case 1: val ="renderer_r2a";		break;
-		case 2: val ="renderer_r2";			break;
-		case 3: val ="renderer_r2.5";		break;
-		case 4: val ="renderer_r_dx10";		break; //  -)
-		}
-		_tmp.back()					= xr_strdup(val);
-	}
-	u32 _cnt								= _tmp.size()+1;
-	vid_quality_token						= xr_alloc<xr_token>(_cnt);
-
-	vid_quality_token[_cnt-1].id			= -1;
-	vid_quality_token[_cnt-1].name			= NULL;
-
-#ifdef DEBUG
-	Msg("Available render modes[%d]:",_tmp.size());
-#endif // DEBUG
-	for(u32 i=0; i<_tmp.size();++i)
-	{
-		vid_quality_token[i].id				= i;
-		vid_quality_token[i].name			= _tmp[i];
-#ifdef DEBUG
-		Msg							("[%s]",_tmp[i]);
-#endif // DEBUG
-	}
-	*/
 #endif //#ifndef DEDICATED_SERVER
 }

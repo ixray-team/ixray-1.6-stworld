@@ -1,16 +1,11 @@
 #include "stdafx.h"
 #include "uizonemap.h"
 
-#include "InfoPortion.h"
-#include "Pda.h"
-
 #include "Grenade.h"
 #include "level.h"
 #include "game_cl_base.h"
 
 #include "actor.h"
-#include "ai_space.h"
-#include "game_graph.h"
 
 #include "ui/UIMap.h"
 #include "ui/UIXmlInit.h"
@@ -87,19 +82,6 @@ void CUIZoneMap::Init()
 	rel_pos					= m_clock_wnd->GetWndPos();
 	rel_pos.mul				(m_background.GetWndSize());
 	m_clock_wnd->SetWndPos	(rel_pos);
-
-	if ( IsGameTypeSingle() )
-	{
-		xml_init.InitStatic			(uiXml, "minimap:static_counter", 0, &m_Counter);
-		m_background.AttachChild	(&m_Counter);
-		xml_init.InitTextWnd		(uiXml, "minimap:static_counter:text_static", 0, &m_Counter_text);
-		m_Counter.AttachChild		(&m_Counter_text);
-
-		rel_pos						= m_Counter.GetWndPos();
-		rel_pos.mul					(m_background.GetWndSize());
-		m_Counter.SetWndPos			(rel_pos);
-	}
-
 }
 
 void CUIZoneMap::Render			()
@@ -113,25 +95,8 @@ void CUIZoneMap::Render			()
 
 void CUIZoneMap::Update()
 {
-	CActor* pActor = smart_cast<CActor*>( Level().CurrentViewEntity() );
+	CActor* pActor = smart_cast<CActor*>( Level().CurrentViewActor() );
 	if ( !pActor ) return;
-
-	if ( !( Device.dwFrame % 20 ) && IsGameTypeSingle() )
-	{
-		string16	text_str;
-		xr_strcpy( text_str, sizeof(text_str), "" );
-
-		CPda* pda = pActor->GetPDA();
-		if ( pda )
-		{
-			u32 cn = pda->ActiveContactsNum();
-			if ( cn > 0 )
-			{
-				xr_sprintf( text_str, sizeof(text_str), "%d", cn );
-			}
-		}
-		m_Counter_text.SetText( text_str );
-	}
 
 	UpdateRadar( Device.vCameraPosition );
 	float h, p;
@@ -166,7 +131,7 @@ bool CUIZoneMap::ZoomOut()
 
 void CUIZoneMap::SetupCurrentMap()
 {
-	m_activeMap->Initialize			(Level().name(), "hud\\default");
+	m_activeMap->Initialize			(Level().map_name(), "hud\\default");
 
 	Frect r;
 	m_clipFrame.GetAbsoluteRect		(r);	
@@ -175,7 +140,7 @@ void CUIZoneMap::SetupCurrentMap()
 	Fvector2						wnd_size;
 	float zoom_factor				= float(m_clipFrame.GetWidth())/100.0f;
 
-	LPCSTR ln						= Level().name().c_str();
+	LPCSTR ln						= Level().map_name().c_str();
 	if(	pGameIni->section_exist(ln) )
 	{
 		if(pGameIni->line_exist(ln, "minimap_zoom"))

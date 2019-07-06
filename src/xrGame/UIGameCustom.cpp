@@ -1,24 +1,21 @@
-#include "pch_script.h"
+#include "stdafx.h"
 #include "UIGameCustom.h"
 #include "level.h"
 #include "ui/UIXmlInit.h"
 #include "ui/UIStatic.h"
-#include "object_broker.h"
 #include "string_table.h"
 
 #include "InventoryOwner.h"
 #include "ui/UIActorMenu.h"
-#include "ui/UIPdaWnd.h"
 #include "ui/UIMainIngameWnd.h"
 #include "ui/UIMessagesWindow.h"
 #include "ui/UIHudStatesWnd.h"
+#include "ui/UIGameTutorial.h"
 #include "actor.h"
 #include "inventory.h"
 #include "game_cl_base.h"
 
 #include "../xrEngine/x_ray.h"
-
-EGameIDs ParseStringToGameType(LPCSTR str);
 
 bool predicate_sort_stat(const SDrawStaticStruct* s1, const SDrawStaticStruct* s2) 
 {
@@ -36,7 +33,11 @@ struct predicate_find_stat
 };
 
 CUIGameCustom::CUIGameCustom()
-:m_msgs_xml(NULL),m_ActorMenu(NULL),m_PdaMenu(NULL),m_window(NULL),UIMainIngameWnd(NULL),m_pMessagesWnd(NULL)
+:m_msgs_xml(NULL),
+m_ActorMenu(NULL),
+m_window(NULL),
+UIMainIngameWnd(NULL),
+m_pMessagesWnd(NULL)
 {
 	ShowGameIndicators		(true);
 	ShowCrosshair			(true);
@@ -82,16 +83,17 @@ void CUIGameCustom::OnFrame()
 	m_pMessagesWnd->Update();
 }
 
-void CUIGameCustom::Render()
+void CUIGameCustom::Render( )
 {
-	st_vec_it it = m_custom_statics.begin();
-	st_vec_it it_e = m_custom_statics.end();
+	st_vec_it it	= m_custom_statics.begin();
+	st_vec_it it_e	= m_custom_statics.end();
+
 	for(;it!=it_e;++it)
 		(*it)->Draw();
 
 	m_window->Draw();
 
-	CEntity* pEntity = smart_cast<CEntity*>(Level().CurrentEntity());
+	CEntity* pEntity = smart_cast<CEntity*>(Level().CurrentActor());
 	if (pEntity)
 	{
 		CActor* pActor			=	smart_cast<CActor*>(pEntity);
@@ -165,8 +167,6 @@ void CUIGameCustom::OnInventoryAction(PIItem item, u16 action_type)
 		m_ActorMenu->OnInventoryAction( item, action_type );
 }
 
-#include "ui/UIGameTutorial.h"
-
 extern CUISequencer* g_tutorial;
 extern CUISequencer* g_tutorial2;
 
@@ -177,8 +177,7 @@ bool CUIGameCustom::ShowActorMenu()
 		m_ActorMenu->HideDialog();
 	}else
 	{
-		HidePdaMenu();
-		CInventoryOwner* pIOActor	= smart_cast<CInventoryOwner*>( Level().CurrentViewEntity() );
+		CInventoryOwner* pIOActor	= smart_cast<CInventoryOwner*>( Level().CurrentViewActor() );
 		VERIFY						(pIOActor);
 		m_ActorMenu->SetActor		(pIOActor);
 		m_ActorMenu->SetMenuMode	(mmInventory);
@@ -190,9 +189,7 @@ bool CUIGameCustom::ShowActorMenu()
 void CUIGameCustom::HideActorMenu()
 {
 	if ( m_ActorMenu->IsShown() )
-	{
 		m_ActorMenu->HideDialog();
-	}
 }
 
 void CUIGameCustom::HideMessagesWindow()
@@ -207,37 +204,21 @@ void CUIGameCustom::ShowMessagesWindow()
 		m_pMessagesWnd->Show(true);
 }
 
-bool CUIGameCustom::ShowPdaMenu()
-{
-	HideActorMenu();
-	m_PdaMenu->ShowDialog(true);
-	return true;
-}
-
-void CUIGameCustom::HidePdaMenu()
-{
-	if ( m_PdaMenu->IsShown() )
-	{
-		m_PdaMenu->HideDialog();
-	}
-}
-
 void CUIGameCustom::SetClGame(game_cl_GameState* g)
 {
 	g->SetGameUI(this);
 }
 
-void CUIGameCustom::UnLoad()
+void CUIGameCustom::UnLoad( )
 {
 	xr_delete					(m_msgs_xml);
 	xr_delete					(m_ActorMenu);
-	xr_delete					(m_PdaMenu);
 	xr_delete					(m_window);
 	xr_delete					(UIMainIngameWnd);
 	xr_delete					(m_pMessagesWnd);
 }
 
-void CUIGameCustom::Load()
+void CUIGameCustom::Load( )
 {
 	if(g_pGameLevel)
 	{
@@ -248,9 +229,6 @@ void CUIGameCustom::Load()
 		R_ASSERT				(NULL==m_ActorMenu);
 		m_ActorMenu				= xr_new<CUIActorMenu>		();
 
-		R_ASSERT				(NULL==m_PdaMenu);
-		m_PdaMenu				= xr_new<CUIPdaWnd>			();
-		
 		R_ASSERT				(NULL==m_window);
 		m_window				= xr_new<CUIWindow>			();
 
@@ -267,7 +245,7 @@ void CUIGameCustom::Load()
 	}
 }
 
-void CUIGameCustom::OnConnected()
+void CUIGameCustom::OnConnected( )
 {
 	if(g_pGameLevel)
 	{
@@ -282,20 +260,7 @@ void CUIGameCustom::CommonMessageOut(LPCSTR text)
 {
 	m_pMessagesWnd->AddLogMessage(text);
 }
-void CUIGameCustom::UpdatePda()
-{
-	PdaMenu().UpdatePda();
-}
 
-void CUIGameCustom::update_fake_indicators(u8 type, float power)
-{
-	UIMainIngameWnd->get_hud_states()->FakeUpdateIndicatorType(type, power);
-}
-
-void CUIGameCustom::enable_fake_indicators(bool enable)
-{
-	UIMainIngameWnd->get_hud_states()->EnableFakeIndicators(enable);
-}
 
 SDrawStaticStruct::SDrawStaticStruct	()
 {
@@ -367,7 +332,7 @@ void CMapListHelper::LoadMapInfo(LPCSTR map_cfg_fn, const xr_string& map_name, L
 				m_storage.resize		(m_storage.size()+1);
 				SGameTypeMaps&	Itm		= m_storage.back();
 				Itm.m_game_type_name	= game_type;
-				Itm.m_game_type_id		= ParseStringToGameType(game_type.c_str());
+				Itm.m_game_type_id		= IGame_Persistent::ParseStringToGameType(game_type.c_str());
 				M						= &m_storage.back();
 			}
 			

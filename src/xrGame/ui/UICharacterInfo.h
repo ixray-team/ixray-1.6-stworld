@@ -5,21 +5,19 @@
 
 #include "uiwindow.h"
 #include "../../xrServerEntities/alife_space.h"
-#include "character_info_defs.h"
 
 class CUIStatic;
 class CCharacterInfo;
 class CUIXml;
 class CUIScrollView;
+
 class CUICharacterInfo: public CUIWindow
 {
 private:
 	typedef CUIWindow inherited;
 
 protected:
-	void				SetRelation				(ALife::ERelationType relation, CHARACTER_GOODWILL goodwill);
 	void				ResetAllStrings			();
-	void				UpdateRelation			();
 	bool				hasOwner()			{return (m_ownerID!=u16(-1));}
 	// Biography
 	CUIScrollView*		pUIBio;
@@ -31,14 +29,6 @@ protected:
 	{
 		eIcon = 0,
 		eIconOver,
-/*
-		eRankIcon,
-		eRankIconOver,
-		eCommunityIcon,
-		eCommunityIconOver,
-		eCommunityBigIcon,
-		eCommunityBigIconOver,
-*/
 		eName,
 		eNameCaption,
 		eRank,
@@ -66,7 +56,6 @@ public:
 	void				Init_StrInfoItem		(CUIXml& xml_doc, LPCSTR item_str, UIItemType type);
 	void				Init_IconInfoItem		(CUIXml& xml_doc, LPCSTR item_str, UIItemType type);
 
-	void				InitCharacter			(u16 id);
 	void				ClearInfo				();
 	void				InitCharacterMP			(LPCSTR player_name, LPCSTR player_icon );
 
@@ -79,7 +68,4 @@ public:
 	CUIStatic&			UICommunityCaption		()	const	{	VERIFY(m_icons[eCommunityCaption]);	return *m_icons[eCommunityCaption];	}
 
 	const shared_str&	IconName				()	const	{	return m_texture_name;	}
-
-	static	bool		get_actor_community		(shared_str* our, shared_str* enemy);
-	static	bool		ignore_community		(shared_str const& check_community);
 };

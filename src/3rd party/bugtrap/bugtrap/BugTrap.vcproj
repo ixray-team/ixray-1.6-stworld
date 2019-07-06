@@ -43,9 +43,9 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="0"
 				PreprocessorDefinitions="WIN32;DEBUG;_WINDOWS;_USRDLL;BUGTRAP_EXPORTS"
-				MinimalRebuild="true"
 				ExceptionHandling="0"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="2"
@@ -55,7 +55,6 @@
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile="$(IntDir)/$(TargetName).pch"
 				WarningLevel="4"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -83,100 +82,6 @@
 				MapExports="false"
 				SubSystem="2"
 				OptimizeForWindows98="0"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="..\..\..\..\..\libraries\$(ProjectName).lib"
-				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\..\binaries"
-			IntermediateDirectory="..\..\..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
-			ConfigurationType="2"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="1"
-				InlineFunctionExpansion="1"
-				OmitFramePointers="true"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;BUGTRAP_EXPORTS"
-				StringPooling="true"
-				ExceptionHandling="0"
-				RuntimeLibrary="2"
-				BufferSecurityCheck="true"
-				EnableFunctionLevelLinking="false"
-				RuntimeTypeInfo="false"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="$(IntDir)/$(TargetName).pch"
-				WarningLevel="4"
-				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="3"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				Culture="1033"
-				ResourceOutputFileName="$(IntDir)/$(TargetName).res"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib comctl32.lib shlwapi.lib version.lib wininet.lib"
-				OutputFile="$(OutDir)/$(ProjectName).dll"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\..\..\libraries"
-				ModuleDefinitionFile="BugTrap.def"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/$(TargetName).pdb"
-				GenerateMapFile="false"
-				MapFileName=""
-				MapExports="false"
-				SubSystem="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				OptimizeForWindows98="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				ImportLibrary="..\..\..\..\..\libraries\$(ProjectName).lib"
@@ -285,6 +190,99 @@
 				Name="VCPostBuildEventTool"
 			/>
 			<DebuggerTool
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="..\..\..\..\..\binaries"
+			IntermediateDirectory="..\..\..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
+			ConfigurationType="2"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
+				Optimization="1"
+				InlineFunctionExpansion="1"
+				OmitFramePointers="true"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;BUGTRAP_EXPORTS"
+				StringPooling="true"
+				ExceptionHandling="0"
+				RuntimeLibrary="2"
+				BufferSecurityCheck="true"
+				EnableFunctionLevelLinking="false"
+				RuntimeTypeInfo="false"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="$(IntDir)/$(TargetName).pch"
+				WarningLevel="4"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				Culture="1033"
+				ResourceOutputFileName="$(IntDir)/$(TargetName).res"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="ws2_32.lib comctl32.lib shlwapi.lib version.lib wininet.lib"
+				OutputFile="$(OutDir)/$(ProjectName).dll"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\..\..\..\libraries"
+				ModuleDefinitionFile="BugTrap.def"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(OutDir)/$(TargetName).pdb"
+				GenerateMapFile="false"
+				MapFileName=""
+				MapExports="false"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="..\..\..\..\..\libraries\$(ProjectName).lib"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
@@ -797,6 +795,14 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="1"
+			/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Release|Win32"
 						>
 						<Tool
@@ -805,20 +811,12 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug|Xbox 360"
-						>
-						<Tool
-							Name="VCCLX360CompilerTool"
-							UsePrecompiledHeader="1"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
 						Name="Release|Xbox 360"
 						>
-						<Tool
-							Name="VCCLX360CompilerTool"
-							UsePrecompiledHeader="1"
-						/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="1"
+			/>
 					</FileConfiguration>
 				</File>
 			</Filter>

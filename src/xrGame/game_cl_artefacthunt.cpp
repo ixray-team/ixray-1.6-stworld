@@ -10,7 +10,6 @@
 #include "actor.h"
 #include "ui/UIMainIngameWnd.h"
 #include "ui/UISkinSelector.h"
-#include "ui/UIPdaWnd.h"
 #include "ui/UIMapDesc.h"
 #include "ui/UIMessageBoxEx.h"
 #include "ui/UIStatic.h"
@@ -52,9 +51,6 @@ game_cl_ArtefactHunt::game_cl_ArtefactHunt()
 
 void game_cl_ArtefactHunt::Init ()
 {
-//	pInventoryMenu	= xr_new<CUIInventoryWnd>();	
-//	pPdaMenu = xr_new<CUIPdaWnd>();
-//	pMapDesc = xr_new<CUIMapDesc>();
 
 	LoadTeamData(TEAM1_MENU);
 	LoadTeamData(TEAM2_MENU);
@@ -443,7 +439,7 @@ void game_cl_ArtefactHunt::shedule_Update			(u32 dt)
 				game_TeamState team0 = teams[0];
 				game_TeamState team1 = teams[1];
 
-				if (dReinforcementTime > 0 && Level().CurrentViewEntity() && m_cl_dwWarmUp_Time == 0)
+				if (dReinforcementTime > 0 && Level().CurrentViewActor() && m_cl_dwWarmUp_Time == 0)
 				{
 					u32 CurTime = Level().timeServer();
 					u32 dTime;
@@ -493,9 +489,9 @@ void game_cl_ArtefactHunt::SetScore				()
 {
 	game_cl_TeamDeathmatch::SetScore();
 //	game_cl_Deathmatch::SetScore();
-	if (Level().CurrentViewEntity() && m_game_ui)
+	if (Level().CurrentViewActor() && m_game_ui)
 	{
-		game_PlayerState* ps = GetPlayerByGameID(Level().CurrentViewEntity()->ID());
+		game_PlayerState* ps = GetPlayerByGameID(Level().CurrentViewActor()->ID());
 		
 		if (ps&&m_game_ui) 
 			m_game_ui->SetRank(ps->team, ps->rank);
@@ -529,7 +525,7 @@ BOOL game_cl_ArtefactHunt::CanCallBuyMenu			()
 		return FALSE;
 	};*/
 
-	CActor* pCurActor = smart_cast<CActor*> (Level().CurrentEntity());
+	CActor* pCurActor = smart_cast<CActor*> (Level().CurrentActor());
 	if (!pCurActor || !pCurActor->g_Alive()) return FALSE;
 
 	return TRUE;
@@ -738,7 +734,7 @@ void game_cl_ArtefactHunt::LoadSndMessages()
 
 void	game_cl_ArtefactHunt::OnBuySpawnMenu_Ok		()
 {
-	CObject* curr = Level().CurrentEntity();
+	CObject* curr = Level().CurrentActor();
 	if (!curr) return;
 	CGameObject* GO = smart_cast<CGameObject*>(curr);
 	NET_Packet			P;
@@ -775,5 +771,6 @@ void game_cl_ArtefactHunt::SendPickUpEvent		(u16 ID_who, u16 ID_what)
 void game_cl_ArtefactHunt::OnConnected()
 {
 	inherited::OnConnected();
-	m_game_ui = smart_cast<CUIGameAHunt*>( CurrentGameUI() );
+	if(!g_dedicated_server)
+		m_game_ui = smart_cast<CUIGameAHunt*>( CurrentGameUI() );
 }

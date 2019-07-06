@@ -2,7 +2,6 @@
 #include "level.h"
 #include "xrServer_updates_compressor.h"
 #include "../xrCore/ppmd_compressor.h"
-#include "../xrServerEntities/object_broker.h"
 #include "xrMessages.h"
 
 BOOL		g_sv_write_updates_bin	= FALSE;
@@ -104,8 +103,7 @@ server_updates_compressor::server_updates_compressor()
 	m_lzo_working_memory	= NULL;
 	m_lzo_working_buffer	= NULL;
 
-	if (!IsGameTypeSingle())
-		init_compression();
+	init_compression		();
 
 	dbg_update_bins_writer = NULL;
 }

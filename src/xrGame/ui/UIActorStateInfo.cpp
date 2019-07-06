@@ -13,14 +13,12 @@
 #include "UIFrameWindow.h"
 #include "UIStatic.h"
 #include "UIXmlInit.h"
-#include "object_broker.h"
 
 #include "UIHelper.h"
 #include "ui_arrow.h"
 #include "UIHudStatesWnd.h"
 
 #include "../Level.h"
-#include "../location_manager.h"
 #include "../player_hud.h"
 #include "UIMainIngameWnd.h"
 #include "../UIGameCustom.h"

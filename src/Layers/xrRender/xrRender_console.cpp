@@ -242,7 +242,7 @@ class CCC_tf_Aniso		: public CCC_Integer
 public:
 	void	apply	()	{
 		if (0==HW.pDevice)	return	;
-		int	val = *value;	clamp(val,1,16);
+		int	val = *m_value;	clamp(val,1,16);
 #if defined(USE_DX10) || defined(USE_DX11)
 		SSManager.SetMaxAnisotropy(val);
 #else	//	USE_DX10
@@ -273,7 +273,7 @@ public:
 		//VERIFY(!"apply not implmemented.");
 #else	//	USE_DX10
 		for (u32 i=0; i<HW.Caps.raster.dwStages; i++)
-			CHK_DX(HW.pDevice->SetSamplerState( i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD) value)));
+			CHK_DX(HW.pDevice->SetSamplerState( i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD) m_value)));
 #endif	//	USE_DX10
 	}
 
@@ -303,7 +303,7 @@ public:
 			CCC_Float::Execute	(args);
 			if (ps_r2_ls_flags.test(R2FLAG_GLOBALMATERIAL))	{
 				static LPCSTR	name[4]	=	{ "oren", "blin", "phong", "metal" };
-				float	mid		= *value	;
+				float	mid		= *m_value	;
 				int		m0		= iFloor(mid)	% 4;
 				int		m1		= (m0+1)		% 4;
 				float	frc		= mid - float(iFloor(mid));
@@ -420,7 +420,7 @@ public:
 		}
 		FS.update_path			(_cfg,"$game_config$",_cfg);
 		strconcat				(sizeof(cmd),cmd,"cfg_load", " ", _cfg);
-		Console->Execute		(cmd);
+		pConsoleCommands->Execute(cmd);
 	}
 };
 
@@ -503,7 +503,7 @@ public:
 			_snprintf( pBuf, sizeof(pBuf)/sizeof(pBuf[0]), "float value greater or equal to r2_dof_focus+0.1");
 			Msg("~ Invalid syntax in call to '%s'",cName);
 			Msg("~ Valid arguments: %s", pBuf);
-			Console->Execute("r2_dof_focus");
+			pConsoleCommands->Execute("r2_dof_focus");
 		}
 		else
 		{
@@ -533,7 +533,7 @@ public:
 			_snprintf( pBuf, sizeof(pBuf)/sizeof(pBuf[0]), "float value less or equal to r2_dof_focus-0.1");
 			Msg("~ Invalid syntax in call to '%s'",cName);
 			Msg("~ Valid arguments: %s", pBuf);
-			Console->Execute("r2_dof_focus");
+			pConsoleCommands->Execute("r2_dof_focus");
 		}
 		else
 		{
@@ -563,7 +563,7 @@ public:
 			_snprintf( pBuf, sizeof(pBuf)/sizeof(pBuf[0]), "float value less or equal to r2_dof_far-0.1");
 			Msg("~ Invalid syntax in call to '%s'",cName);
 			Msg("~ Valid arguments: %s", pBuf);
-			Console->Execute("r2_dof_far");
+			pConsoleCommands->Execute("r2_dof_far");
 		}
 		else if (v<ps_r2_dof.x+0.1f)
 		{
@@ -571,7 +571,7 @@ public:
 			_snprintf( pBuf, sizeof(pBuf)/sizeof(pBuf[0]), "float value greater or equal to r2_dof_far-0.1");
 			Msg("~ Invalid syntax in call to '%s'",cName);
 			Msg("~ Valid arguments: %s", pBuf);
-			Console->Execute("r2_dof_near");
+			pConsoleCommands->Execute("r2_dof_near");
 		}
 		else{
 			CCC_Float::Execute(args);
@@ -892,11 +892,11 @@ void		xrRender_initconsole	()
 
 void	xrRender_apply_tf		()
 {
-	Console->Execute	("r__tf_aniso"	);
+	pConsoleCommands->Execute	("r__tf_aniso"	);
 #if RENDER==R_R1
-	Console->Execute	("r1_tf_mipbias");
+	pConsoleCommands->Execute	("r1_tf_mipbias");
 #else
-	Console->Execute	("r2_tf_mipbias");
+	pConsoleCommands->Execute	("r2_tf_mipbias");
 #endif
 }
 

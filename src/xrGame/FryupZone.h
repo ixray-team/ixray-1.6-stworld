@@ -1,9 +1,9 @@
 #pragma once
 
-#include "script_object.h"
+#include "gameobject.h"
 
-class CFryupZone : public CScriptObject {
-	typedef	CScriptObject	inherited;
+class CFryupZone : public CGameObject {
+	typedef	CGameObject	inherited;
 
 public:
 	CFryupZone	();

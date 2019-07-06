@@ -3,21 +3,11 @@
 #include "ParticlesObject.h"
 #include "GamePersistent.h"
 #include "../xrEngine/LightAnimLibrary.h"
-/*
-CZoneCampfire* g_zone = NULL;
-void turn_zone()
-{
-	if(!g_zone) return;
-	if(g_zone->is_on())
-		g_zone->turn_off_script();
-	else
-		g_zone->turn_on_script();
-}
-*/
+#include "../xrEngine/Environment.h"
+
 CZoneCampfire::CZoneCampfire()
 :m_pDisabledParticles(NULL),m_pEnablingParticles(NULL),m_turned_on(true),m_turn_time(0)
 {
-//.	g_zone = this;
 }
 
 CZoneCampfire::~CZoneCampfire()
@@ -96,9 +86,7 @@ bool CZoneCampfire::is_on()
 void CZoneCampfire::shedule_Update(u32	dt)
 {
 	if (!IsEnabled() && m_turn_time)
-	{
 		UpdateWorkload	(dt);
-	}
 
 	if(m_pIdleParticles)
 	{
@@ -112,6 +100,9 @@ void CZoneCampfire::shedule_Update(u32	dt)
 
 void CZoneCampfire::PlayIdleParticles(bool bIdleLight)
 {
+	if(g_dedicated_server)
+		return;
+
 	if(m_turn_time==0 || m_turn_time-Device.dwTimeGlobal<(OVL_TIME-2000))
 	{
 		inherited::PlayIdleParticles(bIdleLight);

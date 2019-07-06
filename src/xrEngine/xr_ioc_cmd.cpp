@@ -1,15 +1,14 @@
 #include "stdafx.h"
 #include "igame_level.h"
 
-//#include "xr_effgamma.h"
 #include "x_ray.h"
-#include "xr_ioconsole.h"
 #include "xr_ioc_cmd.h"
-//#include "fbasicvisual.h"
 #include "cameramanager.h"
 #include "environment.h"
 #include "xr_input.h"
 #include "CustomHUD.h"
+
+#include "line_editor.h"
 
 #include "../Include/xrRender/RenderDeviceRender.h"
 
@@ -23,6 +22,107 @@ xr_token							vid_bpp_token							[ ]={
 	{ 0,							0											}
 };
 //-----------------------------------------------------------------------
+void command_storage::AddCommand( IConsole_Command* cc )
+{
+	m_commands[cc->Name()] = cc;
+}
+
+void command_storage::RemoveCommand( IConsole_Command* cc )
+{
+	vecCMD_IT it = m_commands.find( cc->Name() );
+	if ( m_commands.end() != it )
+		m_commands.erase(it);
+}
+
+IConsole_Command* command_storage::GetCommand( LPCSTR cmd ) const
+{
+	vecCMD_CIT it = m_commands.find( cmd );
+	if ( it == m_commands.end() )
+		return NULL;
+	else
+		return it->second;
+}
+
+IConsole_Command* command_storage::GetNextCommand( LPCSTR t2 ) const
+{
+	vecCMD_CIT it = m_commands.lower_bound( t2 );
+	if ( it != m_commands.end() )
+	{
+		IConsole_Command* cc = it->second;
+		return cc;
+	}else
+		return NULL;
+}
+
+IConsole_Command* command_storage::GetPrevCommand( LPCSTR t2 ) const
+{
+	vecCMD_CIT it = m_commands.lower_bound( t2 );
+	if ( it != m_commands.begin() )
+	{
+		--it;
+		IConsole_Command* cc = it->second;
+		return cc;
+	}else
+		return NULL;
+
+}
+
+void command_storage::ExecuteScript( LPCSTR str )
+{
+	u32  str_size = xr_strlen( str );
+	PSTR buf	= (PSTR)_alloca( (str_size + 10) * sizeof(char) );
+	xr_strcpy	( buf, str_size + 10, "cfg_load " );
+	xr_strcat	( buf, str_size + 10, str );
+	Execute		( buf );
+}
+
+bool command_storage::Execute( LPCSTR cmd_str )
+{
+	u32  str_size = xr_strlen( cmd_str );
+
+	PSTR edt   = (PSTR)_alloca( (str_size + 1) * sizeof(char) );
+	PSTR first = (PSTR)_alloca( (str_size + 1) * sizeof(char) );
+	PSTR last  = (PSTR)_alloca( (str_size + 1) * sizeof(char) );
+	
+	xr_strcpy				( edt, str_size+1, cmd_str );
+	edt[str_size]			= 0;
+
+	text_editor::remove_spaces( edt );
+	if ( edt[0] == 0 )
+		return false;
+
+
+	text_editor::split_cmd( first, last, edt );
+	IConsole_Command* cc	= GetCommand( first );
+
+	if ( cc && cc->Enabled() )
+	{
+		if ( cc->LowerCaseArgs() )
+		{
+			strlwr( last );
+		}
+		if ( last[0] == 0 )
+		{
+			if ( cc->EmptyArgsHandled() )
+			{
+				cc->Execute( last );
+			}else
+			{
+				IConsole_Command::TStatus stat;
+				cc->Status( stat );
+				Msg( "- %s %s", cc->Name(), stat );
+			}
+		}else
+		{
+			cc->Execute( last );
+		}
+	}else
+	{
+		Msg("Unknown command: %s", cmd_str);
+		return false;
+	}
+	return true;
+}
 
 void IConsole_Command::add_to_LRU( shared_str const& arg )
 {
@@ -59,8 +159,6 @@ class CCC_Quit : public IConsole_Command
 public:
 	CCC_Quit(LPCSTR N) : IConsole_Command(N)  { bEmptyArgsHandled = TRUE; };
 	virtual void Execute(LPCSTR args) {
-//		TerminateProcess(GetCurrentProcess(),0);
-		Console->Hide();
 		Engine.Event.Defer("KERNEL:disconnect");
 		Engine.Event.Defer("KERNEL:quit");
 	}
@@ -157,8 +255,8 @@ public:
 	CCC_Help(LPCSTR N) : IConsole_Command(N) { bEmptyArgsHandled = TRUE; };
 	virtual void Execute(LPCSTR args) {
 		Log("- --- Command listing: start ---");
-		CConsole::vecCMD_IT it;
-		for (it=Console->Commands.begin(); it!=Console->Commands.end(); it++)
+		command_storage::vecCMD_IT it;
+		for (it=pConsoleCommands->m_commands.begin(); it!=pConsoleCommands->m_commands.end(); ++it)
 		{
 			IConsole_Command &C = *(it->second);
 			TStatus _S; C.Status(_S);
@@ -208,7 +306,7 @@ public:
 	virtual void Execute(LPCSTR args) 
 	{
 		string_path			cfg_full_name;
-		xr_strcpy			(cfg_full_name, (xr_strlen(args)>0)?args:Console->ConfigFile);
+		xr_strcpy			(cfg_full_name, (xr_strlen(args)>0)?args:pConsoleCommands->m_ConfigFile);
 
 		bool b_abs_name = xr_strlen(cfg_full_name)>2 && cfg_full_name[1]==':';
 
@@ -223,13 +321,15 @@ public:
 		if ( FS.exist(cfg_full_name) )
 			b_allow = SetFileAttributes(cfg_full_name,FILE_ATTRIBUTE_NORMAL);
 
-		if ( b_allow ){
+		if ( b_allow )
+		{
 			IWriter* F			= FS.w_open(cfg_full_name);
-				CConsole::vecCMD_IT it;
-				for (it=Console->Commands.begin(); it!=Console->Commands.end(); it++)
-					it->second->Save(F);
-				FS.w_close			(F);
-				Msg("Config-file [%s] saved successfully",cfg_full_name);
+			command_storage::vecCMD_IT it;
+			for (it=pConsoleCommands->m_commands.begin(); it!=pConsoleCommands->m_commands.end(); it++)
+				it->second->Save(F);
+		
+			FS.w_close			(F);
+			Msg("Config-file [%s] saved successfully",cfg_full_name);
 		}else
 			Msg("!Cannot store config file [%s]", cfg_full_name);
 	}
@@ -263,7 +363,7 @@ void CCC_LoadCFG::Execute(LPCSTR args)
 			while (!F->eof()) {
 				F->r_string				(str,sizeof(str));
 				if(allow(str))
-					Console->Execute	(str);
+					pConsoleCommands->Execute	(str);
 			}
 			FS.r_close(F);
 			Msg("[%s] successfully loaded.",cfg_full_name);
@@ -325,40 +425,20 @@ public:
 	CCC_Start(LPCSTR N) : IConsole_Command(N)	{ 	  bLowerCaseArgs = false; };
 	virtual void Execute(LPCSTR args)
 	{
-/*		if (g_pGameLevel)	{
-			Log		("! Please disconnect/unload first");
-			return;
-		}
-*/
-		string4096	op_server,op_client,op_demo;
+		string4096	op_server,op_client;
 		op_server[0] = 0;
 		op_client[0] = 0;
 		
-		parse		(op_server,args,"server");	// 1. server
-		parse		(op_client,args,"client");	// 2. client
-		parse		(op_demo, args,	"demo");	// 3. demo
+		parse		(op_server, args, "server");	// 1. server
+		parse		(op_client, args, "client");	// 2. client
 		
 		strlwr( op_server );
 		protect_Name_strlwr( op_client );
 
-		if(!op_client[0] && strstr(op_server,"single"))
-			xr_strcpy(op_client, "localhost");
-
-		if ((0==xr_strlen(op_client)) && (0 == xr_strlen(op_demo)))
-		{
-			Log("! Can't start game without client. Arguments: '%s'.",args);
-			return;
-		}
 		if (g_pGameLevel)
 			Engine.Event.Defer("KERNEL:disconnect");
 		
-		if (xr_strlen(op_demo))
-		{
-			Engine.Event.Defer	("KERNEL:start_mp_demo",u64(xr_strdup(op_demo)),0);
-		} else
-		{
-			Engine.Event.Defer	("KERNEL:start",u64(xr_strlen(op_server)?xr_strdup(op_server):0),u64(xr_strdup(op_client)));
-		}
+		Engine.Event.Defer	("KERNEL:start",u64(xr_strlen(op_server)?xr_strdup(op_server):0),u64(xr_strdup(op_client)));
 	}
 };
 
@@ -368,6 +448,20 @@ public:
 	CCC_Disconnect(LPCSTR N) : IConsole_Command(N) { bEmptyArgsHandled = TRUE; };
 	virtual void Execute(LPCSTR args) {
 		Engine.Event.Defer("KERNEL:disconnect");
+	}
+};
+
+class CCC_Lobby : public IConsole_Command
+{
+
+public:
+	CCC_Lobby(LPCSTR N) : IConsole_Command(N)	{ bLowerCaseArgs = false; bEmptyArgsHandled=true;}
+	virtual void Execute(LPCSTR args)
+	{
+		if (g_pGameLevel)
+			Engine.Event.Defer("KERNEL:disconnect");
+		
+		Engine.Event.Defer	("KERNEL:lobby", u64(xr_strdup("lobby_scene")), 0);
 	}
 };
 //-----------------------------------------------------------------------
@@ -641,28 +735,6 @@ public:
 	}
 };
 
-class ENGINE_API CCC_HideConsole : public IConsole_Command
-{
-public		:
-	CCC_HideConsole(LPCSTR N) : IConsole_Command(N)
-	{
-		bEmptyArgsHandled	= true;
-	}
-
-	virtual void	Execute	(LPCSTR args)
-	{
-		Console->Hide	();
-	}
-	virtual void	Status	(TStatus& S)
-	{
-		S[0]			= 0;
-	}
-	virtual void	Info	(TInfo& I)
-	{	
-		xr_sprintf		(I,sizeof(I),"hide console");
-	}
-};
-
 
 ENGINE_API float	psHUD_FOV=0.45f;
 
@@ -674,9 +746,7 @@ extern int			psNET_ClientPending;
 extern int			psNET_ServerUpdate;
 extern int			psNET_ServerPending;
 extern int			psNET_DedicatedSleep;
-extern char			psNET_Name[32];
 extern Flags32		psEnvFlags;
-//extern float		r__dtex_range;
 
 extern int			g_ErrorLineCount;
 
@@ -687,6 +757,8 @@ void CCC_Register()
 	CMD1(CCC_Help,		"help"					);
 	CMD1(CCC_Quit,		"quit"					);
 	CMD1(CCC_Start,		"start"					);
+	CMD1(CCC_Lobby,		"lobby"					);
+
 	CMD1(CCC_Disconnect,"disconnect"			);
 	CMD1(CCC_SaveCFG,	"cfg_save"				);
 	CMD1(CCC_LoadCFG,	"cfg_load"				);
@@ -812,17 +884,11 @@ void CCC_Register()
 
 	CMD1(CCC_ExclusiveMode,		"input_exclusive_mode");
 
-	extern int g_svTextConsoleUpdateRate;
-	CMD4(CCC_Integer, "sv_console_update_rate", &g_svTextConsoleUpdateRate, 1, 100);
-
 	extern int g_svDedicateServerUpdateReate;
 	CMD4(CCC_Integer, "sv_dedicated_server_update_rate", &g_svDedicateServerUpdateReate, 1, 1000);
-
-	CMD1(CCC_HideConsole,		"hide");
 
 #ifdef	DEBUG
 	extern BOOL debug_destroy;
 	CMD4(CCC_Integer, "debug_destroy", &debug_destroy, FALSE, TRUE );
 #endif
 };
- 

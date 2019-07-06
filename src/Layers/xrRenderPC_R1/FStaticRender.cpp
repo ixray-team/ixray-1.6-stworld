@@ -14,12 +14,6 @@
 #include "../xrRender/dxRenderDeviceRender.h"
 #include "../xrRender/dxWallMarkArray.h"
 #include "../xrRender/dxUIShader.h"
-//#include "../../xrServerEntities/smart_cast.h"
-
-#ifndef _EDITOR
-#include "../../xrCPU_Pipe/ttapi.h"
-#endif
-
  
 using	namespace		R_dsgraph;
 
@@ -91,23 +85,29 @@ void					CRender::create					()
 	m_bMakeAsyncSS				= false;
 
 //---------
-	Target						= xr_new<CRenderTarget>		();
+	if(!g_dedicated_server)
+		Target					= xr_new<CRenderTarget>		();
 //---------
 	//
 	Models						= xr_new<CModelPool>		();
-	L_Dynamic					= xr_new<CLightR_Manager>	();
-	PSLibrary.OnCreate			();
-//.	HWOCC.occq_create			(occq_size);
 
-	xrRender_apply_tf			();
-	::PortalTraverser.initialize();
+	if(!g_dedicated_server)
+		L_Dynamic				= xr_new<CLightR_Manager>	();
+
+	if(!g_dedicated_server)
+		PSLibrary.OnCreate			();
+	
+	if(!g_dedicated_server)
+		xrRender_apply_tf			();
+
+	if(!g_dedicated_server)
+		::PortalTraverser.initialize();
 }
 
 void					CRender::destroy				()
 {
 	m_bMakeAsyncSS				= false;
 	::PortalTraverser.destroy	();
-//.	HWOCC.occq_destroy			();
 	PSLibrary.OnDestroy			();
 	
 	xr_delete					(L_Dynamic);
@@ -123,13 +123,11 @@ void					CRender::destroy				()
 void					CRender::reset_begin			()
 {
 	xr_delete					(Target);
-//.	HWOCC.occq_destroy			();
 }
 
 void					CRender::reset_end				()
 {
 	xrRender_apply_tf			();
-//.	HWOCC.occq_create			(occq_size);
 	Target						=	xr_new<CRenderTarget>	();
 	if (L_Projector)			L_Projector->invalidate		();
 
@@ -187,7 +185,7 @@ IRenderVisual*			CRender::model_CreateParticles	(LPCSTR name)
 	}
 }
 void					CRender::models_Prefetch		()					{ Models->Prefetch	();}
-void					CRender::models_Clear			(BOOL b_complete)	{ Models->ClearPool	(b_complete);}
+void					CRender::ClearPool				(BOOL b_complete)	{ Models->ClearPool	(b_complete);}
 
 ref_shader				CRender::getShader				(int id)			{ VERIFY(id<int(Shaders.size()));	return Shaders[id];	}
 IRender_Portal*			CRender::getPortal				(int id)			{ VERIFY(id<int(Portals.size()));	return Portals[id];	}
@@ -342,10 +340,6 @@ ICF bool			pred_sp_sort		(ISpatial* _1, ISpatial* _2)
 
 void CRender::Calculate				()
 {
-	#ifdef _GPA_ENABLED	
-		TAL_SCOPED_TASK_NAMED( "CRender::Calculate()" );
-	#endif // _GPA_ENABLED
-
 	Device.Statistic->RenderCALC.Begin();
 
 	// Transfer to global space to avoid deep pointer access
@@ -447,7 +441,7 @@ void CRender::Calculate				()
 				if (lstRenderables.size())		uID_LTRACK	= uLastLTRACK%lstRenderables.size();
 
 				// update light-vis for current entity / actor
-				CObject*	O					= g_pGameLevel->CurrentViewEntity();
+				CObject*	O					= g_pGameLevel->CurrentViewActor();
 				if (O)		{
 					CROS_impl*	R					= (CROS_impl*) O->ROS();
 					if (R)		R->update			(O);
@@ -562,10 +556,6 @@ void	CRender::rmNormal	()
 extern u32 g_r;
 void	CRender::Render		()
 {
-	#ifdef _GPA_ENABLED	
-		TAL_SCOPED_TASK_NAMED( "CRender::Render()" );
-	#endif // _GPA_ENABLED
-
 	if( m_bFirstFrameAfterReset )
 	{
 		m_bFirstFrameAfterReset = false;

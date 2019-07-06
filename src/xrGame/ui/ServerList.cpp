@@ -2,25 +2,20 @@
 #include "ServerList.h"
 #include "UIXmlInit.h"
 #include "../string_table.h"
-#include "../../xrEngine/xr_ioconsole.h"
+#include "../../xrEngine/xr_ioc_cmd.h"
 #include "UIEditBox.h"
 #include "UIMessageBoxEx.h"
 #include "UIMessageBox.h"
 #include "TeamInfo.h"
-#include "../MainMenu.h"
-#include "../login_manager.h"
+#include "../lobby_menu.h"
 #include "../GameSpy/GameSpy_Full.h"
 #include "../GameSpy/GameSpy_Browser.h"
 
 
 LPCSTR GameTypeToString(EGameIDs gt, bool bShort);
-CGameSpy_Browser* g_gs_browser = NULL;
 
 CServerList::CServerList()
 {
-	m_GSBrowser	= MainMenu()->GetGS()->GetGameSpyBrowser();
-	browser().Init(this);
-
 	for (int i = 0; i<LST_COLUMN_COUNT; i++)
 		AttachChild(&m_header_frames[i]);
 
@@ -57,24 +52,10 @@ CServerList::CServerList()
 CServerList::~CServerList()
 {
 	xr_delete			(m_message_box);
-	if (m_GSBrowser)
-		m_GSBrowser->Clear	();
-
 	DestroySrvItems		();
 };
 
-inline CGameSpy_Browser& CServerList::browser	() const
-{
-	VERIFY				( m_GSBrowser );
-	return				( *m_GSBrowser );
-}
 
-void CServerList::on_game_spy_browser_destroy	(CGameSpy_Browser* browser)
-{
-	VERIFY				(m_GSBrowser);
-	VERIFY				(m_GSBrowser == browser);
-	m_GSBrowser			= 0;
-}
 
 void CServerList::Update()
 {
@@ -102,10 +83,13 @@ void CServerList::Update()
 
 bool CServerList::NeedToRefreshCurServer	()
 {
-	CUIListItemServer* pItem = (CUIListItemServer*)m_list[LST_SERVER].GetSelectedItem();
-	if(!pItem)
-		return false;
-	return browser().HasAllKeys(pItem->GetInfo()->info.Index) == false;
+R_ASSERT(0);
+return true;
+	//CUIListItemServer* pItem = (CUIListItemServer*)m_list[LST_SERVER].GetSelectedItem();
+	//if(!pItem)
+	//	return false;
+
+	//return browser().HasAllKeys(pItem->GetInfo()->info.Index) == false;
 };
 
 void CServerList::SendMessage(CUIWindow* pWnd, s16 msg, void* pData){
@@ -150,7 +134,7 @@ void CServerList::SendMessage(CUIWindow* pWnd, s16 msg, void* pData){
 		xr_string					command;
 
 		item->CreateConsoleCommand	(command, m_playerName.c_str(), m_message_box->m_pMessageBox->GetUserPassword(), m_message_box->GetPassword() );
-		Console->Execute			(command.c_str());
+		pConsoleCommands->Execute			(command.c_str());
 	}
 	else if ( WINDOW_LBUTTON_DB_CLICK == msg && &m_list[LST_SERVER] == pWnd )
 	{
@@ -193,7 +177,7 @@ void CServerList::FillUpDetailedServerInfo()
 	if(pItem)
 	{
 		ServerInfo srvInfo;
-		browser().GetServerInfoByIndex(&srvInfo, pItem->GetInfo()->info.Index);
+//		browser().GetServerInfoByIndex(&srvInfo, pItem->GetInfo()->info.Index);
 		u32 teams = srvInfo.m_aTeams.size();
 
 		if (2 == teams)
@@ -457,60 +441,60 @@ void CServerList::InitFromXml(CUIXml& xml_doc, LPCSTR path)
 
 void CServerList::ConnectToSelected()
 {
-	gamespy_gp::login_manager const * lmngr = MainMenu()->GetLoginMngr();
-	R_ASSERT(lmngr);
-	gamespy_gp::profile const * tmp_profile = lmngr->get_current_profile(); 
-	R_ASSERT2(tmp_profile, "need first to log in");
-	if (tmp_profile->online())
-	{
-		if (!MainMenu()->ValidateCDKey())
-			return;
+	//gamespy_gp::login_manager const * lmngr = MainMenu()->GetLoginMngr();
+	//R_ASSERT(lmngr);
+	//gamespy_gp::profile const * tmp_profile = lmngr->get_current_profile(); 
+	//R_ASSERT2(tmp_profile, "need first to log in");
+	//if (tmp_profile->online())
+	//{
+	//	if (!MainMenu()->ValidateCDKey())
+	//		return;
 
-		if (!xr_strcmp(tmp_profile->unique_nick(), "@unregistered"))
-		{
-			if (m_connect_cb)
-				m_connect_cb(ece_unique_nick_not_registred, "mp_gp_unique_nick_not_registred");
-			return;
-		}
-		if (!xr_strcmp(tmp_profile->unique_nick(), "@expired"))
-		{
-			if (m_connect_cb)
-				m_connect_cb(ece_unique_nick_expired, "mp_gp_unique_nick_has_expired");
-			return;
-		}
-	}
-
-
-	CUIListItemServer* item = smart_cast<CUIListItemServer*>(m_list[LST_SERVER].GetSelectedItem());
-	if(!item)
-		return;
-	if (!browser().CheckDirectConnection(item->GetInfo()->info.Index))
-	{
-		Msg("! Direct connection to this server is not available -> its behind firewall");
-		return;
-	}
-
-	if (xr_strcmp(item->GetInfo()->info.version, MainMenu()->GetGSVer()))
-	{
-		MainMenu()->SetErrorDialog(CMainMenu::ErrDifferentVersion);
-		return;
-	}
+	//	if (!xr_strcmp(tmp_profile->unique_nick(), "@unregistered"))
+	//	{
+	//		if (m_connect_cb)
+	//			m_connect_cb(ece_unique_nick_not_registred, "mp_gp_unique_nick_not_registred");
+	//		return;
+	//	}
+	//	if (!xr_strcmp(tmp_profile->unique_nick(), "@expired"))
+	//	{
+	//		if (m_connect_cb)
+	//			m_connect_cb(ece_unique_nick_expired, "mp_gp_unique_nick_has_expired");
+	//		return;
+	//	}
+	//}
 
 
-	if (item->GetInfo()->info.icons.pass || item->GetInfo()->info.icons.user_pass)
-	{
-		m_message_box->m_pMessageBox->SetUserPasswordMode	(item->GetInfo()->info.icons.user_pass);
-		m_message_box->m_pMessageBox->SetPasswordMode		(item->GetInfo()->info.icons.pass);
-		m_message_box->ShowDialog(true);
-	}
-	else
-	{
-		xr_string command;
+	//CUIListItemServer* item = smart_cast<CUIListItemServer*>(m_list[LST_SERVER].GetSelectedItem());
+	//if(!item)
+	//	return;
+	//if (!browser().CheckDirectConnection(item->GetInfo()->info.Index))
+	//{
+	//	Msg("! Direct connection to this server is not available -> its behind firewall");
+	//	return;
+	//}
 
-		item->CreateConsoleCommand(command, m_playerName.c_str(), "", "" );
+	//if (xr_strcmp(item->GetInfo()->info.version, MainMenu()->GetGSVer()))
+	//{
+	//	MainMenu()->SetErrorDialog(CMainMenu::ErrDifferentVersion);
+	//	return;
+	//}
 
-		Console->Execute(command.c_str());
-	}
+
+	//if (item->GetInfo()->info.icons.pass || item->GetInfo()->info.icons.user_pass)
+	//{
+	//	m_message_box->m_pMessageBox->SetUserPasswordMode	(item->GetInfo()->info.icons.user_pass);
+	//	m_message_box->m_pMessageBox->SetPasswordMode		(item->GetInfo()->info.icons.pass);
+	//	m_message_box->ShowDialog(true);
+	//}
+	//else
+	//{
+	//	xr_string command;
+
+	//	item->CreateConsoleCommand(command, m_playerName.c_str(), "", "" );
+
+	//	pConsoleCommands->Execute(command.c_str());
+	//}
 }
 
 void CServerList::InitHeader()
@@ -562,12 +546,12 @@ void CServerList::NetRadioChanged(bool Local)
 
 void CServerList::RefreshGameSpyList(bool Local)
 {
-	SetSortFunc			("",		false);
-	SetSortFunc			("ping",	false);
-	browser().RefreshList_Full(Local, m_edit_gs_filter.GetText());
+	//SetSortFunc			("",		false);
+	//SetSortFunc			("ping",	false);
+	//browser().RefreshList_Full(Local, m_edit_gs_filter.GetText());
 
-	ResetCurItem		();
-	RefreshList			();
+	//ResetCurItem		();
+	//RefreshList			();
 }
 
 
@@ -617,62 +601,62 @@ void	CServerList::RefreshList()
 
 void	CServerList::RefreshList_internal()
 {
-	m_need_refresh_fr				= u32(-1);
-	SaveCurItem						();
-	m_list[LST_SERVER].Clear();
-	ClearSrvItems					();
+	//m_need_refresh_fr				= u32(-1);
+	//SaveCurItem						();
+	//m_list[LST_SERVER].Clear();
+	//ClearSrvItems					();
 
-	u32 NumServersFound				= browser().GetServersCount();
-	g_gs_browser					= m_GSBrowser;
-	m_tmp_srv_lst.resize			(NumServersFound);
+	//u32 NumServersFound				= browser().GetServersCount();
+	//g_gs_browser					= m_GSBrowser;
+	//m_tmp_srv_lst.resize			(NumServersFound);
 
-	
-	for (u32 i=0; i<NumServersFound; i++)
-		m_tmp_srv_lst[i] = i;
+	//
+	//for (u32 i=0; i<NumServersFound; i++)
+	//	m_tmp_srv_lst[i] = i;
 
-	if (0 == xr_strcmp(m_sort_func, "server_name"))
-		std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_ServerName);
+	//if (0 == xr_strcmp(m_sort_func, "server_name"))
+	//	std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_ServerName);
 
-	else if (0 == xr_strcmp(m_sort_func, "map"))
-		std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_Map);
+	//else if (0 == xr_strcmp(m_sort_func, "map"))
+	//	std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_Map);
 
-	else if (0 == xr_strcmp(m_sort_func, "game_type"))
-		std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_GameType);
+	//else if (0 == xr_strcmp(m_sort_func, "game_type"))
+	//	std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_GameType);
 
-	else if (0 == xr_strcmp(m_sort_func, "player"))
-		std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_Players);
+	//else if (0 == xr_strcmp(m_sort_func, "player"))
+	//	std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_Players);
 
-	else if (0 == xr_strcmp(m_sort_func, "ping"))
-		std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_Ping);
+	//else if (0 == xr_strcmp(m_sort_func, "ping"))
+	//	std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_Ping);
 
-	else if (0 == xr_strcmp(m_sort_func, "version"))
-		std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_Version);
+	//else if (0 == xr_strcmp(m_sort_func, "version"))
+	//	std::sort(m_tmp_srv_lst.begin(), m_tmp_srv_lst.end(), sort_by_Version);
 
-	for (u32 i=0; i<NumServersFound; i++)
-	{
-		ServerInfo							NewServerInfo;
-		browser().GetServerInfoByIndex		(&NewServerInfo, m_tmp_srv_lst[i]);
+	//for (u32 i=0; i<NumServersFound; i++)
+	//{
+	//	ServerInfo							NewServerInfo;
+	//	browser().GetServerInfoByIndex		(&NewServerInfo, m_tmp_srv_lst[i]);
 
-		AddServerToList						(&NewServerInfo);
-	}
-	UpdateSizes();
-	RestoreCurItem();
+	//	AddServerToList						(&NewServerInfo);
+	//}
+	//UpdateSizes();
+	//RestoreCurItem();
 };
 
 void CServerList::RefreshQuick()
 {
-	CUIListItemServer* pItem = (CUIListItemServer*)m_list[LST_SERVER].GetSelectedItem();
-	if(!pItem)
-		return;
-	browser().RefreshQuick(pItem->GetInfo()->info.Index);
-	
-	RefreshList();
+	//CUIListItemServer* pItem = (CUIListItemServer*)m_list[LST_SERVER].GetSelectedItem();
+	//if(!pItem)
+	//	return;
+	//browser().RefreshQuick(pItem->GetInfo()->info.Index);
+	//
+	//RefreshList();
 
-	if (m_bShowServerInfo)
-	{
-		ClearDetailedServerInfo();
-		FillUpDetailedServerInfo();
-	}	
+	//if (m_bShowServerInfo)
+	//{
+	//	ClearDetailedServerInfo();
+	//	FillUpDetailedServerInfo();
+	//}	
 }
 
 bool g_bSort_Ascending = true;
@@ -715,72 +699,78 @@ void CServerList::SrvInfo2LstSrvInfo(const ServerInfo* pServerInfo)
 
 bool CServerList::sort_by_ServerName(int p1, int p2)
 {
-	CGameSpy_Browser& gs_browser = *g_gs_browser;
-	ServerInfo info1,info2;
+	//CGameSpy_Browser& gs_browser = *g_gs_browser;
+	//ServerInfo info1,info2;
 
-	gs_browser.GetServerInfoByIndex(&info1, p1);
-    gs_browser.GetServerInfoByIndex(&info2, p2);
+	//gs_browser.GetServerInfoByIndex(&info1, p1);
+ //   gs_browser.GetServerInfoByIndex(&info2, p2);
 
-	int res = xr_strcmp(info1.m_ServerName, info2.m_ServerName);
-	return (g_bSort_Ascending) ? (-1 == res) : (1 == res);
+	//int res = xr_strcmp(info1.m_ServerName, info2.m_ServerName);
+	//return (g_bSort_Ascending) ? (-1 == res) : (1 == res);
+	return true;
 }
 
 bool CServerList::sort_by_Map(int p1, int p2)
 {
-	CGameSpy_Browser& gs_browser = *g_gs_browser;
-	ServerInfo info1,info2;
+	//CGameSpy_Browser& gs_browser = *g_gs_browser;
+	//ServerInfo info1,info2;
 
-	gs_browser.GetServerInfoByIndex(&info1, p1);
-    gs_browser.GetServerInfoByIndex(&info2, p2);
+	//gs_browser.GetServerInfoByIndex(&info1, p1);
+ //   gs_browser.GetServerInfoByIndex(&info2, p2);
 
-	int res = xr_strcmp(info1.m_SessionName, info2.m_SessionName);
-	return (g_bSort_Ascending) ? (-1 == res) : (1 == res);
+	//int res = xr_strcmp(info1.m_SessionName, info2.m_SessionName);
+	//return (g_bSort_Ascending) ? (-1 == res) : (1 == res);
+	return true;
 }
 
 bool CServerList::sort_by_GameType(int p1, int p2)
 {
-	CGameSpy_Browser& gs_browser = *g_gs_browser;
-	ServerInfo info1,info2;
+	//CGameSpy_Browser& gs_browser = *g_gs_browser;
+	//ServerInfo info1,info2;
 
-	gs_browser.GetServerInfoByIndex(&info1, p1);
-    gs_browser.GetServerInfoByIndex(&info2, p2);
+	//gs_browser.GetServerInfoByIndex(&info1, p1);
+ //   gs_browser.GetServerInfoByIndex(&info2, p2);
 
-	int res = xr_strcmp(info1.m_ServerGameType, info2.m_ServerGameType);
-	return (g_bSort_Ascending) ? (-1 == res) : (1 == res);
+	//int res = xr_strcmp(info1.m_ServerGameType, info2.m_ServerGameType);
+	//return (g_bSort_Ascending) ? (-1 == res) : (1 == res);
+	return true;
 }
 
 bool CServerList::sort_by_Players(int p1, int p2)
 {
-	CGameSpy_Browser& gs_browser = *g_gs_browser;
-	ServerInfo info1,info2;
+	//CGameSpy_Browser& gs_browser = *g_gs_browser;
+	//ServerInfo info1,info2;
 
-	gs_browser.GetServerInfoByIndex(&info1, p1);
-    gs_browser.GetServerInfoByIndex(&info2, p2);
+	//gs_browser.GetServerInfoByIndex(&info1, p1);
+ //   gs_browser.GetServerInfoByIndex(&info2, p2);
 
-	return (g_bSort_Ascending) ? (info1.m_ServerNumPlayers < info2.m_ServerNumPlayers) : (info1.m_ServerNumPlayers > info2.m_ServerNumPlayers);
+	//return (g_bSort_Ascending) ? (info1.m_ServerNumPlayers < info2.m_ServerNumPlayers) : (info1.m_ServerNumPlayers > info2.m_ServerNumPlayers);
+	return true;
 }
 
 bool CServerList::sort_by_Ping(int p1, int p2)
 {
-	CGameSpy_Browser& gs_browser = *g_gs_browser;
-	ServerInfo info1,info2;
+	//CGameSpy_Browser& gs_browser = *g_gs_browser;
+	//ServerInfo info1,info2;
 
-	gs_browser.GetServerInfoByIndex(&info1, p1);
-    gs_browser.GetServerInfoByIndex(&info2, p2);
+	//gs_browser.GetServerInfoByIndex(&info1, p1);
+ //   gs_browser.GetServerInfoByIndex(&info2, p2);
 
-	return (g_bSort_Ascending) ? (info1.m_Ping < info2.m_Ping) : (info1.m_Ping > info2.m_Ping);
+	//return (g_bSort_Ascending) ? (info1.m_Ping < info2.m_Ping) : (info1.m_Ping > info2.m_Ping);
+	return true;
 }
 
 bool CServerList::sort_by_Version(int p1, int p2)
 {
-	CGameSpy_Browser& gs_browser = *g_gs_browser;
-	ServerInfo info1,info2;
+	//CGameSpy_Browser& gs_browser = *g_gs_browser;
+	//ServerInfo info1,info2;
 
-	gs_browser.GetServerInfoByIndex(&info1, p1);
-	gs_browser.GetServerInfoByIndex(&info2, p2);
+	//gs_browser.GetServerInfoByIndex(&info1, p1);
+	//gs_browser.GetServerInfoByIndex(&info2, p2);
 
-	int res = xr_strcmp(info1.m_ServerVersion, info2.m_ServerVersion);
-	return (g_bSort_Ascending) ? (-1 == res) : (1 == res);
+	//int res = xr_strcmp(info1.m_ServerVersion, info2.m_ServerVersion);
+	//return (g_bSort_Ascending) ? (-1 == res) : (1 == res);
+	return true;
 }
 
 void CServerList::SaveCurItem()

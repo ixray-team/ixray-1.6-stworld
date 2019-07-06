@@ -247,9 +247,9 @@ struct WeaponUsageStatistic {
 	virtual void		OnExplosionKill				(game_PlayerState* ps, const SHit& hit);
 			void		OnBleedKill					(game_PlayerState* killer_ps, game_PlayerState* victim_ps, u16 weapon_id);
 	//-----------------------------------------------
-	void				Update						();
-	void				OnUpdateRequest				(NET_Packet* P);
-	void				OnUpdateRespond				(NET_Packet* P, shared_str const & sender_digest, u32 sender_pid);
+	//void				Update						();
+	//void				OnUpdateRequest				(NET_Packet* P);
+	//void				OnUpdateRespond				(NET_Packet* P, shared_str const & sender_digest, u32 sender_pid);
 	//-----------------------------------------------
 	string_path			mFileName;
 	void				SaveData					();

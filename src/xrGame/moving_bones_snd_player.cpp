@@ -123,11 +123,12 @@ moving_bones_snd_player* create_moving_bones_snd_player( CInifile* ini, IKinemat
 
 moving_bones_snd_player* create_moving_bones_snd_player( CGameObject &O )
 {
+	R_ASSERT(0);
 	IKinematics *K = smart_cast<IKinematics*>( O.Visual() );
 	VERIFY( K );
-	moving_bones_snd_player	*ret = create_moving_bones_snd_player( O.spawn_ini(), *K,  O.XFORM() );
-	if(ret)
-		return ret;
+	//moving_bones_snd_player	*ret = create_moving_bones_snd_player( O.spawn_ini(), *K,  O.XFORM() );
+	//if(ret)
+	//	return ret;
 	return create_moving_bones_snd_player( K->LL_UserData(), *K,  O.XFORM() );
 }
 

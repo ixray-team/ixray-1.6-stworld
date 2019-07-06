@@ -75,12 +75,10 @@ protected:
 								Fuseful_for_NPC		=(1<<8),
 								FInInterpolation	=(1<<9),
 								FInInterpolate		=(1<<10),
-								FIsQuestItem		=(1<<11),
 								FIsHelperItem		=(1<<12),
 	};
 
 	Flags16						m_flags;
-	BOOL						m_can_trade;
 public:
 								CInventoryItem		();
 	virtual						~CInventoryItem		();
@@ -90,7 +88,6 @@ public:
 
 			LPCSTR				NameItem			();// remove <virtual> by sea
 			LPCSTR				NameShort			();
-	shared_str					ItemDescription		() { return m_Description; }
 	virtual bool				GetBriefInfo		(II_BriefInfo& info) { info.clear(); return false; }
 	
 	virtual void				OnEvent				(NET_Packet& P, u16 type);
@@ -131,17 +128,13 @@ public:
 
 			BOOL				IsInvalid			() const;
 
-			BOOL				IsQuestItem			()	const	{return m_flags.test(FIsQuestItem);}			
 	virtual	u32					Cost				()	const	{ return m_cost; }
-//			u32					Cost				()	const	{ return m_cost; }
 	virtual float				Weight				() 	const	{ return m_weight;}		
 
 public:
 	CInventory*					m_pInventory;
-	shared_str					m_section_id;
-	shared_str					m_name;
-	shared_str					m_nameShort;
-	shared_str					m_nameComplex;
+	//shared_str					m_name;
+	//shared_str					m_nameShort;
 
 	SInvItemPlace				m_ItemCurrPlace;
 
@@ -152,7 +145,6 @@ public:
 					
 			Irect				GetInvGridRect		() const;
 			Irect				GetUpgrIconRect		() const;
-			const shared_str&	GetIconName			() const		{return m_icon_name;};
 			Frect				GetKillMsgRect		() const;
 	//---------------------------------------------------------------------
 	IC		float				GetCondition		() const					{return m_fCondition;}
@@ -171,9 +163,6 @@ public:
 			bool				RuckDefault			()							{return !!m_flags.test(FRuckDefault);}
 			
 	virtual bool				CanTake				() const					{return !!m_flags.test(FCanTake);}
-			bool				CanTrade			() const;
-			void				AllowTrade			()							{ m_flags.set(FCanTrade, m_can_trade); };
-			void				DenyTrade			()							{ m_flags.set(FCanTrade, FALSE); };
 
 	virtual bool 				IsNecessaryItem	    (CInventoryItem* item);
 	virtual bool				IsNecessaryItem	    (const shared_str& item_sect){return false;};
@@ -181,13 +170,8 @@ protected:
 	u32							m_cost;
 	float						m_weight;
 	float						m_fCondition;
-	shared_str					m_Description;
-protected:
 	ALife::_TIME_ID				m_dwItemIndependencyTime;
-
 	float						m_fControlInertionFactor;
-	shared_str					m_icon_name;
-
 public:
 	virtual void				make_Interpolation	()			{};
 	virtual void				PH_B_CrPr			(); // actions & operations before physic correction-prediction steps
@@ -215,8 +199,8 @@ public:
 	virtual void				UpdateXForm	();
 			
 protected:
-	net_updateInvData*				m_net_updateData;
-	net_updateInvData*				NetSync						();
+	net_updateInvData*			m_net_updateData;
+	net_updateInvData*			NetSync						();
 	void						CalculateInterpolationParams();
 
 public:
@@ -279,8 +263,6 @@ public:
 	void	add_upgrade					( const shared_str& upgrade_id, bool loading );
 	bool	get_upgrades_str			( string2048& res ) const;
 
-	bool	equal_upgrades				( Upgrades_type const& other_upgrades ) const;
-
 	bool	verify_upgrade				( LPCSTR section );
 	bool	install_upgrade				( LPCSTR section );
 	void	pre_install_upgrade			();
@@ -294,7 +276,6 @@ public:
 	float	interpolate_states			(net_update_IItem const & first, net_update_IItem const & last, SPHNetState & current);
 
 protected:
-	virtual	void	net_Spawn_install_upgrades	( Upgrades_type saved_upgrades );
 	virtual bool	install_upgrade_impl		( LPCSTR section, bool test );
 
 	template <typename T>

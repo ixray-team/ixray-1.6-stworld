@@ -8,7 +8,6 @@
 
 #include "stdafx.h"
 #include "object_factory.h"
-#include "object_broker.h"
 
 CObjectFactory *g_object_factory = 0;
 
@@ -25,5 +24,4 @@ CObjectFactory::~CObjectFactory	()
 
 void CObjectFactory::init		()
 {
-	register_script_classes		();
 }

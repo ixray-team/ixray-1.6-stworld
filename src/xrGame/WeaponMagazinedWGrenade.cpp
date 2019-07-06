@@ -8,7 +8,6 @@
 #include "Actor.h"
 #include "xr_level_controller.h"
 #include "level.h"
-#include "object_broker.h"
 #include "game_base_space.h"
 #include "../xrphysics/MathUtils.h"
 #include "player_hud.h"
@@ -74,11 +73,6 @@ BOOL CWeaponMagazinedWGrenade::net_Spawn(CSE_Abstract* DC)
 {
 	CSE_ALifeItemWeapon* const weapon		= smart_cast<CSE_ALifeItemWeapon*>(DC);
 	R_ASSERT								(weapon);
-	if ( IsGameTypeSingle() )
-	{
-		inherited::net_Spawn_install_upgrades	(weapon->m_upgrades);
-	}
-
 	BOOL l_res = inherited::net_Spawn(DC);
 	 
 	UpdateGrenadeVisibility(!!iAmmoElapsed);
@@ -89,34 +83,14 @@ BOOL CWeaponMagazinedWGrenade::net_Spawn(CSE_Abstract* DC)
 
 	m_DefaultCartridge2.Load(m_ammoTypes2[m_ammoType2].c_str(), m_ammoType2);
 
-	if (!IsGameTypeSingle())
+	if (!m_bGrenadeMode && IsGrenadeLauncherAttached() && !getRocketCount() && iAmmoElapsed2)
 	{
-		if (!m_bGrenadeMode && IsGrenadeLauncherAttached() && !getRocketCount() && iAmmoElapsed2)
-		{
-			m_magazine2.push_back(m_DefaultCartridge2);
+		m_magazine2.push_back(m_DefaultCartridge2);
 
-			shared_str grenade_name = m_DefaultCartridge2.m_ammoSect;
-			shared_str fake_grenade_name = pSettings->r_string(grenade_name, "fake_grenade_name");
+		shared_str grenade_name = m_DefaultCartridge2.m_ammoSect;
+		shared_str fake_grenade_name = pSettings->r_string(grenade_name, "fake_grenade_name");
 
-			CRocketLauncher::SpawnRocket(*fake_grenade_name, this);
-		}
-	}else
-	{
-		xr_vector<CCartridge>* pM = NULL;
-		bool b_if_grenade_mode	= (m_bGrenadeMode && iAmmoElapsed && !getRocketCount());
-		if(b_if_grenade_mode)
-			pM = &m_magazine;
-			
-		bool b_if_simple_mode	= (!m_bGrenadeMode && m_magazine2.size() && !getRocketCount());
-		if(b_if_simple_mode)
-			pM = &m_magazine2;
-
-		if(b_if_grenade_mode || b_if_simple_mode) 
-		{
-			shared_str fake_grenade_name = pSettings->r_string(pM->back().m_ammoSect, "fake_grenade_name");
-			
-			CRocketLauncher::SpawnRocket(*fake_grenade_name, this);
-		}
+		CRocketLauncher::SpawnRocket(*fake_grenade_name, this);
 	}
 	return l_res;
 }
@@ -315,8 +289,6 @@ void  CWeaponMagazinedWGrenade::LaunchGrenade()
 			}
 			E->g_fireParams		(this, p1,d);
 		}
-		if (IsGameTypeSingle())
-			p1.set						(get_LastFP2());
 		
 		Fmatrix							launch_matrix;
 		launch_matrix.identity			();
@@ -327,43 +299,6 @@ void  CWeaponMagazinedWGrenade::LaunchGrenade()
 
 		launch_matrix.c.set				(p1);
 
-		if(IsGameTypeSingle() && IsZoomed() && smart_cast<CActor*>(H_Parent()))
-		{
-			H_Parent()->setEnabled		(FALSE);
-			setEnabled					(FALSE);
-
-			collide::rq_result			RQ;
-			BOOL HasPick				= Level().ObjectSpace.RayPick(p1, d, 300.0f, collide::rqtStatic, RQ, this);
-
-			setEnabled					(TRUE);
-			H_Parent()->setEnabled		(TRUE);
-
-			if(HasPick)
-			{
-				Fvector					Transference;
-				Transference.mul		(d, RQ.range);
-				Fvector					res[2];
-#ifdef		DEBUG
-//.				DBG_OpenCashedDraw();
-//.				DBG_DrawLine(p1,Fvector().add(p1,d),D3DCOLOR_XRGB(255,0,0));
-#endif
-				u8 canfire0 = TransferenceAndThrowVelToThrowDir(Transference, 
-																CRocketLauncher::m_fLaunchSpeed, 
-																EffectiveGravity(), 
-																res);
-#ifdef DEBUG
-//.				if(canfire0>0)DBG_DrawLine(p1,Fvector().add(p1,res[0]),D3DCOLOR_XRGB(0,255,0));
-//.				if(canfire0>1)DBG_DrawLine(p1,Fvector().add(p1,res[1]),D3DCOLOR_XRGB(0,0,255));
-//.				DBG_ClosedCashedDraw(30000);
-#endif
-				
-				if (canfire0 != 0)
-				{
-					d = res[0];
-				};
-			}
-		};
-		
 		d.normalize						();
 		d.mul							(CRocketLauncher::m_fLaunchSpeed);
 		VERIFY2							(_valid(launch_matrix),"CWeaponMagazinedWGrenade::SwitchState. Invalid launch_matrix!");
@@ -851,12 +786,6 @@ bool CWeaponMagazinedWGrenade::install_upgrade_impl( LPCSTR section, bool test )
 	result |= result2;
 
 	return result;
-}
-
-void CWeaponMagazinedWGrenade::net_Spawn_install_upgrades	( Upgrades_type saved_upgrades )
-{
-	// do not delete this
-	// this is intended behaviour
 }
 
 

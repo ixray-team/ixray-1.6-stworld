@@ -9,7 +9,7 @@
 #include "gameobject.h"
 #include "physicsshellholder.h"
 #include "PHSkeleton.h"
-#include "script_export_space.h"
+
 // refs
 class CLAItem;
 class CPhysicsElement;
@@ -55,10 +55,7 @@ public:
 	virtual void	SpawnInitPhysics	(CSE_Abstract	*D)																;
 	virtual CPhysicsShellHolder*	PPhysicsShellHolder	()	{return PhysicsShellHolder();}								;
 	virtual	void	CopySpawnInit		()																				;
-	virtual void	net_Save			(NET_Packet& P)																	;
 	virtual	BOOL	net_SaveRelevant	();
-	virtual void	save				(NET_Packet &output_packet);
-	virtual void	load				(IReader &input_packet);
 
 	virtual BOOL	renderable_ShadowGenerate	( ) { return TRUE;	}
 	virtual BOOL	renderable_ShadowReceive	( ) { return TRUE;	}
@@ -66,14 +63,9 @@ public:
 	virtual	void	Hit				(SHit* pHDS);
 	virtual void	net_Export		(NET_Packet& P);
 	virtual void	net_Import		(NET_Packet& P);
-	virtual BOOL	UsedAI_Locations();
 
 	virtual void	Center			(Fvector& C)	const;
 	virtual float	Radius			()				const;
-	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
-add_to_type_list(CHangingLamp)
-#undef script_type_list
-#define script_type_list save_type_list(CHangingLamp)
 
 #endif //HangingLampH

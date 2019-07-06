@@ -5,19 +5,15 @@
 
 #include "level.h"
 #include "ui\UIFrameWindow.h"
-#include "WeaponBinocularsVision.h"
-#include "object_broker.h"
 #include "inventory.h"
 
 CWeaponBinoculars::CWeaponBinoculars()
 {
-	m_binoc_vision	= NULL;
 	m_bVision		= false;
 }
 
 CWeaponBinoculars::~CWeaponBinoculars()
 {
-	xr_delete				(m_binoc_vision);
 }
 
 void CWeaponBinoculars::Load	(LPCSTR section)
@@ -47,13 +43,8 @@ void CWeaponBinoculars::OnZoomIn		()
 	if(H_Parent() && !IsZoomed())
 	{
 		m_sounds.StopSound("sndZoomOut");
-		bool b_hud_mode = (Level().CurrentEntity() == H_Parent());
+		bool b_hud_mode = (Level().CurrentActor() == H_Parent());
 		m_sounds.PlaySound("sndZoomIn", H_Parent()->Position(), H_Parent(), b_hud_mode);
-		if(m_bVision && !m_binoc_vision) 
-		{
-			//.VERIFY			(!m_binoc_vision);
-			m_binoc_vision	= xr_new<CBinocularsVision>(cNameSect());
-		}
 	}
 	inherited::OnZoomIn		();
 }
@@ -63,10 +54,8 @@ void CWeaponBinoculars::OnZoomOut		()
 	if(H_Parent() && IsZoomed() && !IsRotatingToZoom())
 	{
 		m_sounds.StopSound("sndZoomIn");
-		bool b_hud_mode = (Level().CurrentEntity() == H_Parent());	
+		bool b_hud_mode = (Level().CurrentActor() == H_Parent());	
 		m_sounds.PlaySound("sndZoomOut", H_Parent()->Position(), H_Parent(), b_hud_mode);
-		VERIFY			(m_binoc_vision);
-		xr_delete		(m_binoc_vision);
 	}
 
 
@@ -82,26 +71,20 @@ BOOL CWeaponBinoculars::net_Spawn(CSE_Abstract* DC)
 void	CWeaponBinoculars::net_Destroy()
 {
 	inherited::net_Destroy();
-	xr_delete(m_binoc_vision);
 }
 
 void	CWeaponBinoculars::UpdateCL()
 {
 	inherited::UpdateCL();
-	//manage visible entities here...
-	if(H_Parent() && IsZoomed() && !IsRotatingToZoom() && m_binoc_vision)
-		m_binoc_vision->Update();
 }
 
 bool CWeaponBinoculars::render_item_ui_query()
 {
-	bool b_is_active_item = m_pInventory->ActiveItem()==this;
-	return b_is_active_item && H_Parent() && IsZoomed() && !IsRotatingToZoom() && m_binoc_vision;
+	return false;
 }
 
 void CWeaponBinoculars::render_item_ui()
 {
-	m_binoc_vision->Draw();
 	inherited::render_item_ui	();
 }
 
@@ -152,17 +135,13 @@ void CWeaponBinoculars::load(IReader &input_packet)
 bool CWeaponBinoculars::GetBriefInfo( II_BriefInfo& info )
 {
 	info.clear();
-	info.name._set( m_nameShort );
-	info.icon._set( cNameSect() );
+	info.name = NameShort();
+	info.icon = cNameSect();
 	return true;
 }
 
 void CWeaponBinoculars::net_Relcase	(CObject *object)
 {
-	if (!m_binoc_vision)
-		return;
-
-	m_binoc_vision->remove_links	(object);
 }
 
 bool CWeaponBinoculars::can_kill	() const

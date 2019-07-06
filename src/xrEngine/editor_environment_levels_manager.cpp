@@ -108,7 +108,6 @@ void manager::load					()
 		);
 
 	VERIFY							(m_levels.empty());
-	fill_levels						(*m_config_single,	"single",	"single");
 	fill_levels						(*m_config_mp,		"mp",		"multiplayer");
 }
 

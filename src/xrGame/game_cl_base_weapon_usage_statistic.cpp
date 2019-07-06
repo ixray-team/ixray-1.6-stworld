@@ -892,7 +892,7 @@ u8 WeaponUsageStatistic::ConvertToTeamIndex(s16 team)
 {
 	game_cl_mp* cl_game = static_cast<game_cl_mp*>(&Game());
 	s16 team_index = cl_game->ModifyTeam(team);
-	if (Game().Type() == eGameIDTeamDeathmatch)
+	if (g_pGamePersistent->GameType() == eGameIDTeamDeathmatch)
 	{
 		if (team_index == -1)
 		{
@@ -971,58 +971,58 @@ void WeaponUsageStatistic::SVUpdateAliveTimes()
 }
 
 
-void WeaponUsageStatistic::Update()
-{
-	if (!CollectData())							return;
-	SVUpdateAliveTimes();		//update client alive time and servers total alive times
-	if (!OnServer())							return;
-	if (Level().timeServer() > (m_dwLastUpdateTime + m_dwUpdateTimeDelta))
-	{
-		//---------------------------------------------
-		m_dwLastUpdateTime = Level().timeServer();
-		//---------------------------------------------
-		NET_Packet P;
-		P.w_begin	(M_STATISTIC_UPDATE);
-		P.w_u32		(Level().timeServer());
-		Level().Send(P);
-	}
-};
+//void WeaponUsageStatistic::Update()
+//{
+//	if (!CollectData())							return;
+//	SVUpdateAliveTimes();		//update client alive time and servers total alive times
+//	if (!OnServer())							return;
+//	if (Level().timeServer() > (m_dwLastUpdateTime + m_dwUpdateTimeDelta))
+//	{
+//		//---------------------------------------------
+//		m_dwLastUpdateTime = Level().timeServer();
+//		//---------------------------------------------
+//		NET_Packet P;
+//		P.w_begin	(M_STATISTIC_UPDATE);
+//		P.w_u32		(Level().timeServer());
+//		Level().Send(P);
+//	}
+//};
 
-void WeaponUsageStatistic::OnUpdateRequest(NET_Packet*)
-{
-	if (aPlayersStatistic.empty() || !Game().local_player) return;
-	
-	statistic_sync_quard syncg(m_mutex);
-	
-	game_PlayerState* local_player = Game().local_player;
-	if (!xr_strlen(local_player->getName()))
-		return;
+//void WeaponUsageStatistic::OnUpdateRequest(NET_Packet*)
+//{
+//	if (aPlayersStatistic.empty() || !Game().local_player) return;
+//	
+//	statistic_sync_quard syncg(m_mutex);
+//	
+//	game_PlayerState* local_player = Game().local_player;
+//	if (!xr_strlen(local_player->getName()))
+//		return;
+//
+//	Player_Statistic& PS = *(FindPlayer(local_player->getName()));
+//	//-------------------------------------------------
+//	NET_Packet P;
+//	P.w_begin(M_STATISTIC_UPDATE_RESPOND);
+//	//-------------------------------------------------
+//	P.w_stringZ(PS.PName);
+//	PS.net_save(&P);
+//	//-------------------------------------------------
+//	Level().Send(P);
+//};
 
-	Player_Statistic& PS = *(FindPlayer(local_player->getName()));
-	//-------------------------------------------------
-	NET_Packet P;
-	P.w_begin(M_STATISTIC_UPDATE_RESPOND);
-	//-------------------------------------------------
-	P.w_stringZ(PS.PName);
-	PS.net_save(&P);
-	//-------------------------------------------------
-	Level().Send(P);
-};
-
-void WeaponUsageStatistic::OnUpdateRespond(NET_Packet* P, shared_str const & sender_digest, u32 sender_pid)
-{
-	if (!P) return;
-	
-	statistic_sync_quard syncg(m_mutex);
-	
-	shared_str PName;
-	P->r_stringZ(PName);
-	Player_Statistic& PS = *(FindPlayer(*PName));
-	PS.PDigest	= sender_digest;
-	PS.PID		= sender_pid;
-	Msg("--- CL: On Update Respond from [%s]", PName.c_str());
-	PS.net_load(P);
-};
+//void WeaponUsageStatistic::OnUpdateRespond(NET_Packet* P, shared_str const & sender_digest, u32 sender_pid)
+//{
+//	if (!P) return;
+//	
+//	statistic_sync_quard syncg(m_mutex);
+//	
+//	shared_str PName;
+//	P->r_stringZ(PName);
+//	Player_Statistic& PS = *(FindPlayer(*PName));
+//	PS.PDigest	= sender_digest;
+//	PS.PID		= sender_pid;
+//	Msg("--- CL: On Update Respond from [%s]", PName.c_str());
+//	PS.net_load(P);
+//};
 
 void WeaponUsageStatistic::SetCollectData(bool Collect)
 {

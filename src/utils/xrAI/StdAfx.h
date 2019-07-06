@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifdef XRSE_FACTORY_EXPORTS
+#	define _WIN32_WINNT 0x0550
+#endif // #ifdef XRSE_FACTORY_EXPORTS
+
 #include "../../xrCore/xrCore.h"
 
 #pragma warning(disable:4995)

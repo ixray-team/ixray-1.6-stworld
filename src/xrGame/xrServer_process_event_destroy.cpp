@@ -1,34 +1,14 @@
 #include "stdafx.h"
 #include "xrServer.h"
-#include "game_sv_single.h"
-#include "alife_simulator.h"
 #include "xrserver_objects.h"
 #include "game_base.h"
 #include "game_cl_base.h"
-#include "ai_space.h"
-#include "alife_object_registry.h"
-
-xr_string xrServer::ent_name_safe(u16 eid)
-{
-	string1024						buff;
-	CSE_Abstract*	e_dest			= game->get_entity_from_eid	(eid);
-	if(e_dest)
-		xr_sprintf(buff,"[%d][%s:%s]",eid,e_dest->name(),e_dest->name_replace());
-	else
-		xr_sprintf(buff,"[%d][%s]",eid,"NOTFOUND");
-
-	return buff;
-}
 
 void xrServer::Process_event_destroy	(NET_Packet& P, ClientID sender, u32 time, u16 ID, NET_Packet* pEPack)
 {
 	u32								MODE = net_flags(TRUE,TRUE);
 	// Parse message
 	u16								id_dest	= ID;
-#ifdef DEBUG
-	if( dbg_net_Draw_Flags.test( dbg_destroy ) )
-		Msg								("sv destroy object %s [%d]", ent_name_safe(id_dest).c_str(), Device.dwFrame);
-#endif
 
 	CSE_Abstract*					e_dest = game->get_entity_from_eid	(id_dest);	// кто должен быть уничтожен
 	if (!e_dest) 
@@ -91,14 +71,6 @@ void xrServer::Process_event_destroy	(NET_Packet& P, ClientID sender, u32 time, 
 	if (NULL == pEPack && NULL != pEventPack)
 	{
 		SendBroadcast				(BroadcastCID, *pEventPack, MODE);
-	}
-
-	// Everything OK, so perform entity-destroy
-	if (e_dest->m_bALifeControl && ai().get_alife()) {
-		game_sv_Single				*_game = smart_cast<game_sv_Single*>(game);
-		VERIFY						(_game);
-		if (ai().alife().objects().object(id_dest,true))
-			_game->alife().release	(e_dest,false);
 	}
 
 	if (game)

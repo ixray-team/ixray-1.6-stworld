@@ -4,10 +4,9 @@
 #include "../xrRender/ResourceManager.h"
 
 #ifndef _EDITOR
-#include "../../xrEngine/render.h"
+#	include "../../xrEngine/render.h"
 #endif
 
-#include "../../xrEngine/tntQAVI.h"
 #include "../../xrEngine/xrTheora_Surface.h"
 
 #include "../xrRender/dxRenderDeviceRender.h"
@@ -31,7 +30,6 @@ CTexture::CTexture		()
 {
 	pSurface			= NULL;
 	m_pSRView			= NULL;
-	pAVI				= NULL;
 	pTheora				= NULL;
 	desc_cache			= 0;
 	seqMSPF				= 0;
@@ -128,7 +126,6 @@ ID3DBaseTexture*	CTexture::surface_get	()
 void CTexture::PostLoad	()
 {
 	if (pTheora)				bind		= fastdelegate::FastDelegate1<u32>(this,&CTexture::apply_theora);
-	else if (pAVI)				bind		= fastdelegate::FastDelegate1<u32>(this,&CTexture::apply_avi);
 	else if (!seqDATA.empty())	bind		= fastdelegate::FastDelegate1<u32>(this,&CTexture::apply_seq);
 	else						bind		= fastdelegate::FastDelegate1<u32>(this,&CTexture::apply_normal);
 }
@@ -306,35 +303,6 @@ void CTexture::apply_theora(u32 dwStage)
 	Apply(dwStage);
 	//CHK_DX(HW.pDevice->SetTexture(dwStage,pSurface));
 };
-void CTexture::apply_avi	(u32 dwStage)	
-{
-	if (pAVI->NeedUpdate()){
-		D3D_RESOURCE_DIMENSION	type;
-		pSurface->GetType(&type);
-		R_ASSERT(D3D_RESOURCE_DIMENSION_TEXTURE2D == type);
-		ID3DTexture2D*	T2D		= (ID3DTexture2D*)pSurface;
-		D3D_MAPPED_TEXTURE2D	mapData;
-
-		// AVI
-		//R_CHK	(T2D->LockRect(0,&R,NULL,0));
-#ifdef USE_DX11
-		R_CHK(HW.pContext->Map(T2D, 0, D3D_MAP_WRITE_DISCARD, 0, &mapData));
-#else
-		R_CHK	(T2D->Map(0,D3D_MAP_WRITE_DISCARD,0,&mapData));
-#endif
-		R_ASSERT(mapData.RowPitch == int(pAVI->m_dwWidth*4));
-		BYTE* ptr; pAVI->GetFrame(&ptr);
-		CopyMemory(mapData.pData,ptr,pAVI->m_dwWidth*pAVI->m_dwHeight*4);
-		//R_CHK	(T2D->UnlockRect(0));
-#ifdef USE_DX11
-		HW.pContext->Unmap(T2D, 0);
-#else
-		T2D->Unmap(0);
-#endif
-	}
-	//CHK_DX(HW.pDevice->SetTexture(dwStage,pSurface));
-	Apply(dwStage);
-};
 void CTexture::apply_seq	(u32 dwStage)	{
 	// SEQ
 	u32	frame		= Device.dwTimeContinual/seqMSPF; //Device.dwTimeGlobal
@@ -432,114 +400,68 @@ void CTexture::Load		()
 
 		}
 	} else
-		if (FS.exist(fn,"$game_textures$",*cName,".avi")){
-			// AVI
-			pAVI = xr_new<CAviPlayerCustom>();
+		if (FS.exist(fn,"$game_textures$",*cName,".seq"))
+		{
+			// Sequence
+			string256 buffer;
+			IReader* _fs		= FS.r_open(fn);
 
-			if (!pAVI->Load(fn)) {
-				xr_delete(pAVI);
-				FATAL				("Can't open video stream");
-			} else {
-				flags.MemoryUsage	= pAVI->m_dwWidth*pAVI->m_dwHeight*4;
-
-				// Now create texture
-				ID3DTexture2D*	pTexture = 0;
-				//HRESULT hrr = HW.pDevice->CreateTexture(
-				//pAVI->m_dwWidth,pAVI->m_dwHeight,1,0,D3DFMT_A8R8G8B8,D3DPOOL_MANAGED,
-				//	&pTexture,NULL
-				//	);
-				D3D_TEXTURE2D_DESC	desc;
-				desc.Width = pAVI->m_dwWidth;
-				desc.Height = pAVI->m_dwHeight;
-				desc.MipLevels = 1;
-				desc.ArraySize = 1;
-				desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-				desc.SampleDesc.Count = 1;
-				desc.SampleDesc.Quality = 0;
-				desc.Usage = D3D_USAGE_DYNAMIC;
-				desc.BindFlags = D3D_BIND_SHADER_RESOURCE;
-				desc.CPUAccessFlags = D3D_CPU_ACCESS_WRITE;
-				desc.MiscFlags = 0;
-				HRESULT hrr = HW.pDevice->CreateTexture2D(&desc, 0, &pTexture);
-
-				pSurface	= pTexture;
-				if (FAILED(hrr))
-				{
-					FATAL		("Invalid video stream");
-					R_CHK		(hrr);
-					xr_delete	(pAVI);
-					pSurface = 0;
-					m_pSRView	= 0;
-				}
-				else
-				{
-					CHK_DX(HW.pDevice->CreateShaderResourceView(pSurface, 0, &m_pSRView));
-				}
-
-			}
-		} else
-			if (FS.exist(fn,"$game_textures$",*cName,".seq"))
+			flags.seqCycles	= FALSE;
+			_fs->r_string	(buffer,sizeof(buffer));
+			if (0==stricmp	(buffer,"cycled"))
 			{
-				// Sequence
-				string256 buffer;
-				IReader* _fs		= FS.r_open(fn);
-
-				flags.seqCycles	= FALSE;
+				flags.seqCycles	= TRUE;
 				_fs->r_string	(buffer,sizeof(buffer));
-				if (0==stricmp	(buffer,"cycled"))
-				{
-					flags.seqCycles	= TRUE;
-					_fs->r_string	(buffer,sizeof(buffer));
-				}
-				u32 fps	= atoi(buffer);
-				seqMSPF		= 1000/fps;
+			}
+			u32 fps	= atoi(buffer);
+			seqMSPF		= 1000/fps;
 
-				while (!_fs->eof())
+			while (!_fs->eof())
+			{
+				_fs->r_string(buffer,sizeof(buffer));
+				_Trim		(buffer);
+				if (buffer[0])	
 				{
-					_fs->r_string(buffer,sizeof(buffer));
-					_Trim		(buffer);
-					if (buffer[0])	
+					// Load another texture
+					u32	mem  = 0;
+					pSurface = ::RImplementation.texture_load	(buffer,mem);
+					if (pSurface)	
 					{
-						// Load another texture
-						u32	mem  = 0;
-						pSurface = ::RImplementation.texture_load	(buffer,mem);
-						if (pSurface)	
-						{
-							// pSurface->SetPriority	(PRIORITY_LOW);
-							seqDATA.push_back(pSurface);
-							m_seqSRView.push_back(0);
-							HW.pDevice->CreateShaderResourceView(seqDATA.back(), NULL, & m_seqSRView.back());
-							flags.MemoryUsage		+= mem;
-						}
+						// pSurface->SetPriority	(PRIORITY_LOW);
+						seqDATA.push_back(pSurface);
+						m_seqSRView.push_back(0);
+						HW.pDevice->CreateShaderResourceView(seqDATA.back(), NULL, & m_seqSRView.back());
+						flags.MemoryUsage		+= mem;
 					}
 				}
-				pSurface	= 0;
-				FS.r_close	(_fs);
-			} 
-			else
+			}
+			pSurface	= 0;
+			FS.r_close	(_fs);
+		} 
+		else
+		{
+			// Normal texture
+			u32	mem  = 0;
+			//pSurface = ::RImplementation.texture_load	(*cName,mem);
+			pSurface = ::RImplementation.texture_load	(*cName,mem, true);
+
+			if (GetUsage() == D3D_USAGE_STAGING)
 			{
-				// Normal texture
-				u32	mem  = 0;
-				//pSurface = ::RImplementation.texture_load	(*cName,mem);
-				pSurface = ::RImplementation.texture_load	(*cName,mem, true);
-
-				if (GetUsage() == D3D_USAGE_STAGING)
-				{
-					flags.bLoadedAsStaging = TRUE;
-					bCreateView = false;
-				}
-
-				// Calc memory usage and preload into vid-mem
-				if (pSurface) 
-				{
-					// pSurface->SetPriority	(PRIORITY_NORMAL);
-					flags.MemoryUsage		=	mem;
-				}
+				flags.bLoadedAsStaging = TRUE;
+				bCreateView = false;
 			}
 
-			if (pSurface && bCreateView)
-				CHK_DX(HW.pDevice->CreateShaderResourceView(pSurface, NULL, &m_pSRView));
-			PostLoad	()		;
+			// Calc memory usage and preload into vid-mem
+			if (pSurface) 
+			{
+				// pSurface->SetPriority	(PRIORITY_NORMAL);
+				flags.MemoryUsage		=	mem;
+			}
+		}
+
+		if (pSurface && bCreateView)
+			CHK_DX(HW.pDevice->CreateShaderResourceView(pSurface, NULL, &m_pSRView));
+		PostLoad	()		;
 }
 
 void CTexture::Unload	()
@@ -571,7 +493,6 @@ void CTexture::Unload	()
 	_RELEASE		(pSurface);
 	_RELEASE		(m_pSRView);
 
-	xr_delete		(pAVI);
 	xr_delete		(pTheora);
 
 	bind			= fastdelegate::FastDelegate1<u32>(this,&CTexture::apply_load);

@@ -9,7 +9,6 @@
 #include "level.h"
 #include "xr_level_controller.h"
 #include "../Include/xrRender/Kinematics.h"
-#include "ai_object_location.h"
 #include "../xrphysics/ExtendedGeom.h"
 #include "../xrphysics/MathUtils.h"
 #include "characterphysicssupport.h"
@@ -75,7 +74,6 @@ void CMissile::Load(LPCSTR section)
 	m_vThrowPoint		= pSettings->r_fvector3(section,"throw_point");
 	m_vThrowDir			= pSettings->r_fvector3(section,"throw_dir");
 
-	m_ef_weapon_type	= READ_IF_EXISTS(pSettings,r_u32,section,"ef_weapon_type",u32(-1));
 }
 
 BOOL CMissile::net_Spawn(CSE_Abstract* DC) 
@@ -133,14 +131,7 @@ void CMissile::OnActiveItem		()
 
 void CMissile::OnHiddenItem()
 {
-
-//. -Hide
-	if(IsGameTypeSingle())
-		SwitchState			(eHiding);
-	else
-		SwitchState			(eHidden);
-//-
-
+	SwitchState				(eHidden);
 	inherited::OnHiddenItem	();
 	SetState				(eHidden);
 	SetNextState			(eHidden);
@@ -156,14 +147,10 @@ void CMissile::spawn_fake_missile()
 		CSE_Abstract		*object = Level().spawn_item(
 			*cNameSect(),
 			Position(),
-			(g_dedicated_server)?u32(-1):ai_location().level_vertex_id(),
+			(g_dedicated_server)?u32(-1):u32(-1),
 			ID(),
 			true
 		);
-
-		CSE_ALifeObject				*alife_object = smart_cast<CSE_ALifeObject*>(object);
-		VERIFY						(alife_object);
-		alife_object->m_flags.set	(CSE_ALifeObject::flCanSave,FALSE);
 
 		NET_Packet			P;
 		object->Spawn_Write	(P,TRUE);
@@ -618,7 +605,7 @@ void CMissile::activate_physic_shell()
 {
 	if (!smart_cast<CMissile*>(H_Parent())) {
 		inherited::activate_physic_shell();
-		if(m_pPhysicsShell&&m_pPhysicsShell->isActive()&&!IsGameTypeSingle())
+		if(m_pPhysicsShell&&m_pPhysicsShell->isActive())
 		{
 				m_pPhysicsShell->add_ObjectContactCallback		(ExitContactCallback);
 				m_pPhysicsShell->set_CallbackData	(smart_cast<CPhysicsShellHolder*>(H_Root()));
@@ -699,13 +686,6 @@ void CMissile::setup_physic_shell	()
 	kinematics->CalculateBones			(TRUE);
 }
 
-u32	CMissile::ef_weapon_type		() const
-{
-	VERIFY	(m_ef_weapon_type != u32(-1));
-	return	(m_ef_weapon_type);
-}
-
-
 bool CMissile::render_item_ui_query()
 {
 	bool b_is_active_item = m_pInventory->ActiveItem()==this;
@@ -724,7 +704,7 @@ void CMissile::render_item_ui()
 	g_MissileForceShape->Draw	();
 }
 
-void	 CMissile::ExitContactCallback(bool& do_colide,bool bo1,dContact& c,SGameMtl * /*material_1*/,SGameMtl * /*material_2*/)
+void CMissile::ExitContactCallback(bool& do_colide,bool bo1,dContact& c,SGameMtl * /*material_1*/,SGameMtl * /*material_2*/)
 {
 	dxGeomUserData	*gd1=NULL,	*gd2=NULL;
 	if(bo1)
@@ -737,14 +717,15 @@ void	 CMissile::ExitContactCallback(bool& do_colide,bool bo1,dContact& c,SGameMt
 		gd2 =PHRetrieveGeomUserData(c.geom.g1);
 		gd1 =PHRetrieveGeomUserData(c.geom.g2);
 	}
-	if(gd1&&gd2&&(CPhysicsShellHolder*)gd1->callback_data==gd2->ph_ref_object)	
-																				do_colide=false;
+
+	if( gd1 && gd2 && (CPhysicsShellHolder*)gd1->callback_data==gd2->ph_ref_object )	
+		do_colide=false;
 }
 
 bool CMissile::GetBriefInfo( II_BriefInfo& info )
 {
 	info.clear();
-	info.name._set( m_nameShort );
+	info.name = NameShort();
 	return true;
 }
 

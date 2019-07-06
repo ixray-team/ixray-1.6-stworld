@@ -216,12 +216,11 @@ protected:
 	virtual void FillDeathActorRejectItems(CSE_ActorMP *actor, xr_vector<CSE_Abstract*> & to_reject);
 	shared_str m_not_free_ammo_str;
 	virtual	bool CanChargeFreeAmmo(char const * ammo_section);
-	virtual	void WriteGameState(CInifile& ini, LPCSTR sect, bool bRoundResult);
+//	virtual	void WriteGameState(CInifile& ini, LPCSTR sect, bool bRoundResult);
 public:
 	game_sv_CaptureTheArtefact();
 	virtual ~game_sv_CaptureTheArtefact();
 	
-	virtual LPCSTR type_name() const;
 	virtual	void Create(shared_str &options);
 	virtual void OnPlayerConnect(ClientID id_who);
 	virtual	void OnPlayerDisconnect(ClientID id_who, LPSTR Name, u16 GameID);

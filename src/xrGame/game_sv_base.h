@@ -2,7 +2,6 @@
 
 #include "game_base.h"
 #include "alife_space.h"
-#include "script_export_space.h"
 #include "../xrCore/client_id.h"
 #include "game_sv_base_console_vars.h"
 #include "game_sv_event_queue.h"
@@ -177,10 +176,6 @@ public:
 
 	virtual		BOOL				isFriendlyFireEnabled	()	{return FALSE;};
 	virtual		BOOL				CanHaveFriendlyFire		()	= 0;
-	virtual		void				teleport_object			(NET_Packet &packet, u16 id);
-	virtual		void				add_restriction			(NET_Packet &packet, u16 id);
-	virtual		void				remove_restriction		(NET_Packet &packet, u16 id);
-	virtual		void				remove_all_restrictions	(NET_Packet &packet, u16 id);
 	virtual		bool				custom_sls_default		() {return false;};
 	virtual		void				sls_default				() {};
 	virtual		shared_str			level_name				(const shared_str &server_options) const;
@@ -190,7 +185,7 @@ public:
 
 	virtual		void				on_death				(CSE_Abstract *e_dest, CSE_Abstract *e_src);
 
-	virtual		void				DumpOnlineStatistic		(){};
+//	virtual		void				DumpOnlineStatistic		(){};
 				
 				bool				CheckNewPlayer			(xrClientData* CL);
 };

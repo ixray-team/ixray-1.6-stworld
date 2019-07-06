@@ -9,8 +9,11 @@ dxDebugRender DebugRenderImpl;
 dxDebugRender DebugRenderImpl_1;
 dxDebugRender::dxDebugRender()
 {
+if(!g_dedicated_server)
+{
 	m_line_indices.reserve			(line_vertex_limit);
 	m_line_vertices.reserve			(line_index_limit);
+}
 }
 
 void dxDebugRender::Render()

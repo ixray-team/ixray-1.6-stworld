@@ -18,15 +18,15 @@ BASE_CFLAGS=-D_LINUX -DGSI_NO_THREADS
 CFLAGS=$(BASE_CFLAGS) -O6 -ffast-math -funroll-loops \
         -fomit-frame-pointer -fexpensive-optimizations -falign-loops=2 \
         -falign-jumps=2 -falign-functions=2 -lpthread
-CPPFLAGS=$(BASE_CFLAGS) -march=i486 -lpthread
+CPPFLAGS=$(BASE_CFLAGS) -lpthread
 
 DEBUG_CFLAGS	=$(BASE_CFLAGS) -g -lpthread -DGSI_COMMON_DEBUG -D_DEBUG
 DEBUG_CPPFLAGS	=$(BASE_CFLAGS) -g -lpthread -DGSI_COMMON_DEBUG -D_DEBUG
 
 
 #use these to specify debug and release configurations
-CURR_CFLAGS	= $(CFLAGS)
-CURR_CPPFLAGS	= $(CPPFLAGS)
+CURR_CFLAGS	= $(DEBUG_CFLAGS)
+CURR_CPPFLAGS	= $(DEBUG_CPPFLAGS)
 
 FASTCGI_OBJS 	=\
 	$(BIN_DIRECTORY)/libfcgi/fcgiapp.o\

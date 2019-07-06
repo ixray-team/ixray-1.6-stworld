@@ -1,4 +1,4 @@
-#include "pch_script.h"
+#include "stdafx.h"
 #include "entity_alive.h"
 #include "inventoryowner.h"
 #include "inventory.h"
@@ -9,14 +9,10 @@
 #include "xrmessages.h"
 #include "level.h"
 #include "../Include/xrRender/Kinematics.h"
-#include "relation_registry.h"
-#include "monster_community.h"
 #include "entitycondition.h"
-#include "script_game_object.h"
 #include "hit.h"
 #include "PHDestroyable.h"
 #include "CharacterPhysicsSupport.h"
-#include "script_callback_ex.h"
 #include "game_object_space.h"
 #include "material_manager.h"
 #include "game_base_space.h"
@@ -51,28 +47,21 @@ STR_VECTOR* CEntityAlive::m_pFireParticlesVector = NULL;
 /////////////////////////////////////////////
 // CEntityAlive
 /////////////////////////////////////////////
-CEntityAlive::CEntityAlive() :
-	m_hit_bone_surface_areas_actual	( false )
+CEntityAlive::CEntityAlive() 
+:m_hit_bone_surface_areas_actual	( false )
 {
-	
-	monster_community		= xr_new<MONSTER_COMMUNITY>	();
-
-	m_ef_weapon_type		= u32(-1);
-	m_ef_detector_type		= u32(-1);
-	b_eating				= false;
-	m_is_agresive			= false;
-	m_is_start_attack		= false;
-	m_use_timeout			= 5000;
-	m_used_time				= Device.dwTimeGlobal;
-	m_squad_index			= u8(-1);
+//	b_eating				= false;
+//	m_is_agresive			= false;
+//	m_is_start_attack		= false;
+//	m_use_timeout			= 5000;
+//	m_used_time				= Device.dwTimeGlobal;
+//	m_squad_index			= u8(-1);
 
 	m_material_manager		= 0;
 }
 
 CEntityAlive::~CEntityAlive()
 {
-
-	xr_delete				(monster_community);
 	xr_delete				(m_material_manager);
 }
 
@@ -91,8 +80,6 @@ void CEntityAlive::Load		(LPCSTR section)
 	if(0==m_pFireParticlesVector)
 		LoadFireParticles	("entity_fire_particles");
 
-	//биолог. вид к торому принадлежит монстр или персонаж
-	monster_community->set	(pSettings->r_string(section, "species"));
 }
 
 void CEntityAlive::LoadBloodyWallmarks (LPCSTR section)
@@ -186,18 +173,14 @@ void CEntityAlive::reinit()
 {
 	CEntity::reinit			();
 
-	m_fAccuracy				= 25.f;
-	m_fIntelligence			= 25.f;
+//	m_fAccuracy				= 25.f;
+//	m_fIntelligence			= 25.f;
 }
 
 void CEntityAlive::reload		(LPCSTR section)
 {
 	CEntity::reload			(section);
 //	CEntityCondition::reload(section);
-
-	m_ef_creature_type		= pSettings->r_u32		(section,"ef_creature_type");
-	m_ef_weapon_type		= READ_IF_EXISTS(pSettings,r_u32,section,"ef_weapon_type",u32(-1));
-	m_ef_detector_type		= READ_IF_EXISTS(pSettings,r_u32,section,"ef_detector_type",u32(-1));
 
 	m_fFood					= 100*pSettings->r_float	(section,"ph_mass");
 }
@@ -276,50 +259,34 @@ void	CEntityAlive::Hit(SHit* pHDS)
 	//изменить состояние, перед тем как родительский класс обработает хит
 	CWound* pWound = conditions().ConditionHit(&HDS);
 
-	if(pWound){
-		if(ALife::eHitTypeBurn == HDS.hit_type || ALife::eHitTypeLightBurn == HDS.hit_type)
-			StartFireParticles(pWound);
-		else if(ALife::eHitTypeWound == HDS.hit_type || ALife::eHitTypeFireWound == HDS.hit_type)
-			StartBloodDrops(pWound);
-	}
+	if(!g_dedicated_server)
+	{
+		if(pWound)
+		{
+			if(ALife::eHitTypeBurn == HDS.hit_type || ALife::eHitTypeLightBurn == HDS.hit_type)
+				StartFireParticles(pWound);
+			else 
+			if(ALife::eHitTypeWound == HDS.hit_type || ALife::eHitTypeFireWound == HDS.hit_type)
+				StartBloodDrops(pWound);
+		}
 
-	if (HDS.hit_type != ALife::eHitTypeTelepatic){
-		//добавить кровь на стены
-		if (!use_simplified_visual())
-			BloodyWallmarks (HDS.damage(), HDS.dir, HDS.bone(), HDS.p_in_bone_space);
+		if(HDS.hit_type != ALife::eHitTypeTelepatic)
+		{
+			if (!use_simplified_visual())
+				BloodyWallmarks (HDS.damage(), HDS.dir, HDS.bone(), HDS.p_in_bone_space);
+		}
 	}
-
 	//-------------------------------------------
 	conditions().SetConditionDeltaTime(0);
 	//-------------------------------------------
 	inherited::Hit(&HDS);
-
-	if (g_Alive()&&IsGameTypeSingle()) {
-		CEntityAlive* EA = smart_cast<CEntityAlive*>(HDS.who);
-		if(EA && EA->g_Alive() && EA->ID() != ID())
-		{
-			RELATION_REGISTRY().FightRegister(EA->ID(), ID(), this->tfGetRelationType(EA), HDS.damage());
-			RELATION_REGISTRY().Action(EA, this, RELATION_REGISTRY::ATTACK);
-		}
-	}
-
 }
 
 void CEntityAlive::Die	(CObject* who)
 {
-	if(IsGameTypeSingle())
-		RELATION_REGISTRY().Action(smart_cast<CEntityAlive*>(who), this, RELATION_REGISTRY::KILL);
 	inherited::Die(who);
 	
 	const CGameObject *who_object = smart_cast<const CGameObject*>(who);
-	callback(GameObject::eDeath)(lua_game_object(), who_object ? who_object->lua_game_object() : 0);
-
-	if (!getDestroy() && (GameID() == eGameIDSingle)) {
-		NET_Packet		P;
-		u_EventGen		(P,GE_ASSIGN_KILLER,ID());
-		P.w_u16			(u16(who->ID()));
-		u_EventSend		(P);
-	}
 
 	// disable react to sound
 	ISpatial* self	= smart_cast<ISpatial*> (this);
@@ -503,25 +470,6 @@ void CEntityAlive::UpdateFireParticles()
 	}
 }
 
-ALife::ERelationType CEntityAlive::tfGetRelationType	(const CEntityAlive *tpEntityAlive) const
-{
-	int relation = MONSTER_COMMUNITY::relation(this->monster_community->index(), tpEntityAlive->monster_community->index());
-
-	switch(relation) {
-		case 1:		return(ALife::eRelationTypeFriend);		break;
-		case 0:		return(ALife::eRelationTypeNeutral);	break;
-		case -1:	return(ALife::eRelationTypeEnemy);		break;
-		case -2:	return(ALife::eRelationTypeWorstEnemy);	break;
-		
-		default:	return(ALife::eRelationTypeDummy);		break;
-	}
-};
-
-bool CEntityAlive::is_relation_enemy(const CEntityAlive *tpEntityAlive) const
-{
-	return ((tfGetRelationType(tpEntityAlive) == ALife::eRelationTypeEnemy) ||  
-		(tfGetRelationType(tpEntityAlive) == ALife::eRelationTypeWorstEnemy));
-}
 
 void CEntityAlive::StartBloodDrops			(CWound* pWound)
 {
@@ -586,18 +534,6 @@ void CEntityAlive::UpdateBloodDrops()
 	}
 }
 
-void CEntityAlive::save	(NET_Packet &output_packet)
-{
-	inherited::save(output_packet);
-	conditions().save(output_packet);
-}
-
-void CEntityAlive::load	(IReader &input_packet)
-{
-	inherited::load(input_packet);
-	conditions().load(input_packet);
-}
-
 BOOL	CEntityAlive::net_SaveRelevant		()
 {
 	return		(TRUE);
@@ -653,22 +589,6 @@ DLL_Pure *CEntityAlive::_construct	()
 	return					(this);
 }
 
-u32	CEntityAlive::ef_creature_type	() const
-{
-	return	(m_ef_creature_type);
-}
-
-u32	CEntityAlive::ef_weapon_type	() const
-{
-	VERIFY	(m_ef_weapon_type != u32(-1));
-	return	(m_ef_weapon_type);
-}
-
-u32	 CEntityAlive::ef_detector_type	() const
-{
-	VERIFY	(m_ef_detector_type != u32(-1));
-	return	(m_ef_detector_type);
-}
 void CEntityAlive::PHGetLinearVell(Fvector& velocity)
 {
 	if(character_physics_support())
@@ -680,26 +600,26 @@ void CEntityAlive::PHGetLinearVell(Fvector& velocity)
 
 }
 
-void CEntityAlive::set_lock_corpse(bool b_l_corpse)
-{
-	if ( b_eating && !b_l_corpse)
-	{
-		m_used_time = Device.dwTimeGlobal;
-	}
-	b_eating = b_l_corpse;
-}
+//void CEntityAlive::set_lock_corpse(bool b_l_corpse)
+//{
+//	if ( b_eating && !b_l_corpse)
+//	{
+//		m_used_time = Device.dwTimeGlobal;
+//	}
+//	b_eating = b_l_corpse;
+//}
 
-bool CEntityAlive::is_locked_corpse()
-{
-	if (!b_eating)
-	{
-		if ( m_used_time + m_use_timeout > Device.dwTimeGlobal)
-		{
-			return true;
-		}
-	}
-	return b_eating;
-}
+//bool CEntityAlive::is_locked_corpse()
+//{
+//	if (!b_eating)
+//	{
+//		if ( m_used_time + m_use_timeout > Device.dwTimeGlobal)
+//		{
+//			return true;
+//		}
+//	}
+//	return b_eating;
+//}
 
 CIKLimbsController*	CEntityAlive::character_ik_controller()
 {
@@ -838,12 +758,8 @@ void CEntityAlive::fill_hit_bone_surface_areas		( ) const
 	std::sort							( m_hit_bone_surface_areas.begin(), m_hit_bone_surface_areas.end(), sort_surface_area_predicate() );
 }
 
-BOOL g_ai_use_old_vision				= 0;
-
 Fvector	CEntityAlive::get_new_local_point_on_mesh	( u16& bone_id ) const
 {
-	if ( g_ai_use_old_vision )
-		return							inherited::get_new_local_point_on_mesh( bone_id );
 
 	IKinematics* const kinematics		= smart_cast<IKinematics*>( Visual() );
 	if ( !kinematics )

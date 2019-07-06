@@ -369,7 +369,7 @@ u16 NET_Compressor::Compress(BYTE* dest, const u32 &dest_size, BYTE* src, const 
 		offset += sizeof(u32);
     #endif // NET_USE_COMPRESSION_CRC
 
-	if( !psNET_direct_connect  && g_net_compressor_enabled && b_compress_packet) 
+	if( g_net_compressor_enabled && b_compress_packet) 
 	{
 		CS.Enter							();
 		compressed_size = offset + ENCODE( dest+offset, dest_size-offset, src, count );

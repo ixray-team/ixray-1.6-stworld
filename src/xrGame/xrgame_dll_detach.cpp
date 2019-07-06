@@ -1,7 +1,5 @@
-#include "pch_script.h"
-#include "ai_space.h"
+#include "stdafx.h"
 #include "object_factory.h"
-#include "ai/monsters/ai_monster_squad_manager.h"
 #include "string_table.h"
 
 #include "entity_alive.h"
@@ -9,22 +7,7 @@
 #include "UI/UIXmlInit.h"
 #include "UI/UItextureMaster.h"
 
-#include "InfoPortion.h"
-#include "PhraseDialog.h"
-#include "GameTask.h"
-#include "encyclopedia_article.h"
-
-#include "character_info.h"
-#include "specific_character.h"
-#include "character_community.h"
-#include "monster_community.h"
-#include "character_rank.h"
-#include "character_reputation.h"
-
 #include "profiler.h"
-
-#include "sound_collection_storage.h"
-#include "relation_registry.h"
 
 typedef xr_vector<std::pair<shared_str,int> >	STORY_PAIRS;
 extern STORY_PAIRS								story_ids;
@@ -45,65 +28,56 @@ extern void InitHudSoundSettings					();
 #include "../xrEngine/IGame_Persistent.h"
 void init_game_globals()
 {
-	CreateUIGeom									();
-	InitHudSoundSettings							();
 	if(!g_dedicated_server)
 	{
-//		CInfoPortion::InitInternal					();
-//.		CEncyclopediaArticle::InitInternal			();
-		CPhraseDialog::InitInternal					();
+		CreateUIGeom								();
+		InitHudSoundSettings						();
 		InventoryUtilities::CreateShaders			();
-	};
-	CCharacterInfo::InitInternal					();
-	CSpecificCharacter::InitInternal				();
-	CHARACTER_COMMUNITY::InitInternal				();
-	CHARACTER_RANK::InitInternal					();
-	CHARACTER_REPUTATION::InitInternal				();
-	MONSTER_COMMUNITY::InitInternal					();
+
+		FS_FileSet fset;
+		FS.file_list(fset, "$game_config$", FS_ListFiles,"ui\\textures_descr\\*.xml");
+		FS_FileSetIt fit	= fset.begin();
+		FS_FileSetIt fit_e	= fset.end();
+
+		for( ;fit!=fit_e; ++fit)
+		{
+    		string_path	fn1, fn2,fn3;
+			_splitpath	((*fit).name.c_str(),fn1,fn2,fn3,0);
+			xr_strcat(fn3,".xml");
+
+			CUITextureMaster::ParseShTexInfo(fn3);
+		}
+	}
 }
 
 extern CUIXml*	g_uiSpotXml;
 extern CUIXml*	pWpnScopeXml;
-
-extern void destroy_lua_wpn_params	();
+//
+//void _destroy_item_data_vector_cont(T_VECTOR* vec)
+//{
+//	T_VECTOR::iterator it		= vec->begin();
+//	T_VECTOR::iterator it_e		= vec->end();
+//
+//	xr_vector<CUIXml*>			_tmp;	
+//	for(;it!=it_e;++it)
+//	{
+//		xr_vector<CUIXml*>::iterator it_f = std::find(_tmp.begin(), _tmp.end(), (*it)._xml);
+//		if(it_f==_tmp.end())
+//			_tmp.push_back	((*it)._xml);
+//	}
+//	delete_data	(_tmp);
+//}
 
 void clean_game_globals()
 {
-	destroy_lua_wpn_params							();
-	// destroy ai space
-	xr_delete										(g_ai_space);
 	// destroy object factory
 	xr_delete										(g_object_factory);
-	// destroy monster squad global var
-	xr_delete										(g_monster_squad);
-
-	story_ids.clear									();
-	spawn_story_ids.clear							();
 
 	if(!g_dedicated_server)
 	{
-//.		CInfoPortion::DeleteSharedData					();
-//.		CInfoPortion::DeleteIdToIndexData				();
-
-//.		CEncyclopediaArticle::DeleteSharedData			();
-//.		CEncyclopediaArticle::DeleteIdToIndexData		();
-
-		CPhraseDialog::DeleteSharedData					();
-		CPhraseDialog::DeleteIdToIndexData				();
-		
 		InventoryUtilities::DestroyShaders				();
 	}
-	CCharacterInfo::DeleteSharedData				();
-	CCharacterInfo::DeleteIdToIndexData				();
 	
-	CSpecificCharacter::DeleteSharedData			();
-	CSpecificCharacter::DeleteIdToIndexData			();
-
-	CHARACTER_COMMUNITY::DeleteIdToIndexData		();
-	CHARACTER_RANK::DeleteIdToIndexData				();
-	CHARACTER_REPUTATION::DeleteIdToIndexData		();
-	MONSTER_COMMUNITY::DeleteIdToIndexData			();
-
 
 	//static shader for blood
 	CEntityAlive::UnloadBloodyWallmarks				();
@@ -112,17 +86,11 @@ void clean_game_globals()
 	CStringTable::Destroy							();
 	// Очищение таблицы цветов
 	CUIXmlInit::DeleteColorDefs						();
-	// Очищение таблицы идентификаторов рангов и отношений сталкеров
-	InventoryUtilities::ClearCharacterInfoStrings	();
-
-	xr_delete										(g_sound_collection_storage);
 	
 #ifdef DEBUG
 	xr_delete										(g_profiler);
 	release_smart_cast_stats						();
 #endif
-
-	RELATION_REGISTRY::clear_relation_registry		();
 
 	dump_list_wnd									();
 	dump_list_lines									();

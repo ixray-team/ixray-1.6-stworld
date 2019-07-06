@@ -1,19 +1,12 @@
-#include "pch_script.h"
+#include "stdafx.h"
 #include "UIGameTutorial.h"
 #include "UIStatic.h"
 #include "uicursor.h"
 #include "UIXmlInit.h"
-#include "object_broker.h"
 #include "../../xrEngine/xr_input.h"
 #include "../xr_level_controller.h"
-#include "../UIGameSp.h"
 #include "../level.h"
-#include "UIPdaWnd.h"
 #include "UIActorMenu.h"
-#include "UITalkWnd.h"
-#include "../MainMenu.h"
-#include "../../xrServerEntities/script_engine.h"
-#include "../ai_space.h"
 
 extern ENGINE_API BOOL bShowPauseString;
 
@@ -54,8 +47,8 @@ void CUISequenceSimpleItem::Load(CUIXml* xml, int idx)
 	LPCSTR m_snd_name		= xml->Read				("sound",0,""			);
 	if (m_snd_name&&m_snd_name[0]){
 		m_sound.create		(m_snd_name,st_Effect,sg_Undefined);	
-		VERIFY				(m_sound._handle() || strstr(Core.Params,"-nosound"));
 	}
+
 	m_time_length			= xml->ReadFlt			("length_sec",0,0		);
 	m_desired_cursor_pos.x	= xml->ReadAttribFlt	("cursor_pos",0,"x",0);
 	m_desired_cursor_pos.y	= xml->ReadAttribFlt	("cursor_pos",0,"y",0	);
@@ -197,23 +190,6 @@ void CUISequenceSimpleItem::Update()
 			s.Stop	();
 	}
 	
-	if(g_pGameLevel && (!m_pda_section || 0 == xr_strlen(m_pda_section)) )
-	{
-		CUIGameSP* ui_game_sp	= smart_cast<CUIGameSP*>(CurrentGameUI());
-
-		if(ui_game_sp)
-		{
-			if ( ui_game_sp->PdaMenu().IsShown()		||
-				ui_game_sp->ActorMenu().IsShown()		||
-				ui_game_sp->TalkMenu->IsShown()			||
-				ui_game_sp->UIChangeLevelWnd->IsShown() ||
-				(MainMenu()->IsActive() && !m_owner->m_flags.test(CUISequencer::etsOverMainMenu) )
-				)
-				m_UIWindow->Show						(false);
-			else
-				m_UIWindow->Show						(true);
-		}
-	}
 	if(m_desired_cursor_pos.x && m_desired_cursor_pos.y)
 		GetUICursor().SetUICursorPosition(m_desired_cursor_pos);
 }
@@ -243,28 +219,6 @@ void CUISequenceSimpleItem::Start()
 
 	if (m_sound._handle())		m_sound.play(NULL, sm_2D);
 
-	if (g_pGameLevel)
-	{
-		bool bShowPda			= false;
-		CUIGameSP* ui_game_sp	= smart_cast<CUIGameSP*>(CurrentGameUI());
-
-		if (     !stricmp( m_pda_section, "pda_tasks"       ) ) {ui_game_sp->PdaMenu().SetActiveSubdialog("eptTasks");		bShowPda = true;	}
-		else if( !stricmp( m_pda_section, "pda_ranking"     ) ) {ui_game_sp->PdaMenu().SetActiveSubdialog("eptRanking");	bShowPda = true;	}
-		else if( !stricmp( m_pda_section, "pda_logs"        ) ) {ui_game_sp->PdaMenu().SetActiveSubdialog("eptLogs");		bShowPda = true;	}
-		else if( !stricmp( m_pda_section, "pda_show_second_task_wnd" ) )
-		{
-			ui_game_sp->PdaMenu().Show_SecondTaskWnd(true);	bShowPda = true;
-		}
-		
-		if ( ui_game_sp )
-		{
-			if ( ( !ui_game_sp->PdaMenu().IsShown() &&  bShowPda ) || 
-				(   ui_game_sp->PdaMenu().IsShown() && !bShowPda ) )
-			{
-				ui_game_sp->PdaMenu().HideDialog();
-			}
-		}
-	}
 }
 
 bool CUISequenceSimpleItem::Stop			(bool bForce)
@@ -286,14 +240,6 @@ bool CUISequenceSimpleItem::Stop			(bool bForce)
 	if(m_flags.test(etiNeedPauseSound))
 		Device.Pause			(FALSE, FALSE, TRUE, "simpleitem_stop");
 
-	if ( g_pGameLevel )
-	{
-		CUIGameSP* ui_game_sp	= smart_cast<CUIGameSP*>( CurrentGameUI() );
-		if ( ui_game_sp && ui_game_sp->PdaMenu().IsShown() )
-		{
-			ui_game_sp->PdaMenu().HideDialog();
-		}
-	}
 	inherited::Stop				();
 	return true;
 }
@@ -315,15 +261,9 @@ void CUISequenceSimpleItem::OnKeyboardPress	(int dik)
 		bool b = is_binded(itm.m_action, dik);
 		if(b)
 		{
-			luabind::functor<void>	functor_to_call;
-			bool functor_exists		= ai().script_engine().functor(itm.m_functor.c_str() ,functor_to_call);
-			THROW3					(functor_exists, "Cannot find script function described in tutorial item ", itm.m_functor.c_str());
-			functor_to_call			();
-
 			if(itm.m_bfinalize)
 			{
 				m_flags.set					(etiCanBeStopped, TRUE);
-				m_stop_lua_functions.clear	();
 				Stop						();
 			}
 		}

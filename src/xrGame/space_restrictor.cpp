@@ -6,13 +6,11 @@
 //	Description : Space restrictor
 ////////////////////////////////////////////////////////////////////////////
 
-#include "pch_script.h"
+#include "stdafx.h"
 #include "space_restrictor.h"
 #include "xrServer_Objects_ALife.h"
 #include "level.h"
-#include "space_restriction_manager.h"
 #include "restriction_space.h"
-#include "ai_space.h"
 #include "CustomZone.h"
 #include "../xrengine/xr_collide_form.h"
 #ifdef DEBUG
@@ -72,25 +70,12 @@ BOOL CSpaceRestrictor::net_Spawn	(CSE_Abstract* data)
 	setEnabled						(FALSE);
 	setVisible						(FALSE);
 
-	if (!ai().get_level_graph() || (RestrictionSpace::ERestrictorTypes(se_shape->m_space_restrictor_type) == RestrictionSpace::eRestrictorTypeNone))
-		return						(TRUE);
-
-	Level().space_restriction_manager().register_restrictor(this,RestrictionSpace::ERestrictorTypes(se_shape->m_space_restrictor_type));
-
 	return							(TRUE);
 }
 
 void CSpaceRestrictor::net_Destroy	()
 {
 	inherited::net_Destroy			();
-	
-	if (!ai().get_level_graph())
-		return;
-	
-	if (RestrictionSpace::ERestrictorTypes(m_space_restrictor_type) == RestrictionSpace::eRestrictorTypeNone)
-		return;
-
-	Level().space_restriction_manager().unregister_restrictor(this);
 }
 
 bool CSpaceRestrictor::inside	(const Fsphere &sphere) const
@@ -102,11 +87,6 @@ bool CSpaceRestrictor::inside	(const Fsphere &sphere) const
 		return	(false);
 	
 	return		(prepared_inside(sphere));
-}
-
-BOOL CSpaceRestrictor::UsedAI_Locations	()
-{
-	return		(FALSE);
 }
 
 void CSpaceRestrictor::spatial_move		()
@@ -252,7 +232,7 @@ void CSpaceRestrictor::OnRender	()
 		}
 	}
 
-	if( Level().CurrentViewEntity()->Position().distance_to(XFORM().c)<100.0f ){
+	if( Level().CurrentViewActor()->Position().distance_to(XFORM().c)<100.0f ){
 	
 //DRAW name
 

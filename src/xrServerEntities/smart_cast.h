@@ -9,9 +9,9 @@
 #ifndef SMART_CAST_H
 #define SMART_CAST_H
 
-#ifdef DEBUG
+//. #ifdef DEBUG
 #	define PURE_DYNAMIC_CAST
-#endif // DEBUG
+//. #endif // DEBUG
 
 #define  TL_FAST_COMPILATION
 #undef   STATIC_CHECK
@@ -174,18 +174,6 @@
 #		undef cast_type_list
 #		define cast_type_list save_cast_list	(CArtefact,			CGameObject)
 
-		DECLARE_SPECIALIZATION	(CCustomMonster,	CGameObject,	cast_custom_monster);
-#		undef cast_type_list
-#		define cast_type_list save_cast_list	(CCustomMonster,	CGameObject)
-
-		DECLARE_SPECIALIZATION	(CAI_Stalker,		CGameObject,	cast_stalker);
-#		undef cast_type_list
-#		define cast_type_list save_cast_list	(CAI_Stalker,		CGameObject)
-
-		DECLARE_SPECIALIZATION	(CScriptEntity,	CGameObject,		cast_script_entity);
-#		undef cast_type_list
-#		define cast_type_list save_cast_list	(CScriptEntity,	CGameObject)
-
 		DECLARE_SPECIALIZATION	(CSpaceRestrictor,	CGameObject,	cast_restrictor);
 #		undef cast_type_list
 #		define cast_type_list save_cast_list	(CSpaceRestrictor,	CGameObject)
@@ -218,10 +206,6 @@
 #		undef cast_type_list
 #		define cast_type_list save_cast_list	(CEatableItem,		CInventoryItem)
 
-		DECLARE_SPECIALIZATION	(CBaseMonster,		CGameObject,	cast_base_monster);
-#		undef cast_type_list
-#		define cast_type_list save_cast_list	(CBaseMonster,		CGameObject)
-
 #	endif
 	
 	DECLARE_SPECIALIZATION	(CSE_Abstract,		CSE_ALifeInventoryItem,	cast_abstract);
@@ -232,17 +216,9 @@
 #	undef cast_type_list
 #	define cast_type_list save_cast_list	(CSE_Abstract,		CSE_ALifeTraderAbstract)
 
-	DECLARE_SPECIALIZATION	(CSE_Abstract, CSE_ALifeGroupAbstract,	cast_abstract);
-#	undef cast_type_list
-#	define cast_type_list save_cast_list	(CSE_Abstract, CSE_ALifeGroupAbstract)
-
 	DECLARE_SPECIALIZATION	(CSE_Abstract,	CSE_ALifeSchedulable,	cast_abstract);
 #	undef cast_type_list
 #	define cast_type_list save_cast_list	(CSE_Abstract,	CSE_ALifeSchedulable)
-
-	DECLARE_SPECIALIZATION	(CSE_ALifeGroupAbstract, CSE_Abstract,		cast_group_abstract);
-#	undef cast_type_list
-#	define cast_type_list save_cast_list	(CSE_ALifeGroupAbstract, CSE_Abstract)
 
 	DECLARE_SPECIALIZATION	(CSE_ALifeSchedulable,	CSE_Abstract,		cast_schedulable);
 #	undef cast_type_list
@@ -292,37 +268,13 @@
 #	undef cast_type_list
 #	define cast_type_list save_cast_list	(CSE_ALifeItemDetector, CSE_Abstract)
 
-	DECLARE_SPECIALIZATION	(CSE_ALifeMonsterAbstract,	CSE_Abstract,	cast_monster_abstract);
-#	undef cast_type_list
-#	define cast_type_list save_cast_list	(CSE_ALifeMonsterAbstract,	CSE_Abstract)
-
-	DECLARE_SPECIALIZATION	(CSE_ALifeHumanAbstract,	CSE_Abstract,	cast_human_abstract);
-#	undef cast_type_list
-#	define cast_type_list save_cast_list	(CSE_ALifeHumanAbstract,	CSE_Abstract)
-
 	DECLARE_SPECIALIZATION	(CSE_ALifeAnomalousZone,	CSE_Abstract,	cast_anomalous_zone);
 #	undef cast_type_list
 #	define cast_type_list save_cast_list	(CSE_ALifeAnomalousZone,	CSE_Abstract)
 
-	DECLARE_SPECIALIZATION	(CSE_ALifeTrader,			CSE_Abstract,	cast_trader);
-#	undef cast_type_list
-#	define cast_type_list save_cast_list	(CSE_ALifeTrader,			CSE_Abstract)
-
 	DECLARE_SPECIALIZATION	(CSE_ALifeCreatureAbstract,	CSE_Abstract,	cast_creature_abstract);
 #	undef cast_type_list
 #	define cast_type_list save_cast_list	(CSE_ALifeCreatureAbstract,	CSE_Abstract)
-
-	DECLARE_SPECIALIZATION	(CSE_ALifeSmartZone,		CSE_Abstract,	cast_smart_zone);
-#	undef cast_type_list
-#	define cast_type_list save_cast_list	(CSE_ALifeSmartZone,		CSE_Abstract)
-
-	DECLARE_SPECIALIZATION	(CSE_ALifeOnlineOfflineGroup,	CSE_Abstract,	cast_online_offline_group);
-#	undef cast_type_list
-#	define cast_type_list save_cast_list	(CSE_ALifeOnlineOfflineGroup,	CSE_Abstract)
-
-	DECLARE_SPECIALIZATION	(CSE_ALifeItemPDA,			CSE_Abstract,	cast_item_pda);
-#	undef cast_type_list
-#	define cast_type_list save_cast_list	(CSE_ALifeItemPDA,			CSE_Abstract)
 
 #	ifndef DO_NOT_DECLARE_TYPE_LIST
 #		include "smart_cast_impl1.h"

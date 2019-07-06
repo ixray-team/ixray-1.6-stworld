@@ -62,19 +62,10 @@ void CUIMotionIcon::Init(Frect const& zonemap_rect)
 
 void CUIMotionIcon::SetNoise(float Pos)
 {
-	if(!IsGameTypeSingle())
-		return;
-
-	Pos	= clampr(Pos, 0.f, 100.f);
-	m_noise_progress.SetPos(Pos/100.f);
 }
 
 void CUIMotionIcon::SetLuminosity(float Pos)
 {
-	if(!IsGameTypeSingle())
-		return;
-
-	m_luminosity	= Pos;
 }
 
 void CUIMotionIcon::Draw()
@@ -84,43 +75,11 @@ void CUIMotionIcon::Draw()
 
 void CUIMotionIcon::Update()
 {
-	if(!IsGameTypeSingle())
-	{
-		inherited::Update();
-		return;
-	}
-	if(m_bchanged){
-		m_bchanged = false;
-		if( m_npc_visibility.size() )
-		{
-			std::sort		(m_npc_visibility.begin(), m_npc_visibility.end());
-			SetLuminosity	(m_npc_visibility.back().value);
-		}
-		else
-			SetLuminosity	(0.f);
-	}
 	inherited::Update();
-	
-	//m_luminosity_progress 
-	if(cur_pos!=m_luminosity){
-		float _diff = _abs(m_luminosity-cur_pos);
-		if(m_luminosity>cur_pos){
-			cur_pos				+= _diff*Device.fTimeDelta;
-		}else{
-			cur_pos				-= _diff*Device.fTimeDelta;
-		}
-		clamp(cur_pos, 0.f, 100.f);
-		m_luminosity_progress.SetPos(cur_pos/100.f);
-	}
 }
 
 void SetActorVisibility		(u16 who_id, float value)
 {
-	if(!IsGameTypeSingle())
-		return;
-
-	if(g_pMotionIcon)
-		g_pMotionIcon->SetActorVisibility(who_id, value);
 }
 
 void CUIMotionIcon::SetActorVisibility		(u16 who_id, float value)

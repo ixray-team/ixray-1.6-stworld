@@ -16,6 +16,8 @@
 
 #include	"../xrRender/dxRenderDeviceRender.h"
 
+#include	<cs/lua/lualib.h>
+
 #ifdef NDEBUG
 
 namespace std
@@ -239,10 +241,10 @@ void	CResourceManager::LS_Load			()
 		luabind::set_error_callback		(LuaError);
 #endif
 
-	function		(LSVM, "log",	LuaLog);
-
 	module			(LSVM)
 	[
+		def( "log",	LuaLog ),
+
 		class_<adopt_dx10options>("_dx10options")
 		.def("dx10_msaa_alphatest_atoc",	&adopt_dx10options::_dx10_msaa_alphatest_atoc		)
 		//.def("",					&adopt_dx10options::_dx10Options		),	// returns options-object
@@ -481,8 +483,8 @@ ShaderElement*		CBlender_Compile::_lua_Compile	(LPCSTR namesp, LPCSTR name)
 	LPCSTR				t_1		= (L_textures.size() > 1)	? *L_textures[1] : "null";
 	LPCSTR				t_d		= detail_texture			? detail_texture : "null" ;
 	lua_State*			LSVM	= dxRenderDeviceRender::Instance().Resources->LSVM;
-	object				shader	= get_globals(LSVM)[namesp];
-	functor<void>		element	= object_cast<functor<void> >(shader[name]);
+	object				shader	= globals(LSVM)[namesp];
+	object				element	= shader[name];
 	bool				bFirstPass = false;
 	adopt_compiler		ac		= adopt_compiler(this, bFirstPass);
 	element						(ac,t_0,t_1,t_d);

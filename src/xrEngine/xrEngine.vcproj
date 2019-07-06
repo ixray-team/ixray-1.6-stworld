@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="xrEngine"
 	ProjectGUID="{2578C6D8-660D-48AE-9322-7422F8664F06}"
 	RootNamespace="xrEngine"
@@ -46,15 +46,14 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/Zm200 "
+				AdditionalOptions="/MP"
 				Optimization="0"
 				EnableIntrinsicFunctions="false"
 				FavorSizeOrSpeed="0"
 				EnableFiberSafeOptimizations="true"
 				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
-				PreprocessorDefinitions="INGAME_EDITOR,DEBUG,WIN32,_WINDOWS,ENGINE_BUILD;_SECURE_SCL=0"
+				PreprocessorDefinitions="DEBUG,WIN32,_WINDOWS,ENGINE_BUILD;_SECURE_SCL=0"
 				StringPooling="false"
-				MinimalRebuild="true"
 				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
 				SmallerTypeCheck="true"
@@ -73,7 +72,7 @@
 				BrowseInformation="0"
 				WarningLevel="4"
 				SuppressStartupBanner="true"
-				Detect64BitPortabilityProblems="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 				CompileAs="0"
 			/>
@@ -92,7 +91,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalOptions="/ignore:4099&#x0D;&#x0A;/MACHINE:I386"
-				AdditionalDependencies="vfw32.lib libogg_static_d.lib libtheora_static_d.lib oalibmtd.lib"
+				AdditionalDependencies="vfw32.lib libogg_static.lib libtheora_static.lib oalibmt.lib"
 				ShowProgress="0"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -107,560 +106,6 @@
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				ImportLibrary="..\..\..\libraries\$(ProjectName).lib"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-				AdditionalManifestFiles="as-invoker-manifest-part.xml"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Mixed|Win32"
-			OutputDirectory="..\..\..\binaries"
-			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
-			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				InlineFunctionExpansion="2"
-				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				OmitFramePointers="false"
-				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
-				PreprocessorDefinitions="INGAME_EDITOR,DEBUG,MIXED,WIN32,_WINDOWS,ENGINE_BUILD;_SECURE_SCL=0"
-				StringPooling="true"
-				RuntimeLibrary="2"
-				BufferSecurityCheck="true"
-				EnableFunctionLevelLinking="false"
-				FloatingPointModel="2"
-				ForceConformanceInForLoopScope="false"
-				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="stdafx.h"
-				PrecompiledHeaderFile="$(IntDir)/$(ProjectName).pch"
-				AssemblerOutput="0"
-				AssemblerListingLocation="$(IntDir)/"
-				ObjectFile="$(IntDir)/"
-				ProgramDataBaseFileName="$(IntDir)/"
-				WarningLevel="4"
-				SuppressStartupBanner="true"
-				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1058"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="vfw32.lib libogg_static.lib libtheora_static.lib openAL32.lib oalibmt.lib"
-				LinkIncremental="1"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
-				IgnoreDefaultLibraryNames="libcmt"
-				GenerateDebugInformation="true"
-				GenerateMapFile="false"
-				MapFileName="$(OutDir)/$(ProjectName).map"
-				SubSystem="2"
-				LargeAddressAware="2"
-				RandomizedBaseAddress="1"
-				FixedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="..\..\..\libraries\$(ProjectName).lib"
-				TargetMachine="0"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-				AdditionalManifestFiles="as-invoker-manifest-part.xml"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="..\..\..\binaries"
-			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
-			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
-			WholeProgramOptimization="1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="2"
-				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				OmitFramePointers="true"
-				EnableFiberSafeOptimizations="true"
-				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
-				PreprocessorDefinitions="NDEBUG,WIN32,_WINDOWS,ENGINE_BUILD;_SECURE_SCL=0"
-				StringPooling="true"
-				ExceptionHandling="0"
-				RuntimeLibrary="2"
-				BufferSecurityCheck="false"
-				EnableFunctionLevelLinking="false"
-				EnableEnhancedInstructionSet="1"
-				FloatingPointModel="2"
-				ForceConformanceInForLoopScope="false"
-				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="stdafx.h"
-				PrecompiledHeaderFile="$(IntDir)/$(ProjectName).pch"
-				AssemblerOutput="4"
-				AssemblerListingLocation="$(IntDir)/"
-				ObjectFile="$(IntDir)/"
-				ProgramDataBaseFileName="$(IntDir)/"
-				BrowseInformation="0"
-				WarningLevel="4"
-				SuppressStartupBanner="true"
-				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
-				CompileAs="0"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1058"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386 "
-				AdditionalDependencies="vfw32.lib libogg_static.lib libtheora_static.lib oalibmt.lib"
-				LinkIncremental="1"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
-				IgnoreDefaultLibraryNames="libcmt"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
-				GenerateMapFile="false"
-				MapFileName=""
-				SubSystem="0"
-				LargeAddressAware="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				LinkTimeCodeGeneration="1"
-				RandomizedBaseAddress="1"
-				FixedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="..\..\..\libraries\$(ProjectName).lib"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-				AdditionalManifestFiles="as-invoker-manifest-part.xml"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Debug_Dedicated|Win32"
-			OutputDirectory="..\..\..\binaries\dedicated"
-			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
-			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
-			DeleteExtensionsOnClean="*.idb;*.obj;*.ilk;*.pdb;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.bat;$(TargetPath)"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				AdditionalOptions="/Zm200 "
-				Optimization="0"
-				EnableIntrinsicFunctions="false"
-				FavorSizeOrSpeed="0"
-				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
-				PreprocessorDefinitions="DEDICATED_SERVER,DEBUG,WIN32,ENGINE_BUILD,_SECURE_SCL=0"
-				StringPooling="false"
-				MinimalRebuild="true"
-				ExceptionHandling="1"
-				BasicRuntimeChecks="3"
-				SmallerTypeCheck="true"
-				RuntimeLibrary="2"
-				BufferSecurityCheck="true"
-				EnableFunctionLevelLinking="true"
-				FloatingPointModel="2"
-				ForceConformanceInForLoopScope="false"
-				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="stdafx.h"
-				AssemblerListingLocation="$(IntDir)/"
-				ObjectFile="$(IntDir)/"
-				ProgramDataBaseFileName="$(IntDir)/"
-				BrowseInformation="0"
-				WarningLevel="4"
-				SuppressStartupBanner="true"
-				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
-				CompileAs="0"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1058"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				IgnoreImportLibrary="true"
-				AdditionalOptions="/MACHINE:I386 "
-				AdditionalDependencies="vfw32.lib libogg_static_d.lib libtheora_static_d.lib oalibmtd.lib"
-				ShowProgress="0"
-				OutputFile="$(OutDir)\$(ProjectName).exe"
-				LinkIncremental="2"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
-				IgnoreDefaultLibraryNames="libcmtd;libcd"
-				GenerateDebugInformation="true"
-				MapFileName=""
-				MapExports="false"
-				SubSystem="2"
-				LargeAddressAware="2"
-				RandomizedBaseAddress="1"
-				FixedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary=""
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-				AdditionalManifestFiles="as-invoker-manifest-part.xml"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Mixed_Dedicated|Win32"
-			OutputDirectory="..\..\..\binaries\dedicated"
-			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
-			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="3"
-				InlineFunctionExpansion="2"
-				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				OmitFramePointers="false"
-				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
-				PreprocessorDefinitions="DEDICATED_SERVER,DEBUG,MIXED,WIN32,_WINDOWS,ENGINE_BUILD;_SECURE_SCL=0"
-				StringPooling="true"
-				RuntimeLibrary="2"
-				BufferSecurityCheck="false"
-				EnableFunctionLevelLinking="false"
-				FloatingPointModel="2"
-				ForceConformanceInForLoopScope="false"
-				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="stdafx.h"
-				AssemblerOutput="0"
-				AssemblerListingLocation="$(IntDir)/"
-				ObjectFile="$(IntDir)/"
-				ProgramDataBaseFileName="$(IntDir)/"
-				BrowseInformation="0"
-				WarningLevel="4"
-				SuppressStartupBanner="true"
-				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1058"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386 "
-				AdditionalDependencies="vfw32.lib libogg_static.lib libtheora_static.lib oalibmt.lib"
-				OutputFile="$(OutDir)\$(ProjectName).exe"
-				LinkIncremental="2"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
-				IgnoreDefaultLibraryNames="libcmt"
-				GenerateDebugInformation="true"
-				GenerateMapFile="false"
-				MapFileName=""
-				SubSystem="2"
-				LargeAddressAware="2"
-				RandomizedBaseAddress="1"
-				FixedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary=""
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-				AdditionalManifestFiles="as-invoker-manifest-part.xml"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Release_Dedicated|Win32"
-			OutputDirectory="..\..\..\binaries\dedicated"
-			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
-			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
-			WholeProgramOptimization="1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="3"
-				InlineFunctionExpansion="2"
-				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				OmitFramePointers="true"
-				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
-				PreprocessorDefinitions="DEDICATED_SERVER,NDEBUG,WIN32,_WINDOWS,ENGINE_BUILD;_SECURE_SCL=0"
-				StringPooling="true"
-				ExceptionHandling="0"
-				RuntimeLibrary="2"
-				BufferSecurityCheck="false"
-				FloatingPointModel="2"
-				ForceConformanceInForLoopScope="false"
-				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="stdafx.h"
-				AssemblerOutput="4"
-				AssemblerListingLocation="$(IntDir)/"
-				ObjectFile="$(IntDir)/"
-				ProgramDataBaseFileName="$(IntDir)/"
-				BrowseInformation="0"
-				WarningLevel="4"
-				SuppressStartupBanner="true"
-				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
-				CompileAs="0"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1058"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386 "
-				AdditionalDependencies="vfw32.lib libogg_static.lib libtheora_static.lib oalibmt.lib"
-				OutputFile="$(OutDir)\$(ProjectName).exe"
-				LinkIncremental="1"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
-				IgnoreDefaultLibraryNames="libcmt"
-				GenerateDebugInformation="true"
-				GenerateMapFile="false"
-				MapFileName=""
-				SubSystem="0"
-				LargeAddressAware="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				RandomizedBaseAddress="1"
-				FixedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary=""
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -790,6 +235,114 @@
 			/>
 		</Configuration>
 		<Configuration
+			Name="Mixed|Win32"
+			OutputDirectory="..\..\..\binaries"
+			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
+			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
+				Optimization="0"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="false"
+				EnableFiberSafeOptimizations="true"
+				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
+				PreprocessorDefinitions="INGAME_EDITOR,DEBUG,MIXED,WIN32,_WINDOWS,ENGINE_BUILD;_SECURE_SCL=0"
+				StringPooling="true"
+				RuntimeLibrary="2"
+				BufferSecurityCheck="true"
+				EnableFunctionLevelLinking="false"
+				FloatingPointModel="2"
+				ForceConformanceInForLoopScope="false"
+				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="stdafx.h"
+				PrecompiledHeaderFile="$(IntDir)/$(ProjectName).pch"
+				AssemblerOutput="0"
+				AssemblerListingLocation="$(IntDir)/"
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/"
+				WarningLevel="4"
+				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1058"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="vfw32.lib libogg_static.lib libtheora_static.lib openAL32.lib oalibmt.lib"
+				LinkIncremental="1"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
+				IgnoreDefaultLibraryNames="libcmt"
+				GenerateDebugInformation="true"
+				GenerateMapFile="false"
+				MapFileName="$(OutDir)/$(ProjectName).map"
+				SubSystem="2"
+				LargeAddressAware="2"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="..\..\..\libraries\$(ProjectName).lib"
+				TargetMachine="0"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+				AdditionalManifestFiles="as-invoker-manifest-part.xml"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
 			Name="Mixed|Xbox 360"
 			OutputDirectory="..\..\..\binaries\$(PlatformName)"
 			IntermediateDirectory="..\..\..\intermediate\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
@@ -883,6 +436,123 @@
 				Name="VCPostBuildEventTool"
 			/>
 			<DebuggerTool
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="..\..\..\binaries"
+			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
+			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
+				Optimization="2"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="true"
+				EnableFiberSafeOptimizations="true"
+				WholeProgramOptimization="true"
+				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
+				PreprocessorDefinitions="NDEBUG,WIN32,_WINDOWS,ENGINE_BUILD;_SECURE_SCL=0"
+				StringPooling="true"
+				ExceptionHandling="0"
+				RuntimeLibrary="2"
+				BufferSecurityCheck="false"
+				EnableFunctionLevelLinking="false"
+				EnableEnhancedInstructionSet="1"
+				FloatingPointModel="2"
+				ForceConformanceInForLoopScope="false"
+				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="stdafx.h"
+				PrecompiledHeaderFile="$(IntDir)/$(ProjectName).pch"
+				AssemblerOutput="4"
+				AssemblerListingLocation="$(IntDir)/"
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/"
+				BrowseInformation="0"
+				WarningLevel="4"
+				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
+				DebugInformationFormat="3"
+				CompileAs="0"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1058"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386 "
+				AdditionalDependencies="vfw32.lib libogg_static.lib oalibmt.lib libtheora_static.lib "
+				LinkIncremental="1"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
+				IgnoreDefaultLibraryNames="libcmt"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				GenerateMapFile="false"
+				MapFileName=""
+				SubSystem="0"
+				LargeAddressAware="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				LinkTimeCodeGeneration="1"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="..\..\..\libraries\$(ProjectName).lib"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+				AdditionalManifestFiles="as-invoker-manifest-part.xml"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
@@ -991,6 +661,119 @@
 			/>
 		</Configuration>
 		<Configuration
+			Name="Debug_Dedicated|Win32"
+			OutputDirectory="..\..\..\binaries\dedicated"
+			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
+			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			DeleteExtensionsOnClean="*.idb;*.obj;*.ilk;*.pdb;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.bat;$(TargetPath)"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="/Zm200 "
+				Optimization="0"
+				EnableIntrinsicFunctions="false"
+				FavorSizeOrSpeed="0"
+				EnableFiberSafeOptimizations="true"
+				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
+				PreprocessorDefinitions="DEDICATED_SERVER,DEBUG,WIN32,ENGINE_BUILD,_SECURE_SCL=0"
+				StringPooling="false"
+				MinimalRebuild="true"
+				ExceptionHandling="1"
+				BasicRuntimeChecks="3"
+				SmallerTypeCheck="true"
+				RuntimeLibrary="2"
+				BufferSecurityCheck="true"
+				EnableFunctionLevelLinking="true"
+				FloatingPointModel="2"
+				ForceConformanceInForLoopScope="false"
+				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="stdafx.h"
+				AssemblerListingLocation="$(IntDir)/"
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/"
+				BrowseInformation="0"
+				WarningLevel="4"
+				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
+				DebugInformationFormat="3"
+				CompileAs="0"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1058"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				IgnoreImportLibrary="true"
+				AdditionalOptions="/MACHINE:I386 "
+				AdditionalDependencies="vfw32.lib libogg_static_d.lib libtheora_static.lib oalibmtd.lib"
+				ShowProgress="0"
+				OutputFile="$(OutDir)\$(ProjectName).exe"
+				LinkIncremental="2"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
+				IgnoreDefaultLibraryNames="libcmtd;libcd"
+				GenerateDebugInformation="true"
+				MapFileName=""
+				MapExports="false"
+				SubSystem="2"
+				LargeAddressAware="2"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary=""
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+				AdditionalManifestFiles="as-invoker-manifest-part.xml"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
 			Name="Debug_Dedicated|Xbox 360"
 			OutputDirectory="..\..\..\binaries\$(PlatformName)"
 			IntermediateDirectory="..\..\..\intermediate\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
@@ -1094,6 +877,113 @@
 			/>
 		</Configuration>
 		<Configuration
+			Name="Mixed_Dedicated|Win32"
+			OutputDirectory="..\..\..\binaries\dedicated"
+			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
+			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="3"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="false"
+				EnableFiberSafeOptimizations="true"
+				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
+				PreprocessorDefinitions="DEDICATED_SERVER,DEBUG,MIXED,WIN32,_WINDOWS,ENGINE_BUILD;_SECURE_SCL=0"
+				StringPooling="true"
+				RuntimeLibrary="2"
+				BufferSecurityCheck="false"
+				EnableFunctionLevelLinking="false"
+				FloatingPointModel="2"
+				ForceConformanceInForLoopScope="false"
+				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="stdafx.h"
+				AssemblerOutput="0"
+				AssemblerListingLocation="$(IntDir)/"
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/"
+				BrowseInformation="0"
+				WarningLevel="4"
+				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1058"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386 "
+				AdditionalDependencies="vfw32.lib libogg_static.lib libtheora_static.lib oalibmt.lib"
+				OutputFile="$(OutDir)\$(ProjectName).exe"
+				LinkIncremental="2"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
+				IgnoreDefaultLibraryNames="libcmt"
+				GenerateDebugInformation="true"
+				GenerateMapFile="false"
+				MapFileName=""
+				SubSystem="2"
+				LargeAddressAware="2"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary=""
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+				AdditionalManifestFiles="as-invoker-manifest-part.xml"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
 			Name="Mixed_Dedicated|Xbox 360"
 			OutputDirectory="..\..\..\binaries\$(PlatformName)"
 			IntermediateDirectory="..\..\..\intermediate\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
@@ -1187,6 +1077,117 @@
 				Name="VCPostBuildEventTool"
 			/>
 			<DebuggerTool
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release_Dedicated|Win32"
+			OutputDirectory="..\..\..\binaries\dedicated"
+			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
+			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="3"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="true"
+				EnableFiberSafeOptimizations="true"
+				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
+				PreprocessorDefinitions="DEDICATED_SERVER,NDEBUG,WIN32,_WINDOWS,ENGINE_BUILD;_SECURE_SCL=0"
+				StringPooling="true"
+				ExceptionHandling="0"
+				RuntimeLibrary="2"
+				BufferSecurityCheck="false"
+				FloatingPointModel="2"
+				ForceConformanceInForLoopScope="false"
+				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="stdafx.h"
+				AssemblerOutput="4"
+				AssemblerListingLocation="$(IntDir)/"
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/"
+				BrowseInformation="0"
+				WarningLevel="4"
+				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
+				DebugInformationFormat="3"
+				CompileAs="0"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1058"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386 "
+				AdditionalDependencies="vfw32.lib libogg_static.lib libtheora_static.lib oalibmt.lib"
+				OutputFile="$(OutDir)\$(ProjectName).exe"
+				LinkIncremental="1"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
+				IgnoreDefaultLibraryNames="libcmt"
+				GenerateDebugInformation="true"
+				GenerateMapFile="false"
+				MapFileName=""
+				SubSystem="0"
+				LargeAddressAware="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary=""
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+				AdditionalManifestFiles="as-invoker-manifest-part.xml"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
@@ -1301,14 +1302,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\CopyProtection.h"
-				>
-			</File>
-			<File
-				RelativePath=".\dedicated_server_only.h"
-				>
-			</File>
-			<File
 				RelativePath=".\defines.cpp"
 				>
 			</File>
@@ -1318,10 +1311,6 @@
 			</File>
 			<File
 				RelativePath=".\mp_logging.h"
-				>
-			</File>
-			<File
-				RelativePath=".\no_single.h"
 				>
 			</File>
 			<File
@@ -1336,12 +1325,28 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|Xbox 360"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="1"
+			/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Mixed|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"
 					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Mixed|Xbox 360"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="1"
+			/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -1352,12 +1357,28 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Release|Xbox 360"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="1"
+			/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Debug_Dedicated|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"
 					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Xbox 360"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="1"
+			/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Mixed_Dedicated|Win32"
@@ -1368,6 +1389,14 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Mixed_Dedicated|Xbox 360"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="1"
+			/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release_Dedicated|Win32"
 					>
 					<Tool
@@ -1376,52 +1405,12 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Xbox 360"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Mixed|Xbox 360"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Xbox 360"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_Dedicated|Xbox 360"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Mixed_Dedicated|Xbox 360"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Release_Dedicated|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						UsePrecompiledHeader="1"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="1"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1609,7 +1598,19 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\IGame_Persistent.h"
+				>
+			</File>
+			<File
 				RelativePath=".\xrLevel.h"
+				>
+			</File>
+			<File
+				RelativePath=".\xrServerInfo.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\xrServerInfo.h"
 				>
 			</File>
 			<Filter
@@ -1621,10 +1622,6 @@
 				</File>
 				<File
 					RelativePath=".\IGame_ObjectPool.h"
-					>
-				</File>
-				<File
-					RelativePath=".\IGame_Persistent.h"
 					>
 				</File>
 				<File
@@ -1978,14 +1975,6 @@
 						Name="Textures"
 						>
 						<File
-							RelativePath=".\tntQAVI.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\tntQAVI.h"
-							>
-						</File>
-						<File
 							RelativePath="xrImage_Resampler.cpp"
 							>
 						</File>
@@ -2018,22 +2007,6 @@
 							>
 						</File>
 					</Filter>
-				</Filter>
-				<Filter
-					Name="TextConsole"
-					>
-					<File
-						RelativePath=".\Text_Console.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\Text_Console.h"
-						>
-					</File>
-					<File
-						RelativePath=".\Text_Console_WndProc.cpp"
-						>
-					</File>
 				</Filter>
 			</Filter>
 		</Filter>
@@ -2099,6 +2072,46 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="WinGDIConsole"
+					>
+					<File
+						RelativePath=".\WinGDIConsole.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\WinGDIConsole.h"
+						>
+					</File>
+					<File
+						RelativePath=".\WinGDIConsole_WndProc.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="D3DConsole"
+					>
+					<File
+						RelativePath=".\D3DConsole.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\D3DConsole.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="TextConsole."
+					>
+					<File
+						RelativePath=".\TextConsole.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\TextConsole.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="Core"
@@ -2125,10 +2138,6 @@
 				</File>
 				<File
 					RelativePath=".\EventAPI.h"
-					>
-				</File>
-				<File
-					RelativePath="mailSlot.cpp"
 					>
 				</File>
 				<Filter
@@ -2316,6 +2325,15 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Debug|Xbox 360"
+						>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="0"
+				DisableSpecificWarnings="4127, 4267"
+			/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Mixed|Win32"
 						>
 						<Tool
@@ -2323,6 +2341,15 @@
 							UsePrecompiledHeader="0"
 							DisableSpecificWarnings="4127, 4267"
 						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Mixed|Xbox 360"
+						>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="0"
+				DisableSpecificWarnings="4127, 4267"
+			/>
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Release|Win32"
@@ -2334,6 +2361,15 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Release|Xbox 360"
+						>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="0"
+				DisableSpecificWarnings="4127, 4267"
+			/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Debug_Dedicated|Win32"
 						>
 						<Tool
@@ -2341,6 +2377,15 @@
 							UsePrecompiledHeader="0"
 							DisableSpecificWarnings="4127, 4267"
 						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Xbox 360"
+						>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="0"
+				DisableSpecificWarnings="4127, 4267"
+			/>
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Mixed_Dedicated|Win32"
@@ -2352,6 +2397,15 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Mixed_Dedicated|Xbox 360"
+						>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="0"
+				DisableSpecificWarnings="4127, 4267"
+			/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Release_Dedicated|Win32"
 						>
 						<Tool
@@ -2361,58 +2415,13 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug|Xbox 360"
-						>
-						<Tool
-							Name="VCCLX360CompilerTool"
-							UsePrecompiledHeader="0"
-							DisableSpecificWarnings="4127, 4267"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Mixed|Xbox 360"
-						>
-						<Tool
-							Name="VCCLX360CompilerTool"
-							UsePrecompiledHeader="0"
-							DisableSpecificWarnings="4127, 4267"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Xbox 360"
-						>
-						<Tool
-							Name="VCCLX360CompilerTool"
-							UsePrecompiledHeader="0"
-							DisableSpecificWarnings="4127, 4267"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug_Dedicated|Xbox 360"
-						>
-						<Tool
-							Name="VCCLX360CompilerTool"
-							UsePrecompiledHeader="0"
-							DisableSpecificWarnings="4127, 4267"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Mixed_Dedicated|Xbox 360"
-						>
-						<Tool
-							Name="VCCLX360CompilerTool"
-							UsePrecompiledHeader="0"
-							DisableSpecificWarnings="4127, 4267"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
 						Name="Release_Dedicated|Xbox 360"
 						>
-						<Tool
-							Name="VCCLX360CompilerTool"
-							UsePrecompiledHeader="0"
-							DisableSpecificWarnings="4127, 4267"
-						/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="0"
+				DisableSpecificWarnings="4127, 4267"
+			/>
 					</FileConfiguration>
 				</File>
 				<File
@@ -2829,50 +2838,6 @@
 				</File>
 			</Filter>
 		</Filter>
-		<Filter
-			Name="OpenAutomate"
-			>
-			<File
-				RelativePath=".\xrSASH.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\xrSASH.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="My Amplifier Results"
-			>
-			<File
-				RelativePath=".\My Amplifier Results\r000hs\r000hs.ampl"
-				>
-			</File>
-			<File
-				RelativePath=".\My Amplifier Results\r001hs\r001hs.ampl"
-				>
-			</File>
-			<File
-				RelativePath=".\My Amplifier Results\r002cc\r002cc.ampl"
-				>
-			</File>
-		</Filter>
-		<File
-			RelativePath=".\ClientServer.txt"
-			>
-		</File>
-		<File
-			RelativePath=".\Effects description.txt"
-			>
-		</File>
-		<File
-			RelativePath=".\features.txt"
-			>
-		</File>
-		<File
-			RelativePath=".\TODO.txt"
-			>
-		</File>
 	</Files>
 	<Globals>
 		<Global

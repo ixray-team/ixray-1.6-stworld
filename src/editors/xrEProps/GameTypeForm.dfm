@@ -57,21 +57,13 @@ object fmGameType: TfmGameType
     FlatAlwaysEdge = True
     OnClick = ebCancelClick
   end
-  object cbSingle: TCheckBox
-    Left = 0
-    Top = 0
-    Width = 145
-    Height = 17
-    Caption = 'Single'
-    TabOrder = 0
-  end
   object cbDeathMatch: TCheckBox
     Left = 0
     Top = 16
     Width = 145
     Height = 17
     Caption = 'DM'
-    TabOrder = 1
+    TabOrder = 0
   end
   object cbTeamDeathMatch: TCheckBox
     Left = 0
@@ -79,7 +71,7 @@ object fmGameType: TfmGameType
     Width = 145
     Height = 17
     Caption = 'TDM'
-    TabOrder = 2
+    TabOrder = 1
   end
   object cbArtefactHunt: TCheckBox
     Left = 0
@@ -87,7 +79,7 @@ object fmGameType: TfmGameType
     Width = 145
     Height = 17
     Caption = 'ArtefactHunt'
-    TabOrder = 3
+    TabOrder = 2
   end
   object cbCTA: TCheckBox
     Left = 0
@@ -95,6 +87,6 @@ object fmGameType: TfmGameType
     Width = 145
     Height = 17
     Caption = 'CTA'
-    TabOrder = 4
+    TabOrder = 3
   end
 end

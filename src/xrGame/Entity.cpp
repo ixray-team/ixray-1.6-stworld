@@ -8,15 +8,7 @@
 #include "xrserver_objects_alife_monsters.h"
 #include "entity.h"
 #include "level.h"
-#include "seniority_hierarchy_holder.h"
-#include "team_hierarchy_holder.h"
-#include "squad_hierarchy_holder.h"
-#include "group_hierarchy_holder.h"
 #include "../Include/xrRender/Kinematics.h"
-#include "monster_community.h"
-#include "ai_space.h"
-#include "alife_simulator.h"
-#include "alife_time_manager.h"
 
 #define BODY_REMOVE_TIME		600000
 
@@ -59,7 +51,7 @@ void CEntity::OnEvent		(NET_Packet& P, u16 type)
 			P.r_u16			(id);
 			P.r_u32			(cl);
 			CObject			*who = Level().Objects.net_Find	(id);
-			if (who && !IsGameTypeSingle())
+			if (who)
 			{
 				if (this!=who)	/*if(bDebug) */ Msg( "%s killed by %s ...", cName().c_str(), who->cName().c_str() );
 				else			/*if(bDebug) */ Msg( "%s dies himself ...", cName().c_str() );
@@ -76,13 +68,7 @@ void CEntity::Die(CObject* who)
 	set_ready_to_save	();
 	SetfHealth			(-1.f);
 
-	if(IsGameTypeSingle())
-	{
-		VERIFY				(m_registered_member);
-	}
 	m_registered_member	= false;
-	if (IsGameTypeSingle())
-		Level().seniority_holder().team(g_Team()).squad(g_Squad()).group(g_Group()).unregister_member(this);
 }
 
 //обновление состояния
@@ -178,35 +164,11 @@ BOOL CEntity::net_Spawn		(CSE_Abstract* DC)
 		SetfHealth			(1.0f);
 
 	// load damage params
-	if (!E) {
-		// Car or trader only!!!!
-		CSE_ALifeCar		*C	= smart_cast<CSE_ALifeCar*>(e);
-		CSE_ALifeTrader		*T	= smart_cast<CSE_ALifeTrader*>(e);
-		CSE_ALifeHelicopter	*H	= smart_cast<CSE_ALifeHelicopter*>(e);
+	R_ASSERT(E);
 
-		R_ASSERT2			(C||T||H,"Invalid entity (no inheritance from CSE_CreatureAbstract, CSE_ALifeItemCar and CSE_ALifeTrader and CSE_ALifeHelicopter)!");
-		id_Team				= id_Squad = id_Group = 0;
-	}
-	else {
-		id_Team				= E->g_team();
-		id_Squad			= E->g_squad();
-		id_Group			= E->g_group();
-
-		CSE_ALifeMonsterBase	*monster	= smart_cast<CSE_ALifeMonsterBase*>(E);
-		if (monster) {
-			MONSTER_COMMUNITY		monster_community;
-			monster_community.set	(pSettings->r_string(*cNameSect(), "species"));
-
-			if(monster_community.team() != 255)
-				id_Team = monster_community.team();
-		}
-	}
-
-	if (g_Alive() && IsGameTypeSingle()) {
-		m_registered_member		= true;
-		Level().seniority_holder().team(g_Team()).squad(g_Squad()).group(g_Group()).register_member(this);
-		++Level().seniority_holder().team(g_Team()).squad(g_Squad()).group(g_Group()).m_dwAliveCount;
-	}
+	id_Team				= E->g_team();
+	id_Squad			= E->g_squad();
+	id_Group			= E->g_group();
 
 	if(!g_Alive())
 	{
@@ -235,8 +197,6 @@ void CEntity::net_Destroy	()
 {
 	if (m_registered_member) {
 		m_registered_member	= false;
-		if (IsGameTypeSingle())
-			Level().seniority_holder().team(g_Team()).squad(g_Squad()).group(g_Group()).unregister_member(this);
 	}
 
 	inherited::net_Destroy	();
@@ -301,12 +261,11 @@ void CEntity::reload			(LPCSTR section)
 
 void CEntity::set_death_time	()
 {
-	m_level_death_time	= Device.dwTimeGlobal;
-	m_game_death_time	= ai().get_alife() ? ai().alife().time_manager().game_time() : Level().GetGameTime();
+	m_level_death_time			= Device.dwTimeGlobal;
 }
 
-bool CEntity::IsFocused			()const	{ return (smart_cast<const CEntity*>(g_pGameLevel->CurrentEntity())==this);		}
-bool CEntity::IsMyCamera		()const	{ return (smart_cast<const CEntity*>(g_pGameLevel->CurrentViewEntity())==this);	}
+bool CEntity::IsFocused			()const	{ return (smart_cast<const CEntity*>(g_pGameLevel->CurrentActor())==this);		}
+bool CEntity::IsMyCamera		()const	{ return (smart_cast<const CEntity*>(g_pGameLevel->CurrentViewActor())==this);	}
 
 void CEntity::set_ready_to_save	()
 {
@@ -331,7 +290,6 @@ void CEntity::shedule_Update	(u32 dt)
 			NET_Packet			P;
 			u_EventGen			(P,GE_ASSIGN_KILLER,ID());
 			P.w_u16				(u16(-1));
-			if (IsGameTypeSingle())	u_EventSend			(P);
 		}
 	}
 }
@@ -350,19 +308,7 @@ void CEntity::ChangeTeam(int team, int squad, int group)
 
 	VERIFY2					(g_Alive(), "Try to change team of a dead object");
 	
-	if(IsGameTypeSingle())
-	{
-		VERIFY					(m_registered_member);
-	}
-	// remove from current team
-	on_before_change_team	();
-	Level().seniority_holder().team(g_Team()).squad(g_Squad()).group(g_Group()).unregister_member	(this);
-
 	id_Team					= team;
 	id_Squad				= squad;
 	id_Group				= group;
-
-	// add to new team
-	Level().seniority_holder().team(g_Team()).squad(g_Squad()).group(g_Group()).register_member		(this);
-	on_after_change_team	();
 }

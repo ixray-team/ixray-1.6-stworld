@@ -9,7 +9,19 @@ struct GameDescriptionData
 	string128	map_version;
 	string512	download_url;
 };
-    
+
+///////////////
+#define	GAMESPY_QR2_BASEPORT				5445
+#define GAMESPY_BROWSER_MAX_UPDATES			20
+
+#define START_PORT							0
+#define END_PORT							65535
+#define START_PORT_LAN						GAMESPY_QR2_BASEPORT
+#define START_PORT_LAN_SV					START_PORT_LAN + 1
+#define START_PORT_LAN_CL					START_PORT_LAN + 2
+#define END_PORT_LAN						START_PORT_LAN + 250//GameSpy only process 500 ports
+///////////////
+
 #define NET_MERGE_PACKETS               1
 #define NET_TAG_MERGED                  0xE1
 #define NET_TAG_NONMERGED               0xE0
@@ -32,26 +44,44 @@ struct GameDescriptionData
 
 extern XRNETSERVER_API int psNET_GuaranteedPacketMode;
 
-/*#ifdef DEBUG
-void PrintParsedPacket(const char* message, u16 message_type, const void* packet_data, u32 packet_size);
-#endif*/
+struct XRNETSERVER_API ip_address
+{
+	union{
+		struct{
+			u8	a1;
+			u8	a2;
+			u8	a3;
+			u8	a4;
+		};
+		u32		data;
+	}m_data;
+	void		set		(LPCSTR src_string);
+	xr_string	to_string	()	const;
 
-//==============================================================================
+	bool operator == (const ip_address& other) const
+	{
+		return (m_data.data==other.m_data.data)		|| 
+				(	(m_data.a1==other.m_data.a1)	&& 
+					(m_data.a2==other.m_data.a2)	&& 
+					(m_data.a3==other.m_data.a3)	&& 
+					(m_data.a4==0)					);
+	}
+};
 
-class XRNETSERVER_API
-MultipacketSender
+
+class XRNETSERVER_API MultipacketSender
 {
 public:
                     MultipacketSender();
     virtual         ~MultipacketSender() {}
 
-    void            SendPacket( const void* packet_data, u32 packet_sz, u32 flags, u32 timeout );
+    void            SendPacket( const void* packet_data, u32 packet_sz, u32 flags );
     void            FlushSendBuffer( u32 timeout );
 
 
 protected:
 
-    virtual void    _SendTo_LL( const void* data, u32 size, u32 flags, u32 timeout ) =0;
+    virtual void    _SendTo_LL( const void* data, u32 size, u32 flags ) =0;
 
 
 private:
@@ -78,8 +108,7 @@ private:
 
 //==============================================================================
 
-class XRNETSERVER_API
-MultipacketReciever
+class XRNETSERVER_API MultipacketReciever
 {
 public:
 

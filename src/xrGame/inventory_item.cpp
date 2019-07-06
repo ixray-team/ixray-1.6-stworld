@@ -6,12 +6,10 @@
 //	Description : Inventory item
 ////////////////////////////////////////////////////////////////////////////
 
-//#include "stdafx.h"
-#include "pch_script.h"
+#include "stdafx.h"
 #include "inventory_item.h"
 #include "inventory_item_impl.h"
 #include "inventory.h"
-//#include "Physics.h"
 #include "physicsshellholder.h"
 #include "entity_alive.h"
 #include "Level.h"
@@ -19,8 +17,6 @@
 #include "Actor.h"
 #include "string_table.h"
 #include "../Include/xrRender/Kinematics.h"
-#include "ai_object_location.h"
-#include "object_broker.h"
 #include "../xrEngine/igame_persistent.h"
 
 
@@ -37,6 +33,12 @@ net_updateInvData* CInventoryItem::NetSync()
 	return m_net_updateData;
 }
 
+bool CInventoryItem::install_upgrade_impl( LPCSTR section, bool test )
+{
+	R_ASSERT(0);
+	return false;
+}
+
 CInventoryItem::CInventoryItem() 
 {
 	m_net_updateData	= NULL;
@@ -48,20 +50,17 @@ CInventoryItem::CInventoryItem()
 	SetDropManual		(FALSE);
 
 	m_flags.set			(FCanTake,TRUE);
-	m_can_trade			= TRUE;
-	m_flags.set			(FCanTrade, m_can_trade);
+	m_flags.set			(FCanTrade, FALSE);
 	m_flags.set			(FUsingCondition,FALSE);
 	m_fCondition		= 1.0f;
 
-	m_name = m_nameShort = NULL;
+//	m_name = m_nameShort = NULL;
 
 	m_ItemCurrPlace.value			= 0;
 	m_ItemCurrPlace.type			= eItemPlaceUndefined;
 	m_ItemCurrPlace.base_slot_id	= NO_ACTIVE_SLOT;
 	m_ItemCurrPlace.slot_id			= NO_ACTIVE_SLOT;
 
-	m_Description					= "";
-	m_section_id					= 0;
 	m_flags.set						(FIsHelperItem,FALSE);
 }
 
@@ -92,12 +91,8 @@ void CInventoryItem::Load(LPCSTR section)
 {
 	CHitImmunity::LoadImmunities	(pSettings->r_string(section,"immunities_sect"),pSettings);
 
-	ISpatial*			self				=	smart_cast<ISpatial*> (this);
-	if (self)			self->spatial.type	|=	STYPE_VISIBLEFORAI;	
-
-	m_section_id._set	( section );
-	m_name				= CStringTable().translate( pSettings->r_string(section, "inv_name") );
-	m_nameShort			= CStringTable().translate( pSettings->r_string(section, "inv_name_short") );
+	//m_name				= CStringTable().translate( pSettings->r_string(section, "inv_name") );
+	//m_nameShort			= CStringTable().translate( pSettings->r_string(section, "inv_name_short") );
 
 	m_weight			= pSettings->r_float(section, "inv_weight");
 	R_ASSERT			(m_weight>=0.f);
@@ -106,13 +101,10 @@ void CInventoryItem::Load(LPCSTR section)
 	u32 sl  			= pSettings->r_u32(section,"slot");
 	m_ItemCurrPlace.base_slot_id = (sl==-1)?0:(sl+1);
 
-	m_Description = CStringTable().translate( pSettings->r_string(section, "description") );
-
 	m_flags.set(Fbelt,			READ_IF_EXISTS(pSettings, r_bool, section, "belt",		FALSE));
-	m_can_trade = READ_IF_EXISTS(pSettings, r_bool, section, "can_take",	TRUE);
-	m_flags.set(FCanTake,		m_can_trade);
+
+	m_flags.set(FCanTake,		TRUE);
 	m_flags.set(FCanTrade,		READ_IF_EXISTS(pSettings, r_bool, section, "can_trade",	TRUE));
-	m_flags.set(FIsQuestItem,	READ_IF_EXISTS(pSettings, r_bool, section, "quest_item",FALSE));
 
 
 	if ( BaseSlot() != NO_ACTIVE_SLOT || Belt())
@@ -121,8 +113,6 @@ void CInventoryItem::Load(LPCSTR section)
 		m_flags.set					(FAllowSprint, pSettings->r_bool(section, "sprint_allowed" ));
 		m_fControlInertionFactor	= pSettings->r_float(section,"control_inertion_factor");
 	}
-	m_icon_name					= READ_IF_EXISTS(pSettings, r_string,section,"icon_name",		NULL);
-
 }
 
 void  CInventoryItem::ChangeCondition(float fDeltaCondition)
@@ -144,34 +134,16 @@ void	CInventoryItem::Hit					(SHit* pHDS)
 
 LPCSTR CInventoryItem::NameItem() 
 {
-	return m_name.c_str();
+	return CStringTable().translate( pSettings->r_string(object().cNameSect(), "inv_name") ).c_str();
+	//return m_name.c_str();
 }
 
 LPCSTR CInventoryItem::NameShort() 
 {
-	return m_nameShort.c_str();
+	return CStringTable().translate( pSettings->r_string(object().cNameSect(), "inv_name_short") ).c_str();
+	//return m_nameShort.c_str();
 }
-/*
-LPCSTR CInventoryItem::NameComplex() 
-{
-	const char *l_name = Name();
-	if(l_name) 	m_nameComplex = l_name; 
-	else 		m_nameComplex = 0;
 
-	if( m_flags.test(FUsingCondition) ){
-		string32		cond;
-		if(GetCondition()<0.33)		xr_strcpy		(cond,	"[poor]");
-		else if(GetCondition()<0.66)xr_strcpy		(cond,	"[bad]"	);
-		else						xr_strcpy		(cond,	"[good]");
-		string256		temp;
-		strconcat		(temp,*m_nameComplex," ",cond)	;
-		// xr_sprintf			(temp,"%s %s",*m_nameComplex,cond);
-		m_nameComplex	= temp;
-	}
-
-	return *m_nameComplex;
-}
-*/
 bool CInventoryItem::Useful() const
 {
 	return CanTake();
@@ -227,10 +199,7 @@ void CInventoryItem::UpdateCL()
 	}
 
 #endif
-	if (!IsGameTypeSingle())
-	{
-		Interpolate();
-	}
+	Interpolate();
 }
 
 void CInventoryItem::OnEvent (NET_Packet& P, u16 type)
@@ -278,30 +247,18 @@ bool CInventoryItem::Detach(const char* item_section_name, bool b_spawn_item)
 	{
 		CSE_Abstract*		D	= F_entity_Create(item_section_name);
 		R_ASSERT		   (D);
-		CSE_ALifeDynamicObject	*l_tpALifeDynamicObject = 
-								smart_cast<CSE_ALifeDynamicObject*>(D);
-		R_ASSERT			(l_tpALifeDynamicObject);
 		
-		l_tpALifeDynamicObject->m_tNodeID = (g_dedicated_server)?u32(-1):object().ai_location().level_vertex_id();
-			
 		// Fill
 		D->s_name			=	item_section_name;
 		D->set_name_replace	("");
-//.		D->s_gameid			=	u8(GameID());
 		D->s_RP				=	0xff;
 		D->ID				=	0xffff;
-		if (GameID() == eGameIDSingle)
-		{
-			D->ID_Parent		=	u16(object().H_Parent()->ID());
-		}
-		else	// i'm not sure this is right
-		{		// but it is simpliest way to avoid exception in MP BuyWnd... [Satan]
-			if (object().H_Parent())
-				D->ID_Parent	=	u16(object().H_Parent()->ID());
-			else
-				D->ID_Parent	= NULL;
-		}
-		D->ID_Phantom		=	0xffff;
+
+		if (object().H_Parent())
+			D->ID_Parent	=	u16(object().H_Parent()->ID());
+		else
+			D->ID_Parent	= NULL;
+
 		D->o_Position		=	object().Position();
 		D->s_flags.assign	(M_SPAWN_OBJECT_LOCAL);
 		D->RespawnTime		=	0;
@@ -322,29 +279,18 @@ BOOL CInventoryItem::net_Spawn			(CSE_Abstract* DC)
 
 	m_flags.set						(FInInterpolation, FALSE);
 	m_flags.set						(FInInterpolate,	FALSE);
-//	m_bInInterpolation				= false;
-//	m_bInterpolate					= false;
 
 	m_flags.set						(Fuseful_for_NPC, TRUE);
 	CSE_Abstract					*e	= (CSE_Abstract*)(DC);
-	CSE_ALifeObject					*alife_object = smart_cast<CSE_ALifeObject*>(e);
-	if (alife_object)	{
-		m_flags.set(Fuseful_for_NPC, alife_object->m_flags.test(CSE_ALifeObject::flUsefulForAI));
-	}
 
-	CSE_ALifeInventoryItem			*pSE_InventoryItem = smart_cast<CSE_ALifeInventoryItem*>(e);
-	if (!pSE_InventoryItem)			return TRUE;
+	CSE_ALifeInventoryItem*	pSE_InventoryItem = smart_cast<CSE_ALifeInventoryItem*>(e);
+	if (!pSE_InventoryItem)	
+		return TRUE;
 
 	//!!!
 	m_fCondition = pSE_InventoryItem->m_fCondition;
 	
-	if ( IsGameTypeSingle() )
-	{
-		net_Spawn_install_upgrades( pSE_InventoryItem->m_upgrades );
-	}
-
-	if (GameID() != eGameIDSingle)
-		object().processing_activate();
+	object().processing_activate();
 
 	m_dwItemIndependencyTime		= 0;
 	
@@ -611,7 +557,7 @@ void CInventoryItem::net_Export_PH_Params(NET_Packet& P, SPHNetState& State, mas
 void CInventoryItem::net_Export			(NET_Packet& P) 
 {	
 	//copy from CPhysicObject
-	if (object().H_Parent() || IsGameTypeSingle()) 
+	if (object().H_Parent()) 
 	{
 		P.w_u8				(0);
 		return;
@@ -661,7 +607,7 @@ void CInventoryItem::net_Export			(NET_Packet& P)
 		P.w_u8(0);  //freezed
 	}
 
-	/*if (object().H_Parent() || IsGameTypeSingle()) 
+	/*if (object().H_Parent()) 
 	{
 		P.w_u8				(0);
 		return;
@@ -1240,8 +1186,6 @@ void CInventoryItem::UpdateXForm	()
 	CEntityAlive*	E		= smart_cast<CEntityAlive*>(object().H_Parent());
 	if (!E) return;
 	
-	if (E->cast_base_monster()) return;
-
 	const CInventoryOwner	*parent = smart_cast<const CInventoryOwner*>(E);
 	if (parent && parent->use_simplified_visual())
 		return;
@@ -1387,9 +1331,6 @@ void CInventoryItem::modify_holder_params	(float &range, float &fov) const
 
 bool CInventoryItem::NeedToDestroyObject()	const
 {
-	if (GameID() == eGameIDSingle)
-		return false;
-
 	if (GameID() == eGameIDCaptureTheArtefact)
 		return false;
 
@@ -1406,16 +1347,6 @@ ALife::_TIME_ID	 CInventoryItem::TimePassedAfterIndependant()	const
 		return Level().timeServer() - m_dwItemIndependencyTime;
 	else
 		return 0;
-}
-
-bool	CInventoryItem::CanTrade() const 
-{
-	bool res = true;
-#pragma todo("Dima to Andy : why CInventoryItem::CanTrade can be called for the item, which doesn't have owner?")
-	if(m_pInventory)
-		res = inventory_owner().AllowItemToTrade(this,m_ItemCurrPlace);
-
-	return (res && m_flags.test(FCanTrade) && !IsQuestItem());
 }
 
 Frect CInventoryItem::GetKillMsgRect() const
@@ -1478,22 +1409,12 @@ void CInventoryItem::SetDropManual(BOOL val)
 {
 	m_flags.set(FdropManual, val);
 	
-#ifdef DEBUG
-	if (!IsGameTypeSingle())
-	{
-		if (!!m_name)
-		{
-			Msg("! WARNING: trying to set drop manual flag to item [%d][%s] to %d", object_id(), m_name.c_str(), val);
-		}
-	}
-#endif // #ifdef DEBUG
-	if (!IsGameTypeSingle())
-	{
-		if (val == TRUE)
-			DenyTrade();
-		else
-			AllowTrade();
-	}
+//#ifdef DEBUG
+//	if (!!m_name)
+//	{
+//		Msg("! WARNING: trying to set drop manual flag to item [%d][%s] to %d", object_id(), m_name.c_str(), val);
+//	}
+//#endif // #ifdef DEBUG
 }
 
 bool CInventoryItem::has_network_synchronization	() const

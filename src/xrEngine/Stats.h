@@ -47,13 +47,6 @@ public:
 //	CStatTimer	Physics;			// movement+collision
 //	CStatTimer	ph_collision;		// collision
 //	CStatTimer	ph_core;			// collision
-	CStatTimer	AI_Think;			// thinking
-	CStatTimer	AI_Range;			// query: range
-	CStatTimer	AI_Path;			// query: path
-	CStatTimer	AI_Node;			// query: node
-	CStatTimer	AI_Vis;				// visibility detection - total
-	CStatTimer	AI_Vis_Query;		// visibility detection - portal traversal and frustum culling
-	CStatTimer	AI_Vis_RayTests;	// visibility detection - ray casting
 
 	CStatTimer	RenderTOTAL;		// 
 	CStatTimer	RenderTOTAL_Real;	
@@ -98,10 +91,6 @@ public:
 	CStatTimer	TEST1;				// debug counter
 	CStatTimer	TEST2;				// debug counter
 	CStatTimer	TEST3;				// debug counter
-
-	shared_str	eval_line_1;
-	shared_str	eval_line_2;
-	shared_str	eval_line_3;
 
 	void			Show			(void);
 	virtual void 	OnRender		();

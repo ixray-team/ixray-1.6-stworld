@@ -9,17 +9,11 @@
 
 #include "inventory.h"
 #include "level.h"
-#include "ai_object_location.h"
 #include "xrServer_Objects_ALife_Monsters.h"
 #include "../xrphysics/iphworld.h"
-#include "restriction_space.h"
 #include "../xrEngine/IGame_Persistent.h"
 
 #include "artefact_activation.h"
-
-#include "ai_space.h"
-#include "patrol_path.h"
-#include "patrol_path_storage.h"
 
 #define	FASTMODE_DISTANCE (50.f)	//distance to camera from sphere, when zone switches to fast update sequence
 
@@ -116,23 +110,11 @@ void CArtefact::OnH_A_Chield()
 	inherited::OnH_A_Chield		();
 
 	StopLights();
-	if (IsGameTypeSingle())
-	{
-		SwitchAfParticles(false);
-	}
+	IKinematics* K	= smart_cast<IKinematics*>(H_Parent()->Visual());
+	if (K)
+		m_CarringBoneID			= K->LL_BoneID("bip01_head");
 	else
-	{
-		IKinematics* K	= smart_cast<IKinematics*>(H_Parent()->Visual());
-		if (K)
-			m_CarringBoneID			= K->LL_BoneID("bip01_head");
-		else
-			m_CarringBoneID = u16(-1);
-	}
-	if(m_detectorObj)
-	{
-		m_detectorObj->m_currPatrolPath = NULL;
-		m_detectorObj->m_currPatrolVertex = NULL;
-	}
+		m_CarringBoneID = u16(-1);
 }
 
 void CArtefact::OnH_B_Independent(bool just_before_destroy) 
@@ -453,11 +435,6 @@ void CArtefact::OnAnimationEnd(u32 state)
 	};
 }
 
-void CArtefact::FollowByPath(LPCSTR path_name, int start_idx, Fvector magic_force)
-{
-	if(m_detectorObj)
-		m_detectorObj->FollowByPath(path_name, start_idx, magic_force);
-}
 
 bool CArtefact::CanBeInvisible()
 {
@@ -495,7 +472,7 @@ void CArtefact::CreateArtefactActivation()
 }
 
 SArtefactDetectorsSupport::SArtefactDetectorsSupport(CArtefact* A)
-:m_parent(A),m_currPatrolPath(NULL),m_currPatrolVertex(NULL),m_switchVisTime(0)
+:m_parent(A),m_switchVisTime(0)
 {	
 }
 
@@ -550,35 +527,6 @@ void SArtefactDetectorsSupport::Blink()
 
 void SArtefactDetectorsSupport::UpdateOnFrame()
 {
-	if(m_currPatrolPath && !m_parent->getVisible())
-	{
-		if(m_parent->Position().distance_to(m_destPoint) < 2.0f)
-		{
-			CPatrolPath::const_iterator b,e;
-			m_currPatrolPath->begin(m_currPatrolVertex,b,e);
-			if(b!=e)
-			{
-				std::advance(b, ::Random.randI(s32(e-b)));
-				m_currPatrolVertex	= m_currPatrolPath->vertex((*b).vertex_id());
-				m_destPoint			= m_currPatrolVertex->data().position();
-			}	
-		}
-		float		cos_et	= _cos(deg2rad(45.f));
-		Fvector		dir;
-		dir.sub		(m_destPoint, m_parent->Position()).normalize_safe();
-
-		Fvector v;
-		m_parent->PHGetLinearVell(v);
-		float	cosa		= v.dotproduct(dir);
-		if(v.square_magnitude() < (0.7f*0.7f) || (cosa<cos_et) )
-		{
-			Fvector			power = dir;
-			power.y			+= 1.0f;
-			power.mul		(m_path_moving_force);
-			m_parent->m_pPhysicsShell->applyGravityAccel(power);
-		}
-	}
-
 	if(m_parent->getVisible() && m_parent->GetAfRank()!=0 && m_switchVisTime+5000 < Device.dwTimeGlobal)
 		SetVisible(false);
 
@@ -588,17 +536,6 @@ void SArtefactDetectorsSupport::UpdateOnFrame()
 		m_switchVisTime		= Device.dwTimeGlobal;
 		if(m_parent->Position().distance_to(Device.vCameraPosition)>40.0f)
 			Blink			();
-	}
-}
-
-void SArtefactDetectorsSupport::FollowByPath(LPCSTR path_name, int start_idx, Fvector force)
-{
-	m_currPatrolPath		= ai().patrol_paths().path(path_name,true);
-	if(m_currPatrolPath)
-	{
-		m_currPatrolVertex		= m_currPatrolPath->vertex(start_idx);
-		m_destPoint				= m_currPatrolVertex->data().position();
-		m_path_moving_force		= force;
 	}
 }
 
@@ -612,10 +549,7 @@ void CArtefact::OnActiveItem ()
 
 void CArtefact::OnHiddenItem ()
 {
-	if(IsGameTypeSingle())
-		SwitchState(eHiding);
-	else
-		SwitchState(eHidden);
+	SwitchState					(eHidden);
 
 	inherited::OnHiddenItem		();
 	SetState					(eHidden);

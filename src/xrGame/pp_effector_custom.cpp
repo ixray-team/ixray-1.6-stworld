@@ -35,51 +35,51 @@ BOOL CPPEffectorCustom::Process(SPPInfo& pp)
 
 //////////////////////////////////////////////////////////////////////////
 
-CPPEffectorControlled::CPPEffectorControlled(CPPEffectorController *controller, const SPPInfo &ppi, bool one_instance , bool destroy_from_engine ) : inherited (ppi,one_instance,destroy_from_engine)
-{
-	m_controller = controller;
-}
-BOOL CPPEffectorControlled::update()
-{
-	m_controller->update_factor();
-	return TRUE;
-}
+//CPPEffectorControlled::CPPEffectorControlled(CPPEffectorController *controller, const SPPInfo &ppi, bool one_instance , bool destroy_from_engine ) : inherited (ppi,one_instance,destroy_from_engine)
+//{
+//	m_controller = controller;
+//}
+//BOOL CPPEffectorControlled::update()
+//{
+//	m_controller->update_factor();
+//	return TRUE;
+//}
 
 
-CPPEffectorController::CPPEffectorController() 
-{
-}
-
-CPPEffectorController::~CPPEffectorController()
-{
-	if (m_effector) {
-		Actor()->Cameras().RemovePPEffector(m_effector->get_type());
-	}
-}
-
-
-void CPPEffectorController::activate()
-{	
-	VERIFY							(!m_effector);
-	
-	m_effector = create_effector	();
-	Actor()->Cameras().AddPPEffector		(m_effector);
-}
-
-void CPPEffectorController::deactivate()
-{
-	VERIFY				(m_effector);
-	
-	Actor()->Cameras().RemovePPEffector(m_effector->get_type());
-	m_effector			= 0;
-}
-
-void CPPEffectorController::frame_update()
-{
-	if (m_effector) {
-		if (check_completion())				deactivate();
-	} else if (check_start_conditions())	activate();
-}
+//CPPEffectorController::CPPEffectorController() 
+//{
+//}
+//
+//CPPEffectorController::~CPPEffectorController()
+//{
+//	if (m_effector) {
+//		Actor()->Cameras().RemovePPEffector(m_effector->get_type());
+//	}
+//}
+//
+//
+//void CPPEffectorController::activate()
+//{	
+//	VERIFY							(!m_effector);
+//	
+//	m_effector = create_effector	();
+//	Actor()->Cameras().AddPPEffector		(m_effector);
+//}
+//
+//void CPPEffectorController::deactivate()
+//{
+//	VERIFY				(m_effector);
+//	
+//	Actor()->Cameras().RemovePPEffector(m_effector->get_type());
+//	m_effector			= 0;
+//}
+//
+//void CPPEffectorController::frame_update()
+//{
+//	if (m_effector) {
+//		if (check_completion())				deactivate();
+//	} else if (check_start_conditions())	activate();
+//}
 
 
 

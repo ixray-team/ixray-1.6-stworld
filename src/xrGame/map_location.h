@@ -53,7 +53,6 @@ protected:
 	Fvector2 				m_position_on_map; //last position on parent map, actual time only current frame
 	struct SCachedValues{
 		u32					m_updatedFrame;
-		GameGraph::_GRAPH_ID m_graphID;
 		Fvector2			m_Position;
 		Fvector2			m_Direction;
 		shared_str			m_LevelName;
@@ -113,28 +112,4 @@ public:
 	virtual void			Dump							(){};
 #endif
 
-};
-
-class CRelationMapLocation :public CMapLocation
-{
-	typedef CMapLocation inherited;
-	shared_str				m_curr_spot_name;
-	u16						m_pInvOwnerActorID;
-	ALife::ERelationType	m_last_relation;
-	bool					m_b_visible;
-	bool					m_b_minimap_visible;
-	bool					m_b_levelmap_visible;
-protected:
-	bool					IsVisible							() const {return m_b_visible;};
-public:
-							CRelationMapLocation			(const shared_str& type, u16 object_id, u16 pInvOwnerActorID);
-	virtual					~CRelationMapLocation			();
-	virtual bool			Update							();
-
-	virtual void			UpdateMiniMap					(CUICustomMap* map);
-	virtual void			UpdateLevelMap					(CUICustomMap* map);
-
-#ifdef DEBUG
-	virtual void			Dump							();
-#endif
 };

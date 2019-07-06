@@ -141,7 +141,7 @@ void CUIDragDropReferenceList::OnItemDBClick(CUIWindow* w, void* pData)
 	if(it != m_references.end())
 	{
 		u8 index = u8(it-m_references.begin());
-		CActor* actor = smart_cast<CActor*>(Level().CurrentViewEntity());
+		CActor* actor = smart_cast<CActor*>(Level().CurrentViewActor());
 		if(actor)
 		{
 			PIItem itm = actor->inventory().GetAny(ACTOR_DEFS::g_quick_use_slots[index]);
@@ -173,7 +173,7 @@ void CUIDragDropReferenceList::OnItemDrop(CUIWindow* w, void* pData)
 		return;
 	}
 
-	CActor* actor = smart_cast<CActor*>(Level().CurrentViewEntity());
+	CActor* actor = smart_cast<CActor*>(Level().CurrentViewActor());
 	if(actor)
 	{
 		Ivector2 vec = PickCell(GetUICursor().GetCursorPosition());

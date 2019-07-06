@@ -1,4 +1,4 @@
-#include "pch_script.h"
+#include "stdafx.h"
 #include "physicobject.h"
 #include "../xrphysics/PhysicsShell.h"
 //#include "Physics.h"
@@ -51,7 +51,7 @@ BOOL CPhysicObject::net_Spawn(CSE_Abstract* DC)
 	setVisible(TRUE);
 	setEnabled(TRUE);
 
-	if (!PPhysicsShell()->isBreakable()&&!CScriptBinder::object()&&!CPHSkeleton::IsRemoving())
+	if (!PPhysicsShell()->isBreakable()  && !CPHSkeleton::IsRemoving())
 		SheduleUnregister();
 
 	//if (PPhysicsShell()->Animated())
@@ -296,11 +296,6 @@ void CPhysicObject::net_Destroy()
 	xr_delete( bones_snd_player );
 }
 
-void CPhysicObject::net_Save(NET_Packet& P)
-{
-	inherited::net_Save(P);
-	CPHSkeleton::SaveNetState(P);
-}
 void CPhysicObject::CreatePhysicsShell(CSE_Abstract* e)
 {
 	CSE_ALifeObjectPhysic	*po	= smart_cast<CSE_ALifeObjectPhysic*>(e);
@@ -313,7 +308,7 @@ void CPhysicObject::CreateSkeleton(CSE_ALifeObjectPhysic* po)
 	if(!Visual()) return;
 	LPCSTR	fixed_bones=*po->fixed_bones;
 	m_pPhysicsShell=P_build_Shell(this,!po->_flags.test(CSE_PHSkeleton::flActive),fixed_bones);
-	ApplySpawnIniToPhysicShell(&po->spawn_ini(),m_pPhysicsShell,fixed_bones[0]!='\0');
+//	ApplySpawnIniToPhysicShell(&po->spawn_ini(),m_pPhysicsShell,fixed_bones[0]!='\0');
 	ApplySpawnIniToPhysicShell(smart_cast<IKinematics*>(Visual())->LL_UserData(),m_pPhysicsShell,fixed_bones[0]!='\0');
 }
 
@@ -348,10 +343,7 @@ void CPhysicObject::UpdateCL()
 		m_pPhysicsShell->AnimatorOnFrame();
 	}
 	
-	if (!IsGameTypeSingle())
-	{
-		Interpolate();
-	}
+	Interpolate();
 
 	m_anim_script_callback.update( *this );
 	PHObjectPositionUpdate();
@@ -476,23 +468,10 @@ void CPhysicObject::CreateBody(CSE_ALifeObjectPhysic* po) {
 
 }
 
-
-
-
-
-
 BOOL CPhysicObject::net_SaveRelevant()
 {
 	return TRUE;//!m_flags.test(CSE_ALifeObjectPhysic::flSpawnCopy);
 }
-
-
-BOOL CPhysicObject::UsedAI_Locations()
-{
-	return					(FALSE);
-}
-
-
 
 void CPhysicObject::InitServerObject(CSE_Abstract * D)
 {
@@ -533,12 +512,6 @@ Msg("%s",(*I).first);
 
 */
 
-//////////////////////////////////////////////////////////////////////////
-bool CPhysicObject::is_ai_obstacle		() const
-{
-	return							!!( READ_IF_EXISTS(pSettings, r_bool, cNameSect(), "is_ai_obstacle", true ) );
-}
-
 // network synchronization ----------------------------
 
 net_updatePhData* CPhysicObject::NetSync()			
@@ -550,7 +523,7 @@ net_updatePhData* CPhysicObject::NetSync()
 
 void CPhysicObject::net_Export			(NET_Packet& P) 
 {	
-	if (this->H_Parent() || IsGameTypeSingle()) 
+	if (H_Parent()) 
 	{
 		P.w_u8				(0);
 		return;

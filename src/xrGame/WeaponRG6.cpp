@@ -80,42 +80,6 @@ void CWeaponRG6::FireStart ()
 											launch_matrix.j, launch_matrix.i);
 		launch_matrix.c.set(p1);
 
-		if (IsGameTypeSingle() && IsZoomed() && smart_cast<CActor*>(H_Parent()))
-		{
-			H_Parent()->setEnabled(FALSE);
-			setEnabled(FALSE);
-		
-			collide::rq_result RQ;
-			BOOL HasPick = Level().ObjectSpace.RayPick(p1, d, 300.0f, collide::rqtStatic, RQ, this);
-
-			setEnabled(TRUE);
-			H_Parent()->setEnabled(TRUE);
-
-			if (HasPick)
-			{
-				//			collide::rq_result& RQ = HUD().GetCurrentRayQuery();
-				Fvector Transference;
-				//Transference.add(p1, Fvector().mul(d, RQ.range));				
-				Transference.mul(d, RQ.range);
-				Fvector res[2];
-/*#ifdef		DEBUG
-				DBG_OpenCashedDraw();
-				DBG_DrawLine(p1,Fvector().add(p1,d),D3DCOLOR_XRGB(255,0,0));
-#endif*/
-				u8 canfire0 = TransferenceAndThrowVelToThrowDir(Transference, CRocketLauncher::m_fLaunchSpeed, EffectiveGravity(), res);
-/*#ifdef DEBUG
-				if(canfire0>0)DBG_DrawLine(p1,Fvector().add(p1,res[0]),D3DCOLOR_XRGB(0,255,0));
-				if(canfire0>1)DBG_DrawLine(p1,Fvector().add(p1,res[1]),D3DCOLOR_XRGB(0,0,255));
-				DBG_ClosedCashedDraw(30000);
-#endif*/
-				if (canfire0 != 0)
-				{
-//					Msg ("d[%f,%f,%f] - res [%f,%f,%f]", d.x, d.y, d.z, res[0].x, res[0].y, res[0].z);
-					d = res[0];
-				};
-			}
-		};
-
 		d.normalize();
 		d.mul(m_fLaunchSpeed);
 		VERIFY2(_valid(launch_matrix),"CWeaponRG6::FireStart. Invalid launch_matrix");

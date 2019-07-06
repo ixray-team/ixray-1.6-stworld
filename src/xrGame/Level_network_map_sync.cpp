@@ -2,9 +2,9 @@
 #include "level.h"
 #include "xrServerMapSync.h"
 #include "../xrCore/stream_reader.h"
-#include "MainMenu.h"
+//#include "lobby_menu.h"
 #include "string_table.h"
-#include "../xrEngine/xr_ioconsole.h"
+#include "../xrEngine/xr_ioc_cmd.h"
 
 static const u32 r_buffer_size = 131072;	//128 Kb
 void CLevel::CalculateLevelCrc32()
@@ -36,9 +36,9 @@ bool CLevel::IsChecksumsEqual(u32 check_sum) const
 
 bool CLevel::synchronize_map_data()
 {
-	if (!OnClient() && !IsDemoSave())
+	if (!OnClient() )
 	{
-		deny_m_spawn		= FALSE;
+		m_variables.deny_m_spawn		= FALSE;
 		map_data.m_map_sync_received	= true;
 		return synchronize_client();
 	}
@@ -54,7 +54,7 @@ bool CLevel::synchronize_map_data()
 #endif // #ifdef DEBUG
 	ClientReceive(); 
 
-	if ((map_data.m_wait_map_time >= 1000) && (!map_data.m_map_sync_received) && !IsDemoPlay())//about 5 seconds
+	if ((map_data.m_wait_map_time >= 1000) && (!map_data.m_map_sync_received) )//about 5 seconds
 	{
 		Msg("Wait map data time out: reconnecting...");
 		MakeReconnect();
@@ -78,27 +78,27 @@ bool CLevel::synchronize_map_data()
 	}
 	if (map_data.IsInvalidClientChecksum())
 	{
-		connected_to_server	= FALSE;
+		m_variables.connected_to_server	= FALSE;
 		return false;	//!!!
 	}
 	return synchronize_client();
 }
 
-bool	CLevel::synchronize_client()
+bool CLevel::synchronize_client()
 {
 //---------------------------------------------------------------------------
-	if (!sended_request_connection_data)
+	if (!m_variables.sended_request_connection_data)
 	{
 		NET_Packet	P;
 		P.w_begin	(M_CLIENT_REQUEST_CONNECTION_DATA);
 		
 		Send		(P, net_flags(TRUE, TRUE, TRUE, TRUE));
-		sended_request_connection_data = TRUE;
+		m_variables.sended_request_connection_data = TRUE;
 	}
 //---------------------------------------------------------------------------
-	if (game_configured)
+	if (m_variables.m_game_configured)
 	{
-		deny_m_spawn = FALSE;
+		m_variables.deny_m_spawn = FALSE;
 		return true;
 	}
 #ifdef DEBUG
@@ -109,8 +109,8 @@ bool	CLevel::synchronize_client()
 		ClientReceive();
 		Server->Update();
 	}	// if OnClient ClientReceive method called in upper invokation
-	//Sleep(5); 
-	return !!game_configured;
+
+	return !!m_variables.m_game_configured;
 }
 
 

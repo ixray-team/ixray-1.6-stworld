@@ -40,25 +40,6 @@ ENGINE_API std::string dbg_object_visual_geom_dump_string( const CObject *obj )
 		get_string(box).c_str(), get_string( c ).c_str(), obj->Radius() );
 }
 
-/*
-		struct 
-		{
-			u32	net_ID			:	16;
-			u32	bActiveCounter	:	8;
-			u32	bEnabled		:	1;
-			u32	bVisible		:	1;
-			u32	bDestroy		:	1;
-			u32	net_Local		:	1;
-			u32	net_Ready		:	1;
-			u32 net_SV_Update	:	1;
-			u32 crow			:	1;
-			u32	bPreDestroy		:	1;
-		};
-			u32									dbg_update_cl;
-#endif
-	u32									dwFrame_UpdateCL;
-	u32									dwFrame_AsCrow;
-*/
 ENGINE_API std::string dbg_object_props_dump_string( const CObject *obj )
 {
 	if( !obj )

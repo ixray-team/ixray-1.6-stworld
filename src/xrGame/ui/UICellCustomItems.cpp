@@ -56,10 +56,6 @@ bool CUIInventoryCellItem::EqualTo(CUICellItem* itm)
 	{
 		return false;
 	}
-	if ( !object()->equal_upgrades( ci->object()->upgardes() ) )
-	{
-		return false;
-	}
 	return true;
 }
 
@@ -193,7 +189,6 @@ CUIWeaponCellItem::CUIWeaponCellItem(CWeapon* itm)
 		m_addon_offset[eLauncher].set(object()->GetGrenadeLauncherX(), object()->GetGrenadeLauncherY());
 }
 
-#include "../xrServerEntities/object_broker.h"
 CUIWeaponCellItem::~CUIWeaponCellItem()
 {
 }

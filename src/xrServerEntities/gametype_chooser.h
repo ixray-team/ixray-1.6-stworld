@@ -5,14 +5,12 @@
 
 //new
 enum EGameIDs {
-        eGameIDNoGame                                   = u32(0),
-        eGameIDSingle                                   = u32(1) << 0,
-        eGameIDDeathmatch                               = u32(1) << 1,
-        eGameIDTeamDeathmatch                           = u32(1) << 2,
-        eGameIDArtefactHunt                             = u32(1) << 3,
-        eGameIDCaptureTheArtefact                       = u32(1) << 4,
-        eGameIDDominationZone                           = u32(1) << 5,
-        eGameIDTeamDominationZone                       = u32(1) << 6,
+        eGameIDNoGame				= u32(0),
+        eGameIDDeathmatch			= u32(1) << 1,
+        eGameIDTeamDeathmatch		= u32(1) << 2,
+        eGameIDArtefactHunt			= u32(1) << 3,
+        eGameIDCaptureTheArtefact	= u32(1) << 4,
+        eGameIDLobbyMenu			= u32(1) << 5,
 };
 
 class PropValue;

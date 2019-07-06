@@ -1,4 +1,4 @@
-#include "pch_script.h"
+#include "stdafx.h"
 #include "PHCollisionDamageReceiver.h"
 #include "PhysicObject.h"
 #include "hit.h"
@@ -10,14 +10,12 @@
 #include "../Include/xrRender/Kinematics.h"
 #include "xrServer_Objects_ALife.h"
 #include "game_object_space.h"
-#include "script_callback_ex.h"
-#include "script_game_object.h"
 #include "../xrphysics/PhysicsShell.h"
+
 #ifdef DEBUG
 #include "../xrphysics/IPHWorld.h"
-//#include "PHWorld.h"
-//extern CPHWorld			*ph_world;
 #endif
+
 CDestroyablePhysicsObject ::CDestroyablePhysicsObject()
 {
 	m_fHealth=1.f;
@@ -74,13 +72,7 @@ BOOL CDestroyablePhysicsObject::net_Spawn(CSE_Abstract* DC)
 void	CDestroyablePhysicsObject::Hit					(SHit* pHDS)
 {
 	SHit	HDS = *pHDS;
-	callback(GameObject::eHit)(
-		lua_game_object(), 
-		HDS.power,
-		HDS.dir,
-		smart_cast<const CGameObject*>(HDS.who)->lua_game_object(),
-		HDS.bone()
-		);
+
 	HDS.power=CHitImmunity::AffectHit(HDS.power,HDS.hit_type);
 	float hit_scale=1.f,wound_scale=1.f;
 	CDamageManager::HitScale(HDS.bone(),hit_scale,wound_scale);
@@ -99,7 +91,6 @@ void CDestroyablePhysicsObject::Destroy()
 {
 	VERIFY(!physics_world()->Processing());
 	const CGameObject *who_object = smart_cast<const CGameObject*>(FatalHit().initiator());
-	callback(GameObject::eDeath)(lua_game_object(),who_object  ? who_object : 0);
 	CPHDestroyable::Destroy(ID(),"physic_destroyable_object");
 	if(m_destroy_sound._handle())
 	{

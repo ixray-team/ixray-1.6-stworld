@@ -49,9 +49,6 @@ public:
 	virtual		void	Load							(LPCSTR section);
 	virtual		void	net_Destroy						();
 
-	virtual		void	save							(NET_Packet &output_packet);
-	virtual		void	load							(IReader &input_packet);
-	
 	virtual		void	UpdateCL						();
 	virtual		void	UpdateWorkload					(u32 dt);
 	virtual		void	shedule_Update					(u32 dt);
@@ -306,13 +303,9 @@ protected:
 
 	//расстояние от зоны до текущего актера
 	float					m_fDistanceToCurEntity;
-protected:
-	u32						m_ef_anomaly_type;
-	u32						m_ef_weapon_type;
+
 public:
 	void					CalcDistanceTo				(const Fvector& P, float& dist, float& radius);
-	virtual u32				ef_anomaly_type				() const;
-	virtual u32				ef_weapon_type				() const;
 	virtual	bool			register_schedule			() const {return true;}
 
 	// optimization FAST/SLOW mode

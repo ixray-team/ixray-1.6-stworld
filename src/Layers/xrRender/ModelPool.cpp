@@ -371,14 +371,16 @@ void	CModelPool::Discard	(dxRender_Visual* &V, BOOL b_complete)
 	V	=	NULL;
 }
 
-void CModelPool::Prefetch()
+void CModelPool::Prefetch( )
 {
 	Logging					(FALSE);
 	// prefetch visuals
 	string256 section;
-	strconcat				(sizeof(section),section,"prefetch_visuals_",g_pGamePersistent->m_game_params.m_game_type);
+	strconcat				(sizeof(section), section, "prefetch_visuals_",g_pGamePersistent->GameTypeStr() );
+	
 	CInifile::Sect& sect	= pSettings->r_section(section);
-	for (CInifile::SectCIt I=sect.Data.begin(); I!=sect.Data.end(); I++)	{
+	for (CInifile::SectCIt I=sect.Data.begin(); I!=sect.Data.end(); I++)	
+	{
 		const CInifile::Item& item= *I;
 		dxRender_Visual* V	= Create(item.first.c_str());
 		Delete				(V,FALSE);
@@ -390,7 +392,8 @@ void CModelPool::ClearPool( BOOL b_complete)
 {
 	POOL_IT	_I			=	Pool.begin();
 	POOL_IT	_E			=	Pool.end();
-	for (;_I!=_E;_I++)	{
+	for (;_I!=_E;_I++)	
+	{
 		Discard	(_I->second, b_complete)	;
 	}
 	Pool.clear			();

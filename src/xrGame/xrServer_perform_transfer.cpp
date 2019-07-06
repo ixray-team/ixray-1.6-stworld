@@ -11,9 +11,11 @@ void xrServer::Perform_transfer(NET_Packet &PR, NET_Packet &PT,	CSE_Abstract* wh
 	R_ASSERT	(what->ID_Parent == from->ID);
 	u32			time		= Device.dwTimeGlobal;
 
-	// 1. Perform migration if need it
-	if (from->owner != to->owner)	PerformMigration(what,from->owner,to->owner);
-	//Log						("B");
+	//// 1. Perform migration if need it
+	//if (from->owner != to->owner)	
+	//{
+	//	PerformMigration(what,from->owner,to->owner);
+	//}
 
 	// 2. Detach "FROM"
 	xr_vector<u16>& C			= from->children;

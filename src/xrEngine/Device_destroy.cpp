@@ -4,6 +4,7 @@
 #include "render.h"
 #include "IGame_Persistent.h"
 #include "xr_IOConsole.h"
+#include "Environment.h"
 
 void CRenderDevice::_Destroy	(BOOL bKeepTextures)
 {
@@ -14,8 +15,6 @@ void CRenderDevice::_Destroy	(BOOL bKeepTextures)
 	Statistic->OnDeviceDestroy	();
 	::Render->destroy			();
 	m_pRender->OnDeviceDestroy(bKeepTextures);
-	//Resources->OnDeviceDestroy	(bKeepTextures);
-	//RCache.OnDeviceDestroy		();
 
 	Memory.mem_compact			();
 }

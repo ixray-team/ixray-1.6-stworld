@@ -98,7 +98,7 @@ bool CEatableItem::UseBy (CEntityAlive* entity_alive)
 		}
 	}
 
-	if (!IsGameTypeSingle() && OnServer())
+	if (OnServer())
 	{
 		NET_Packet				tmp_packet;
 		CGameObject::u_EventGen	(tmp_packet, GEG_PLAYER_USE_BOOSTER, entity_alive->ID());

@@ -5,14 +5,7 @@
 #include "hit.h"
 #include "PHDestroyable.h"
 #include "PHMovementControl.h"
-#include "CustomMonster.h"
-
-
-
 #include "../Include/xrRender/KinematicsAnimated.h"
-
-
-
 #include "../xrphysics/PhysicsShell.h"
 #include "../xrphysics/iActivationShape.h"
 //#include "../xrphysics/Extendedgeom.h"
@@ -24,20 +17,17 @@
 
 //#include "Physics.h"
 
+#include "animation_movement_controller.h"
 
 #include "IKLimbsController.h"
 #include "Actor.h"
-#include "ai/stalker/ai_stalker.h"
 #include "imotion_position.h"
 #include "imotion_velocity.h"
-#include "animation_movement_controller.h"
 #include "xrServer_Object_Base.h"
 #include "interactive_animation.h"
-#include "stalker_animation_manager.h"
 #include "inventoryowner.h"
 #include "inventory.h"
 #include "activatingcharcollisiondelay.h"
-#include "stalker_movement_manager_smart_cover.h"
 
 //const float default_hinge_friction = 5.f;//gray_wolf comment
 #ifdef DEBUG
@@ -169,18 +159,7 @@ void CCharacterPhysicsSupport::run_interactive	( CBlend* B )
 
 void CCharacterPhysicsSupport::update_interactive_anims	()
 {
-	if ( Type() != etStalker )
-		return;
-	VERIFY( m_EntityAlife.cast_stalker( ) );
-	CAI_Stalker	*stalker = m_EntityAlife.cast_stalker( );
-	CBlend *b = stalker->animation().global().blend();
-	if( b && !m_interactive_animation && stalker->animation().global().callback_on_collision() )
-		run_interactive	( b );
-	if( m_interactive_animation && !m_interactive_animation->update( m_EntityAlife.XFORM( ) ) )
-		xr_delete( m_interactive_animation );
-		
 }
-
 
 void CCharacterPhysicsSupport::in_NetSpawn( CSE_Abstract* e )
 {
@@ -202,7 +181,6 @@ void CCharacterPhysicsSupport::in_NetSpawn( CSE_Abstract* e )
 	IRenderVisual *pVisual = m_EntityAlife.Visual();
 	IKinematicsAnimated*ka= smart_cast<IKinematicsAnimated*>( pVisual );
 	IKinematics*pK= smart_cast<IKinematics*>( pVisual );
-	VERIFY( &e->spawn_ini() );
 	m_death_anims.setup( ka, *e->s_name , pSettings );
 	if( !m_EntityAlife.g_Alive() )
 	{
@@ -240,14 +218,9 @@ void CCharacterPhysicsSupport::in_NetSpawn( CSE_Abstract* e )
 	anim_mov_state.init( );
 
 	anim_mov_state.active = m_EntityAlife.animation_movement_controlled( );
-	CInifile * ini = m_EntityAlife.spawn_ini			();
-	if(ini && ini->section_exist("physics") && ini->line_exist("physics","controller_can_be_moved_by_player") )
-		m_PhysicMovementControl->SetActorMovable(!! ini->r_bool("physics","controller_can_be_moved_by_player") );
-
-		
 }
 
-bool		CCharacterPhysicsSupport::CollisionCorrectObjPos( )
+bool CCharacterPhysicsSupport::CollisionCorrectObjPos( )
 {
 	return CollisionCorrectObjPos( m_EntityAlife.Position( ), true );
 }
@@ -259,7 +232,7 @@ void CCharacterPhysicsSupport::CreateCharacterSafe( )
 	CreateCharacter	( );
 }
 
-void	CCharacterPhysicsSupport::CreateCharacter					( )
+void CCharacterPhysicsSupport::CreateCharacter( )
 {
 	m_PhysicMovementControl->CreateCharacter( );
 	m_PhysicMovementControl->SetPhysicsRefObject( &m_EntityAlife );
@@ -321,7 +294,8 @@ void CCharacterPhysicsSupport::SpawnInitPhysics( CSE_Abstract* e )
 	}
 
 }
-void		CCharacterPhysicsSupport::					SpawnCharacterCreate			( )
+
+void CCharacterPhysicsSupport::SpawnCharacterCreate( )
 {
 	if( HACK_TERRIBLE_DONOT_COLLIDE_ON_SPAWN( m_EntityAlife ) ) //||  m_EntityAlife.animation_movement_controlled( )
 		return;
@@ -476,10 +450,6 @@ void CCharacterPhysicsSupport::KillHit( SHit &H )
 //	if(Type() == etStalker && xr_strcmp(dbg_stalker_death_anim, "none") != 0)
 	float hit_angle = 0;
 	MotionID m = m_death_anims.motion( m_EntityAlife, H, hit_angle );
-
-	CAI_Stalker* const	holder = m_EntityAlife.cast_stalker();
-	if (holder && (holder->wounded() || holder->movement().current_params().cover()) )
-		m		= MotionID();
 
 	if( m.valid( ) )//&& cmp( prev_pose, mXFORM ) 
 	{
@@ -711,15 +681,8 @@ void CCharacterPhysicsSupport::CreateSkeleton(CPhysicsShell* &pShell)
 
 bool CCharacterPhysicsSupport::DoCharacterShellCollide()
 {
-	if(m_eType==etStalker)
-	{
-		CAI_Stalker*	OBJ=smart_cast<CAI_Stalker*>(&m_EntityAlife);
-		VERIFY			(OBJ);
-		return			!OBJ->wounded();
-	}
 	return true;
 }
-
 
 bool CCharacterPhysicsSupport::CollisionCorrectObjPos(const Fvector& start_from,bool	character_create/*=false*/)
 {
@@ -1099,7 +1062,6 @@ void	CCharacterPhysicsSupport::	CreateShell						( CObject* who, Fvector& dp, Fv
 	{
 		CActor* A=smart_cast<CActor*>( &m_EntityAlife );
 		R_ASSERT2( A, "not an actor has actor type" );
-		if( A->Holder( ) ) return;
 		if( m_eState==esRemoved )return;
 	}
 
@@ -1164,13 +1126,7 @@ void	CCharacterPhysicsSupport::	CreateShell						( CObject* who, Fvector& dp, Fv
 	m_eState=esDead;
 	m_flags.set(fl_skeleton_in_shell,TRUE);
 	
-	if(IsGameTypeSingle())
-	{
-		m_pPhysicsShell->SetPrefereExactIntegration	();//use exact integration for ragdolls in single
-		m_pPhysicsShell->SetRemoveCharacterCollLADisable();
-	}
-	else
-		m_pPhysicsShell->SetIgnoreDynamic();
+	m_pPhysicsShell->SetIgnoreDynamic();
 	m_pPhysicsShell->SetIgnoreSmall();
 	AddActiveWeaponCollision();
 }

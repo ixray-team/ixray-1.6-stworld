@@ -9,10 +9,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 #pragma once
+
 #include "customzone.h"
-#include "ai/monsters/telekinesis.h"
-
-
+#include "telekinesis.h"
 
 class CBaseGraviZone : public CCustomZone
 {

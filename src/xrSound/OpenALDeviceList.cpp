@@ -31,7 +31,7 @@
 #pragma warning(pop)
 
 #ifdef _EDITOR
-	log_fn_ptr_type*	pLog = NULL;
+//	log_fn_ptr_type*	pLog = NULL;
 #endif
 
 void __cdecl al_log(char* msg)
@@ -41,7 +41,7 @@ void __cdecl al_log(char* msg)
 
 ALDeviceList::ALDeviceList()
 {
-	pLog					= al_log;
+//	pLog					= al_log;
 	snd_device_id			= u32(-1);
 	Enumerate();
 }

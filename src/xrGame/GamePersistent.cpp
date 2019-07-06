@@ -1,57 +1,31 @@
-#include "pch_script.h"
+#include "stdafx.h"
 #include "gamepersistent.h"
 #include "../xrEngine/fmesh.h"
-#include "../xrEngine/xr_ioconsole.h"
+#include "../xrEngine/xr_ioc_cmd.h"
+
 #include "../xrEngine/gamemtllib.h"
+#include "../xrEngine/Environment.h"
 #include "../Include/xrRender/Kinematics.h"
 #include "profiler.h"
-#include "MainMenu.h"
+#include "lobby_menu.h"
 #include "UICursor.h"
 #include "game_base_space.h"
 #include "level.h"
 #include "ParticlesObject.h"
-#include "game_base_space.h"
-#include "stalker_animation_data_storage.h"
-#include "stalker_velocity_holder.h"
 
-#include "ActorEffector.h"
 #include "actor.h"
 #include "spectator.h"
-
 #include "UI/UItextureMaster.h"
-
-#include "../xrEngine/xrSASH.h"
-#include "ai_space.h"
-#include "../xrServerEntities/script_engine.h"
-
-#include "holder_custom.h"
-#include "game_cl_base.h"
-#include "xrserver_objects_alife_monsters.h"
-#include "../xrServerEntities/xrServer_Object_Base.h"
 #include "UI/UIGameTutorial.h"
-
-#ifndef MASTER_GOLD
-#	include "custommonster.h"
-#endif // MASTER_GOLD
-
-#ifndef _EDITOR
-#	include "ai_debug.h"
-#endif // _EDITOR
-
-//#ifdef DEBUG_MEMORY_MANAGER
-//	static	void *	ode_alloc	(size_t size)								{ return Memory.mem_alloc(size,"ODE");			}
-//	static	void *	ode_realloc	(void *ptr, size_t oldsize, size_t newsize)	{ return Memory.mem_realloc(ptr,newsize,"ODE");	}
-//	static	void	ode_free	(void *ptr, size_t size)					{ return xr_free(ptr);							}
-//#else // DEBUG_MEMORY_MANAGER
-//	static	void *	ode_alloc	(size_t size)								{ return xr_malloc(size);			}
-//	static	void *	ode_realloc	(void *ptr, size_t oldsize, size_t newsize)	{ return xr_realloc(ptr,newsize);	}
-//	static	void	ode_free	(void *ptr, size_t size)					{ return xr_free(ptr);				}
-//#endif // DEBUG_MEMORY_MANAGER
+#include "UIGameCustom.h"
+#include "ui/UIMainIngameWnd.h"
+#include "string_table.h"
+#include "../xrEngine/x_ray.h"
+#include "hudmanager.h"
 
 CGamePersistent::CGamePersistent(void)
 {
 	m_bPickableDOF				= false;
-	m_game_params.m_e_game_type	= eGameIDNoGame;
 	ambient_effect_next_time	= 0;
 	ambient_effect_stop_time	= 0;
 	ambient_particles			= 0;
@@ -68,45 +42,19 @@ CGamePersistent::CGamePersistent(void)
 	m_pUI_core					= NULL;
 	m_pMainMenu					= NULL;
 	m_intro						= NULL;
-	m_intro_event.bind			(this, &CGamePersistent::start_logo_intro);
+//.	m_intro_event.bind			(this, &CGamePersistent::start_logo_intro);
 #ifdef DEBUG
 	m_frame_counter				= 0;
 	m_last_stats_frame			= u32(-2);
 #endif
-	// 
-	//dSetAllocHandler			(ode_alloc		);
-	//dSetReallocHandler			(ode_realloc	);
-	//dSetFreeHandler				(ode_free		);
 
-	// 
-	BOOL	bDemoMode	= (0!=strstr(Core.Params,"-demomode "));
-	if (bDemoMode)
-	{
-		string256	fname;
-		LPCSTR		name	=	strstr(Core.Params,"-demomode ") + 10;
-		sscanf				(name,"%s",fname);
-		R_ASSERT2			(fname[0],"Missing filename for 'demomode'");
-		Msg					("- playing in demo mode '%s'",fname);
-		pDemoFile			=	FS.r_open	(fname);
-		Device.seqFrame.Add	(this);
-		eDemoStart			=	Engine.Event.Handler_Attach("GAME:demo",this);	
-		uTime2Change		=	0;
-	} else {
-		pDemoFile			=	NULL;
-		eDemoStart			=	NULL;
-	}
-
-	eQuickLoad				= Engine.Event.Handler_Attach("Game:QuickLoad",this);
-	Fvector3* DofValue		= Console->GetFVectorPtr("r2_dof");
+	Fvector3* DofValue		= pConsoleCommands->GetFVectorPtr("r2_dof");
 	SetBaseDof				(*DofValue);
 }
 
 CGamePersistent::~CGamePersistent(void)
 {	
-	FS.r_close					(pDemoFile);
 	Device.seqFrame.Remove		(this);
-	Engine.Event.Handler_Detach	(eDemoStart,this);
-	Engine.Event.Handler_Detach	(eQuickLoad,this);
 }
 
 void CGamePersistent::RegisterModel(IRenderVisual* V)
@@ -142,13 +90,14 @@ void CGamePersistent::OnAppStart()
 	init_game_globals			();
 	__super::OnAppStart			();
 	m_pUI_core					= xr_new<ui_core>();
-	m_pMainMenu					= xr_new<CMainMenu>();
+	if(!g_dedicated_server)
+		m_pMainMenu					= xr_new<lobby_menu>();
 }
 
 
 void CGamePersistent::OnAppEnd	()
 {
-	if(m_pMainMenu->IsActive())
+	if(m_pMainMenu && m_pMainMenu->IsActive())
 		m_pMainMenu->Activate(false);
 
 	xr_delete					(m_pMainMenu);
@@ -162,11 +111,6 @@ void CGamePersistent::OnAppEnd	()
 
 }
 
-void CGamePersistent::Start		(LPCSTR op)
-{
-	__super::Start				(op);
-}
-
 void CGamePersistent::Disconnect()
 {
 	// destroy ambient particles
@@ -175,99 +119,20 @@ void CGamePersistent::Disconnect()
 	__super::Disconnect			();
 	// stop all played emitters
 	::Sound->stop_emitters		();
-	m_game_params.m_e_game_type	= eGameIDNoGame;
 }
 
-#include "xr_level_controller.h"
 
 void CGamePersistent::OnGameStart()
 {
 	__super::OnGameStart		();
-	UpdateGameType				();
-}
-
-LPCSTR GameTypeToString(EGameIDs gt, bool bShort)
-{
-	switch(gt)
-	{
-	case eGameIDSingle:
-		return "single";
-		break;
-	case eGameIDDeathmatch:
-		return (bShort)?"dm":"deathmatch";
-		break;
-	case eGameIDTeamDeathmatch:
-		return (bShort)?"tdm":"teamdeathmatch";
-		break;
-	case eGameIDArtefactHunt:
-		return (bShort)?"ah":"artefacthunt";
-		break;
-	case eGameIDCaptureTheArtefact:
-		return (bShort)?"cta":"capturetheartefact";
-		break;
-	case eGameIDDominationZone:
-		return (bShort)?"dz":"dominationzone";
-		break;
-	case eGameIDTeamDominationZone:
-		return (bShort)?"tdz":"teamdominationzone";
-		break;
-	default :
-		return		"---";
-	}
-}
-
-EGameIDs ParseStringToGameType(LPCSTR str)
-{
-	if (!xr_strcmp(str, "single")) 
-		return eGameIDSingle;
-	else
-		if (!xr_strcmp(str, "deathmatch") || !xr_strcmp(str, "dm")) 
-			return eGameIDDeathmatch;
-		else
-			if (!xr_strcmp(str, "teamdeathmatch") || !xr_strcmp(str, "tdm")) 
-				return eGameIDTeamDeathmatch;
-			else
-				if (!xr_strcmp(str, "artefacthunt") || !xr_strcmp(str, "ah")) 
-					return eGameIDArtefactHunt;
-				else
-					if (!xr_strcmp(str, "capturetheartefact") || !xr_strcmp(str, "cta")) 
-						return eGameIDCaptureTheArtefact;
-					else
-						if (!xr_strcmp(str, "dominationzone")) 
-							return eGameIDDominationZone;
-						else
-							if (!xr_strcmp(str, "teamdominationzone")) 
-								return eGameIDTeamDominationZone;
-							else 
-								return eGameIDNoGame; //EGameIDs
-}
-
-void CGamePersistent::UpdateGameType			()
-{
-	__super::UpdateGameType		();
-
-	m_game_params.m_e_game_type = ParseStringToGameType(m_game_params.m_game_type);
-
-
-	if (m_game_params.m_e_game_type == eGameIDSingle)
-		g_current_keygroup = _sp;
-	else
-		g_current_keygroup = _mp;
-}
-
-void CGamePersistent::OnGameEnd	()
-{
-	__super::OnGameEnd					();
-
-	xr_delete							(g_stalker_animation_data_storage);
-	xr_delete							(g_stalker_velocity_holder);
+	g_current_keygroup = _mp;
 }
 
 void CGamePersistent::WeathersUpdate()
 {
 	if (g_pGameLevel && !g_dedicated_server)
 	{
-		CActor* actor				= smart_cast<CActor*>(Level().CurrentViewEntity());
+		CActor* actor				= smart_cast<CActor*>(Level().CurrentViewActor());
 		BOOL bIndoor				= TRUE;
 		if (actor) bIndoor			= actor->renderable_ROS()->get_luminocity_hemi()<0.05f;
 
@@ -313,27 +178,8 @@ void CGamePersistent::WeathersUpdate()
 					VERIFY							(snd._handle());
 					u32 _length_ms					= iFloor(snd.get_length_sec()*1000.0f);
 					ambient_sound_next_time[idx]	= Device.dwTimeGlobal + _length_ms + ch.get_rnd_sound_time();
-//					Msg("- Playing ambient sound channel [%s] file[%s]",ch.m_load_section.c_str(),snd._handle()->file_name());
 				}
 			}
-/*
-			if (Device.dwTimeGlobal > ambient_sound_next_time)
-			{
-				ref_sound* snd			= env_amb->get_rnd_sound();
-				ambient_sound_next_time	= Device.dwTimeGlobal + env_amb->get_rnd_sound_time();
-				if (snd)
-				{
-					Fvector	pos;
-					float	angle		= ::Random.randF(PI_MUL_2);
-					pos.x				= _cos(angle);
-					pos.y				= 0;
-					pos.z				= _sin(angle);
-					pos.normalize		().mul(env_amb->get_rnd_sound_dist()).add(Device.vCameraPosition);
-					pos.y				+= 10.f;
-					snd->play_at_pos	(0,pos);
-				}
-			}
-*/
 			// start effect
 			if ((FALSE==bIndoor) && (0==ambient_particles) && Device.dwTimeGlobal>ambient_effect_next_time){
 				CEnvAmbient::SEffect* eff			= env_amb->get_rnd_effect(); 
@@ -429,124 +275,53 @@ void CGamePersistent::WeathersUpdate()
 	}
 }
 
-bool allow_intro ()
-{
-#ifdef MASTER_GOLD
-	if (g_SASH.IsRunning())
-#else	// #ifdef MASTER_GOLD
-	if ((0!=strstr(Core.Params, "-nointro")) || g_SASH.IsRunning())
-#endif	// #ifdef MASTER_GOLD
-	{
-		return false;
-	}else
-		return true;
-}
+//bool allow_game_intro( )
+//{
+//	return false;
+//}
+//
+//bool allow_logo_intro( )
+//{
+//	return false;
+//}
 
-void CGamePersistent::start_logo_intro()
-{
-	if(Device.dwPrecacheFrame==0)
-	{
-		m_intro_event.bind		(this, &CGamePersistent::update_logo_intro);
-		if (!g_dedicated_server && 0==xr_strlen(m_game_params.m_game_or_spawn) && NULL==g_pGameLevel)
-		{
-			VERIFY				(NULL==m_intro);
-			m_intro				= xr_new<CUISequencer>();
-			m_intro->Start		("intro_logo");
-			Msg					("intro_start intro_logo");
-			Console->Hide		();
-		}
-	}
-}
+//void CGamePersistent::start_logo_intro()
+//{
+//	if(Device.dwPrecacheFrame==0)
+//	{
+//		m_intro_event.bind		(this, &CGamePersistent::update_logo_intro);
+//		if(allow_logo_intro() && !g_dedicated_server && NULL==g_pGameLevel )
+//		{
+//			VERIFY				(NULL==m_intro);
+//			m_intro				= xr_new<CUISequencer>();
+//			m_intro->Start		( "intro_logo" );
+//			pConsole->Hide		( );
+//		}else
+//			pConsoleCommands->Execute	("main_menu on" );
+//
+//	}
+//}
+//
+//void CGamePersistent::update_logo_intro()
+//{
+//	if(m_intro && (false==m_intro->IsActive()))
+//	{
+//		m_intro_event			= 0;
+//		xr_delete				( m_intro );
+//		pConsoleCommands->Execute		("main_menu on" );
+//	}else
+//	if(!m_intro)
+//	{
+//		m_intro_event			= 0;
+//	}
+//}
+//
 
-void CGamePersistent::update_logo_intro()
-{
-	if(m_intro && (false==m_intro->IsActive()))
-	{
-		m_intro_event			= 0;
-		xr_delete				(m_intro);
-		Msg("intro_delete ::update_logo_intro");
-		Console->Execute		("main_menu on");
-	}else
-	if(!m_intro)
-	{
-		m_intro_event			= 0;
-	}
-}
-
-extern int g_keypress_on_start;
-void CGamePersistent::game_loaded()
-{
-	if(Device.dwPrecacheFrame<=2)
-	{
-		if(	g_pGameLevel							&&
-			g_pGameLevel->bReady					&&
-			(allow_intro() && g_keypress_on_start)	&&
-			load_screen_renderer.b_need_user_input	&& 
-			m_game_params.m_e_game_type == eGameIDSingle)
-		{
-			VERIFY				(NULL==m_intro);
-			m_intro				= xr_new<CUISequencer>();
-			m_intro->Start		("game_loaded");
-			Msg					("intro_start game_loaded");
-			m_intro->m_on_destroy_event.bind(this, &CGamePersistent::update_game_loaded);
-		}
-		m_intro_event			= 0;
-	}
-}
-
-void CGamePersistent::update_game_loaded()
-{
-	xr_delete				(m_intro);
-	Msg("intro_delete ::update_game_loaded");
-	start_game_intro		();
-}
-
-void CGamePersistent::start_game_intro		()
-{
-	if(!allow_intro())
-	{
-		m_intro_event			= 0;
-		return;
-	}
-
-	if (g_pGameLevel && g_pGameLevel->bReady && Device.dwPrecacheFrame<=2)
-	{
-		m_intro_event.bind		(this, &CGamePersistent::update_game_intro);
-		if (0==stricmp(m_game_params.m_new_or_load, "new"))
-		{
-			VERIFY				(NULL==m_intro);
-			m_intro				= xr_new<CUISequencer>();
-			m_intro->Start		("intro_game");
-			Msg("intro_start intro_game");
-		}
-	}
-}
-
-void CGamePersistent::update_game_intro()
-{
-	if(m_intro && (false==m_intro->IsActive()))
-	{
-		xr_delete				(m_intro);
-		Msg("intro_delete ::update_game_intro");
-		m_intro_event			= 0;
-	}
-	else
-	if(!m_intro)
-	{
-		m_intro_event			= 0;
-	}
-}
-
-extern CUISequencer * g_tutorial;
-extern CUISequencer * g_tutorial2;
+CUISequencer* g_tutorial = NULL;
+CUISequencer* g_tutorial2 = NULL;
 
 void CGamePersistent::OnFrame	()
 {
-	if(Device.dwPrecacheFrame==5 && m_intro_event.empty())
-	{
-		m_intro_event.bind			(this,&CGamePersistent::game_loaded);
-	}
-
 	if(g_tutorial2)
 	{ 
 		g_tutorial2->Destroy	();
@@ -563,96 +338,22 @@ void CGamePersistent::OnFrame	()
 #ifdef DEBUG
 	++m_frame_counter;
 #endif
-	if (!g_dedicated_server && !m_intro_event.empty())	m_intro_event();
-	
-	if(!g_dedicated_server && Device.dwPrecacheFrame==0 && !m_intro && m_intro_event.empty())
-		load_screen_renderer.stop();
+	if(!g_dedicated_server)
+	{
+		if (!m_intro_event.empty())	m_intro_event();
 
-	if( !m_pMainMenu->IsActive() )
-		m_pMainMenu->DestroyInternal(false);
+		if(Device.dwPrecacheFrame==0 && !m_intro && m_intro_event.empty())
+			load_screen_renderer.stop();
+
+		if( !m_pMainMenu->IsActive() )
+			m_pMainMenu->DestroyInternal(false);
+	}
+	
+
 
 	if(!g_pGameLevel)			return;
 	if(!g_pGameLevel->bReady)	return;
 
-	if(Device.Paused())
-	{
-		if (Level().IsDemoPlay())
-		{
-			CSpectator* tmp_spectr = smart_cast<CSpectator*>(Level().CurrentControlEntity());
-			if (tmp_spectr)
-			{
-				tmp_spectr->UpdateCL();	//updating spectator in pause (pause ability of demo play)
-			}
-		}
-#ifndef MASTER_GOLD
-		if (Level().CurrentViewEntity() && IsGameTypeSingle()) {
-			if (!g_actor || (g_actor->ID() != Level().CurrentViewEntity()->ID())) {
-				CCustomMonster	*custom_monster = smart_cast<CCustomMonster*>(Level().CurrentViewEntity());
-				if (custom_monster) // can be spectator in multiplayer
-					custom_monster->UpdateCamera();
-			}
-			else 
-			{
-				CCameraBase* C = NULL;
-				if (g_actor)
-				{
-					if(!Actor()->Holder())
-						C = Actor()->cam_Active();
-					else
-						C = Actor()->Holder()->Camera();
-
-					Actor()->Cameras().UpdateFromCamera		(C);
-					Actor()->Cameras().ApplyDevice			(VIEWPORT_NEAR);
-#ifdef DEBUG
-					if(psActorFlags.test(AF_NO_CLIP))
-					{
-						Actor()->dbg_update_cl			= 0;
-						Actor()->dbg_update_shedule		= 0;
-						Device.dwTimeDelta				= 0;
-						Device.fTimeDelta				= 0.01f;			
-						Actor()->UpdateCL				();
-						Actor()->shedule_Update			(0);
-						Actor()->dbg_update_cl			= 0;
-						Actor()->dbg_update_shedule		= 0;
-
-						CSE_Abstract* e					= Level().Server->ID_to_entity(Actor()->ID());
-						VERIFY							(e);
-						CSE_ALifeCreatureActor*	s_actor = smart_cast<CSE_ALifeCreatureActor*>(e);
-						VERIFY							(s_actor);
-						xr_vector<u16>::iterator it = s_actor->children.begin();
-						for(;it!=s_actor->children.end();it++)
-						{
-							CObject* obj = Level().Objects.net_Find(*it);
-							if(obj && Engine.Sheduler.Registered(obj))
-							{
-								obj->dbg_update_shedule = 0;
-								obj->dbg_update_cl = 0;
-								obj->shedule_Update	(0);
-								obj->UpdateCL();
-								obj->dbg_update_shedule = 0;
-								obj->dbg_update_cl = 0;
-							}
-						}
-					}
-#endif // DEBUG
-				}
-			}
-		}
-#else // MASTER_GOLD
-		if (g_actor && IsGameTypeSingle())
-		{
-			CCameraBase* C = NULL;
-			if(!Actor()->Holder())
-				C = Actor()->cam_Active();
-			else
-				C = Actor()->Holder()->Camera();
-
-			Actor()->Cameras().UpdateFromCamera			(C);
-			Actor()->Cameras().ApplyDevice				(VIEWPORT_NEAR);
-
-		}
-#endif // MASTER_GOLD
-	}
 	__super::OnFrame			();
 
 	if(!Device.Paused())
@@ -662,25 +363,6 @@ void CGamePersistent::OnFrame	()
 	if(!Device.Paused())
 		WeathersUpdate				();
 
-	if	(0!=pDemoFile)
-	{
-		if	(Device.dwTimeGlobal>uTime2Change){
-			// Change level + play demo
-			if			(pDemoFile->elapsed()<3)	pDemoFile->seek(0);		// cycle
-
-			// Read params
-			string512			params;
-			pDemoFile->r_string	(params,sizeof(params));
-			string256			o_server, o_client, o_demo;	u32 o_time;
-			sscanf				(params,"%[^,],%[^,],%[^,],%d",o_server,o_client,o_demo,&o_time);
-
-			// Start _new level + demo
-			Engine.Event.Defer	("KERNEL:disconnect");
-			Engine.Event.Defer	("KERNEL:start",size_t(xr_strdup(_Trim(o_server))),size_t(xr_strdup(_Trim(o_client))));
-			Engine.Event.Defer	("GAME:demo",	size_t(xr_strdup(_Trim(o_demo))), u64(o_time));
-			uTime2Change		= 0xffffffff;	// Block changer until Event received
-		}
-	}
 
 #ifdef DEBUG
 	if ((m_last_stats_frame + 1) < m_frame_counter)
@@ -689,50 +371,18 @@ void CGamePersistent::OnFrame	()
 	UpdateDof();
 }
 
-#include "game_sv_single.h"
-#include "xrServer.h"
-#include "UIGameCustom.h"
-#include "ui/UIMainIngameWnd.h"
-#include "ui/UIPdaWnd.h"
-
 void CGamePersistent::OnEvent(EVENT E, u64 P1, u64 P2)
 {
-	if(E==eQuickLoad)
-	{
-		if (Device.Paused())
-			Device.Pause		(FALSE, TRUE, TRUE, "eQuickLoad");
-		
-		if(CurrentGameUI())
-		{
-			CurrentGameUI()->HideShownDialogs();
-			CurrentGameUI()->UIMainIngameWnd->reset_ui();
-			CurrentGameUI()->PdaMenu().Reset();
-		}
-
-		if(g_tutorial)
-			g_tutorial->Stop();
-
-		if(g_tutorial2)
-			g_tutorial2->Stop();
-
-		LPSTR		saved_name	= (LPSTR)(P1);
-
-		Level().remove_objects	();
-		game_sv_Single			*game = smart_cast<game_sv_Single*>(Level().Server->game);
-		R_ASSERT				(game);
-		game->restart_simulator	(saved_name);
-		xr_free					(saved_name);
-		return;
-	}else
-	if(E==eDemoStart)
-	{
-		string256			cmd;
-		LPCSTR				demo	= LPCSTR(P1);
-		xr_sprintf				(cmd,"demo_play %s",demo);
-		Console->Execute	(cmd);
-		xr_free				(demo);
-		uTime2Change		= Device.TimerAsync() + u32(P2)*1000;
-	}
+	//__super::OnEvent( E, P1, P2);
+	//if(E==eDemoStart)
+	//{
+	//	string256			cmd;
+	//	LPCSTR				demo	= LPCSTR(P1);
+	//	xr_sprintf				(cmd,"demo_play %s",demo);
+	//	pConsoleCommands->Execute	(cmd);
+	//	xr_free				(demo);
+	//	uTime2Change		= Device.TimerAsync() + u32(P2)*1000;
+	//}
 }
 
 void CGamePersistent::Statistics	(CGameFont* F)
@@ -740,7 +390,7 @@ void CGamePersistent::Statistics	(CGameFont* F)
 #ifdef DEBUG
 #	ifndef _EDITOR
 		m_last_stats_frame		= m_frame_counter;
-		profiler().show_stats	(F,!!psAI_Flags.test(aiStats));
+		profiler().show_stats	(F,true);
 #	endif
 #endif
 }
@@ -754,7 +404,7 @@ static BOOL bEntryFlag		= TRUE;
 
 void CGamePersistent::OnAppActivate		()
 {
-	bool bIsMP = (g_pGameLevel && Level().game && GameID() != eGameIDSingle);
+	bool bIsMP = (g_pGameLevel && Level().game );
 	bIsMP		&= !Device.Paused();
 
 	if( !bIsMP )
@@ -772,7 +422,7 @@ void CGamePersistent::OnAppDeactivate	()
 {
 	if(!bEntryFlag) return;
 
-	bool bIsMP = (g_pGameLevel && Level().game && GameID() != eGameIDSingle);
+	bool bIsMP = (g_pGameLevel && Level().game);
 
 	bRestorePause = FALSE;
 
@@ -806,44 +456,26 @@ void CGamePersistent::OnRenderPPUI_PP()
 {
 	MainMenu()->OnRenderPPUI_PP();
 }
-#include "string_table.h"
-#include "../xrEngine/x_ray.h"
+
 void CGamePersistent::LoadTitle(bool change_tip, shared_str map_name)
 {
 	pApp->LoadStage();
 	if(change_tip)
 	{
 		string512				buff;
-		u8						tip_num;
-		luabind::functor<u8>	m_functor;
-		bool is_single = !xr_strcmp(m_game_params.m_game_type,"single");
-		if(is_single)
-		{
-			R_ASSERT( ai().script_engine().functor( "loadscreen.get_tip_number", m_functor ) );
-			tip_num				= m_functor(map_name.c_str());
-		}
-		else
-		{
-			R_ASSERT( ai().script_engine().functor( "loadscreen.get_mp_tip_number", m_functor ) );
-			tip_num				= m_functor(map_name.c_str());
-		}
-//		tip_num = 83;
+		u8						tip_num = 0;
 		xr_sprintf				(buff, "%s%d:", CStringTable().translate("ls_tip_number").c_str(), tip_num);
 		shared_str				tmp = buff;
-		
-		if(is_single)
-			xr_sprintf			(buff, "ls_tip_%d", tip_num);
-		else
-			xr_sprintf			(buff, "ls_mp_tip_%d", tip_num);
-
+		xr_sprintf				(buff, "ls_mp_tip_%d", tip_num);
 		pApp->LoadTitleInt		(CStringTable().translate("ls_header").c_str(), tmp.c_str(), CStringTable().translate(buff).c_str());
 	}
 }
 
 bool CGamePersistent::CanBePaused()
 {
-	return IsGameTypeSingle	() || (g_pGameLevel && Level().IsDemoPlay());
+	return (g_pGameLevel!=NULL);
 }
+
 void CGamePersistent::SetPickableEffectorDOF(bool bSet)
 {
 	m_bPickableDOF = bSet;
@@ -872,7 +504,6 @@ void CGamePersistent::RestoreEffectorDOF()
 {
 	SetEffectorDOF			(m_dof[3]);
 }
-#include "hudmanager.h"
 
 //	m_dof		[4];	// 0-dest 1-current 2-from 3-original
 void CGamePersistent::UpdateDof()
@@ -902,7 +533,6 @@ void CGamePersistent::UpdateDof()
 	(m_dof[0].z<m_dof[2].z)?clamp(m_dof[1].z,m_dof[0].z,m_dof[2].z):clamp(m_dof[1].z,m_dof[2].z,m_dof[0].z);
 }
 
-#include "ui\uimainingamewnd.h"
 void CGamePersistent::OnSectorChanged(int sector)
 {
 	if(CurrentGameUI())

@@ -153,6 +153,7 @@ void screenshot_manager::make_jpeg_file()
 
 void screenshot_manager::sign_jpeg_file()
 {
+/*
 	screenshots::writer	tmp_writer		(m_jpeg_buffer, m_jpeg_buffer_size, m_jpeg_buffer_capacity);
 	game_cl_mp*	tmp_cl_game				= smart_cast<game_cl_mp*>(&Game());
 	tmp_writer.set_player_name			(tmp_cl_game->local_player->getName());
@@ -161,6 +162,7 @@ void screenshot_manager::sign_jpeg_file()
 		tmp_cdkey_digest = "null";
 	tmp_writer.set_player_cdkey_digest	(tmp_cdkey_digest);
 	m_jpeg_buffer_size					= tmp_writer.write_info(&g_jpeg_encode_delegate);
+*/
 }
 
 
@@ -269,6 +271,7 @@ void screenshot_manager::set_draw_downloads(bool draw)
 
 void screenshot_manager::process_screenshot(bool singlecore)
 {
+/*
 	if (singlecore)
 	{
 		//g_jpeg_encode_cb = &jpeg_encode_callback;
@@ -288,6 +291,7 @@ void screenshot_manager::process_screenshot(bool singlecore)
 	m_make_start_event	= CreateEvent(NULL, FALSE, TRUE, NULL);
 	m_make_done_event	= CreateEvent(NULL, FALSE, FALSE, NULL);
 	thread_spawn	(&screenshot_manager::screenshot_maker_thread, "screenshot_maker", 0, this);
+*/
 }
 void	__stdcall	screenshot_manager::jpeg_compress_cb(long progress)
 {

@@ -1,8 +1,6 @@
 #pragma once
 
 #include "UIStatic.h"
-#include "../../xrServerEntities/script_export_space.h"
-
 
 class CUIButton : public CUIStatic
 {
@@ -54,6 +52,4 @@ protected:
 	E_BUTTON_STATE		m_eButtonState;
 	s16					m_uAccelerator[4];
 	bool				m_bIsSwitch;
-
-	DECLARE_SCRIPT_REGISTER_FUNCTION
 };

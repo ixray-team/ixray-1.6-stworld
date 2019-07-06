@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "resource.h"
-#include "dedicated_server_only.h"
 
 #ifdef INGAME_EDITOR
 #	include "../include/editor/ide.hpp"
@@ -33,7 +32,9 @@ void CRenderDevice::initialize_editor	()
 }
 #endif // #ifdef INGAME_EDITOR
 
-PROTECT_API void CRenderDevice::Initialize			()
+extern bool g_pure_console;
+
+void CRenderDevice::Initialize			()
 {
 	Log("Initializing Engine...");
 	TimerGlobal.Start			();
@@ -44,6 +45,10 @@ PROTECT_API void CRenderDevice::Initialize			()
 		initialize_editor		();
 #endif // #ifdef INGAME_EDITOR
 
+#ifdef DEDICATED_SERVER
+if(!g_pure_console)
+#endif //#ifdef DEDICATED_SERVER
+{
 	// Unless a substitute hWnd has been specified, create a window to render into
     if( m_hWnd == NULL)
     {
@@ -78,6 +83,7 @@ PROTECT_API void CRenderDevice::Initialize			()
     m_dwWindowStyle = GetWindowLong( m_hWnd, GWL_STYLE );
     GetWindowRect	( m_hWnd, &m_rcWindowBounds );
     GetClientRect	( m_hWnd, &m_rcWindowClient );
+}
 
 	/*
 	if (strstr(lpCmdLine,"-gpu_sw")!=NULL)		HW.Caps.bForceGPU_SW		= TRUE;

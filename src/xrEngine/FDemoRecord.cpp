@@ -204,9 +204,9 @@ void CDemoRecord::MakeLevelMapProcess()
 
 			string_path					tmp;
 			if(m_iLMScreenshotFragment==-1)
-				xr_sprintf				(tmp, sizeof(tmp),"map_%s", *g_pGameLevel->name());
+				xr_sprintf				(tmp, sizeof(tmp),"map_%s", *g_pGameLevel->map_name());
 			else
-				xr_sprintf				(tmp, sizeof(tmp),"map_%s#%d", *g_pGameLevel->name(), m_iLMScreenshotFragment);
+				xr_sprintf				(tmp, sizeof(tmp),"map_%s#%d", *g_pGameLevel->map_name(), m_iLMScreenshotFragment);
 
 			if(m_iLMScreenshotFragment!=-1)
 			{
@@ -398,7 +398,7 @@ void CDemoRecord::IR_OnKeyboardPress	(int dik)
 		return;
 	}
 	if (dik == DIK_GRAVE)
-							Console->Show			();
+							pConsole->Show			();
 	if (dik == DIK_SPACE)	RecordKey				();
 	if (dik == DIK_BACK)	MakeCubemap				();
 	if (dik == DIK_F11)		MakeLevelMapScreenshot	(IR_GetKeyState(DIK_LCONTROL));
@@ -408,9 +408,9 @@ void CDemoRecord::IR_OnKeyboardPress	(int dik)
 #ifndef MASTER_GOLD
 	if (dik == DIK_RETURN)
 	{	
-		if (g_pGameLevel->CurrentEntity())
+		if (g_pGameLevel->CurrentActor())
 		{
-			g_pGameLevel->CurrentEntity()->ForceTransform(m_Camera);
+			g_pGameLevel->CurrentActor()->ForceTransform(m_Camera);
 			fLifeTime		= -1; 
 		}
 	}
@@ -520,8 +520,6 @@ void CDemoRecord::MakeScreenshot	()
 
 void CDemoRecord::MakeLevelMapScreenshot(BOOL bHQ)
 {
-	Console->Execute("run_string level.set_weather(\"map\",true)");
-
 	if(!bHQ)
 		m_iLMScreenshotFragment = -1;
 	else

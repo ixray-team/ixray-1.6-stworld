@@ -6,10 +6,11 @@
 //	Description : XRay Script extensions
 ////////////////////////////////////////////////////////////////////////////
 
-#include <stdarg.h>
 #include "stdafx.h"
 #include "ai_script_lua_extension.h"
 #include "ai_script_space.h"
+#include <cs/lua/library_linkage.h>
+#include <luabind/library_linkage.h>
 
 #ifdef XRRENDER_R4_EXPORTS
 #define ENGINE_BUILD
@@ -432,7 +433,7 @@ luabind::object Script::lua_namespace_table(CLuaVirtualMachine *tpLuaVM, LPCSTR 
 	string256			S1;
 	xr_strcpy				(S1,namespace_name);
 	LPSTR				S = S1;
-	luabind::object		lua_namespace = luabind::get_globals(tpLuaVM);
+	luabind::object		lua_namespace = luabind::globals(tpLuaVM);
 	for (;;) {
 		if (!xr_strlen(S))
 			return		(lua_namespace);

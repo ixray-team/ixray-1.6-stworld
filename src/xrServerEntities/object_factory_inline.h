@@ -97,13 +97,6 @@ IC	void CObjectFactory::add	(CObjectItemAbstract *item)
 	m_clsids.push_back	(item);
 }
 
-IC	int	CObjectFactory::script_clsid	(const CLASS_ID &clsid) const
-{
-	actualize			();
-	const_iterator		I = std::lower_bound(clsids().begin(),clsids().end(),clsid,CObjectItemPredicate());
-	VERIFY				((I != clsids().end()) && ((*I)->clsid() == clsid));
-	return				(int(I - clsids().begin()));
-}
 
 #ifndef NO_XR_GAME
 IC	CObjectFactory::CLIENT_BASE_CLASS *CObjectFactory::client_object	(const CLASS_ID &clsid) const

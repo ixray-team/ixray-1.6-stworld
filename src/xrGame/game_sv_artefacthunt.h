@@ -68,10 +68,9 @@ protected:
 	bool		assign_rp_tmp		(game_PlayerState* ps_who, xr_vector<RPoint>& points_vec, xr_vector<u32>& dest, xr_vector<u32>& rpIDEnemy, xr_vector<ClientID>& EnemyIt,  bool use_safe_dist);
 public:
 
-									game_sv_ArtefactHunt	(){m_type = eGameIDArtefactHunt;}
+									game_sv_ArtefactHunt	(){}
 	virtual		void				Create					(shared_str& options);
 
-	virtual		LPCSTR				type_name			() const { return "artefacthunt";};
 	// Events	
 	virtual		void				OnEvent					(NET_Packet &tNetPacket, u16 type, u32 time, ClientID sender );
 	virtual		void				OnRoundStart			();							// старт раунда
@@ -140,6 +139,6 @@ public:
 	virtual		void				OnRender				();
 #endif
 	//  [7/5/2005]
-protected:
-	virtual		void				WriteGameState			(CInifile& ini, LPCSTR sect, bool bRoundResult);
+//protected:
+//	virtual		void				WriteGameState			(CInifile& ini, LPCSTR sect, bool bRoundResult);
 };

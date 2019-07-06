@@ -1,7 +1,6 @@
 #pragma once
 #include "UIGameLog.h"
 
-#include "../hudsound.h"
 #include "../../xrServerEntities/alife_space.h"
 #include "../EntityCondition.h"
 
@@ -70,20 +69,8 @@ public:
 	CUITextWnd*			m_QuickSlotText4;
 
 protected:
-
-	// 5 статиков для отображения иконок:
-	// - сломанного оружия(only mp)
-	// - радиации
-	// - ранения
-	// - голода
-	// - усталости
 	CUIStatic*			UIWeaponJammedIcon;
-//	CUIStatic			UIRadiaitionIcon;
-//	CUIStatic			UIWoundIcon;
-//	CUIStatic			UIStarvationIcon;
-//	CUIStatic			UIPsyHealthIcon;
 	CUIStatic*			UIInvincibleIcon;
-//	CUIStatic			UISleepIcon;
 	CUIStatic*			UIArtefactIcon;
 
 	CUIScrollView*		m_UIIcons;
@@ -97,11 +84,6 @@ public:
 	{
 		ewiAll				= 0,
 		ewiWeaponJammed,
-//		ewiRadiation,
-//		ewiWound,
-//		ewiStarvation,
-//		ewiPsyHealth,
-//		ewiSleep,
 		ewiInvincible,
 		ewiArtefact,
 	};
@@ -117,38 +99,12 @@ public:
 	typedef				Thresholds::iterator						Thresholds_it;
 	Thresholds			m_Thresholds;
 
-	// Енум перечисления возможных мигающих иконок
-	enum EFlashingIcons
-	{
-		efiPdaTask	= 0,
-		efiMail
-	};
-	
-	void				SetFlashIconState_				(EFlashingIcons type, bool enable);
-
-	void				AnimateContacts					(bool b_snd);
-	HUD_SOUND_ITEM		m_contactSnd;
-
-	void				ReceiveNews						(GAME_NEWS_DATA* news);
 	void				UpdateMainIndicators			();
 	void				UpdateBoosterIndicators			(const xr_map<EBoostParams, SBooster> influences);
 
 protected:
 	void				UpdateQuickSlots				();
 	void				SetWarningIconColorUI			(CUIStatic* s, const u32 cl);
-	void				InitFlashingIcons				(CUIXml* node);
-	void				DestroyFlashingIcons			();
-	void				UpdateFlashingIcons				();
-//	void				UpdateActiveItemInfo			();
-
-//	void				SetAmmoIcon						(const shared_str& seсt_name);
-
-	// first - иконка, second - анимация
-	DEF_MAP				(FlashingIcons, EFlashingIcons, CUIStatic*);
-	FlashingIcons		m_FlashingIcons;
-
-//	CMissile*			m_pGrenade;
-//	CInventoryItem*		m_pItem;
 
 	// Отображение подсказок при наведении прицела на объект
 	void				RenderQuickInfos();

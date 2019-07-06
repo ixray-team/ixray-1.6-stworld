@@ -91,7 +91,7 @@ void server_site::update_transfer()
 			continue;
 		}
 
-		tmp_ftnode->calculate_chunk_size(tmp_client->stats.getPeakBPS(), tmp_client->stats.getBPS());
+		tmp_ftnode->calculate_chunk_size(tmp_client->net_Statistic.getPeakBPS(), tmp_client->net_Statistic.getBPS());
 		NET_Packet tmp_packet;
 		tmp_packet.w_begin				(M_FILE_TRANSFER);
 		tmp_packet.w_u8					(receive_data);

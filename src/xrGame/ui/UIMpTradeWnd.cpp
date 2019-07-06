@@ -221,7 +221,7 @@ void CUIMpTradeWnd::Show(bool status)
 {
 	inherited::Show				(status);
 
-	CActor *pActor			= smart_cast<CActor*>(Level().CurrentEntity());
+	CActor *pActor			= smart_cast<CActor*>(Level().CurrentActor());
 	if(pActor) 
 		pActor->SetWeaponHideState(INV_STATE_BUY_MENU, status);
 

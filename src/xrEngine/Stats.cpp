@@ -15,36 +15,6 @@ Flags32 g_stats_flags		= {0};
 // stats
 DECLARE_RP(Stats);
 
-class	optimizer	{
-	float	average_	;
-	BOOL	enabled_	;
-public:
-	optimizer	()		{
-		average_	= 30.f;
-//		enabled_	= TRUE;
-//		disable		();
-		// because Engine is not exist
-		enabled_	= FALSE;
-	}
-
-	BOOL	enabled	()	{ return enabled_;	}
-	void	enable	()	{ if (!enabled_)	{ Engine.External.tune_resume	();	enabled_=TRUE;	}}
-	void	disable	()	{ if (enabled_)		{ Engine.External.tune_pause	();	enabled_=FALSE; }}
-	void	update	(float value)	{
-		if (value < average_*0.7f)	{
-			// 25% deviation
-			enable	();
-		} else {
-			disable	();
-		};
-		average_	= 0.99f*average_ + 0.01f*value;
-	};
-};
-static	optimizer	vtune;
-
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
 BOOL			g_bDisableRedText	= FALSE;
 CStats::CStats	()
 {
@@ -84,13 +54,6 @@ void CStats::Show()
 		ph_collision.FrameEnd		();
 		ph_core.FrameEnd			();
 		Animation.FrameEnd			();	
-		AI_Think.FrameEnd			();
-		AI_Range.FrameEnd			();
-		AI_Path.FrameEnd			();
-		AI_Node.FrameEnd			();
-		AI_Vis.FrameEnd				();
-		AI_Vis_Query.FrameEnd		();
-		AI_Vis_RayTests.FrameEnd	();
 		
 		RenderTOTAL.FrameEnd		();
 		RenderCALC.FrameEnd			();
@@ -159,31 +122,10 @@ void CStats::Show()
 
 	////////////////////////////////////////////////
 	if (g_dedicated_server) return;
-	////////////////////////////////////////////////
-	int frm = 2000;
-	div_t ddd = div(Device.dwFrame,frm);
-	if( ddd.rem < frm/2.0f ){
-		pFont->SetColor	(0xFFFFFFFF	);
-		pFont->OutSet	(0,0);
-		pFont->OutNext	(*eval_line_1);
-		pFont->OutNext	(*eval_line_2);
-		pFont->OutNext	(*eval_line_3);
-		pFont->OnRender	();
-	}
 
 	CGameFont& F = *pFont;
 	float		f_base_size	= 0.01f;
 				F.SetHeightI	(f_base_size);
-
-	if (vtune.enabled())	{
-		float sz		= pFont->GetHeight();
-		pFont->SetHeightI(0.02f);
-		pFont->SetColor	(0xFFFF0000	);
-		pFont->OutSet	(Device.dwWidth/2.0f+(pFont->SizeOf_("--= tune =--")/2.0f),Device.dwHeight/2.0f);
-		pFont->OutNext	("--= tune =--");
-		pFont->OnRender	();
-		pFont->SetHeight(sz);
-	};
 
 	// Show them
 	if (psDeviceFlags.test(rsStatistic))
@@ -206,10 +148,8 @@ void CStats::Show()
 		//F.OutNext	("DIP/DP:      %d",			RCache.stat.calls);
 #ifdef DEBUG
 		F.OutSkip	();
-#ifdef FS_DEBUG
 		F.OutNext	("mapped:      %d",			g_file_mapped_memory);
 		F.OutSkip	();
-#endif
 		m_pRender->OutData2(F);
 		//F.OutNext	("SH/T/M/C:    %d/%d/%d/%d",RCache.stat.states,RCache.stat.textures,RCache.stat.matrices,RCache.stat.constants);
 		//F.OutNext	("RT/PS/VS:    %d/%d/%d",	RCache.stat.target_rt,RCache.stat.ps,RCache.stat.vs);
@@ -231,13 +171,6 @@ void CStats::Show()
 		F.OutNext	("Physics:     %2.2fms, %2.1f%%",Physics.result,		PPP(Physics.result));	
 		F.OutNext	("  collider:  %2.2fms", ph_collision.result);	
 		F.OutNext	("  solver:    %2.2fms, %d",ph_core.result,ph_core.count);	
-		F.OutNext	("aiThink:     %2.2fms, %d",AI_Think.result,AI_Think.count);	
-		F.OutNext	("  aiRange:   %2.2fms, %d",AI_Range.result,AI_Range.count);
-		F.OutNext	("  aiPath:    %2.2fms, %d",AI_Path.result,AI_Path.count);
-		F.OutNext	("  aiNode:    %2.2fms, %d",AI_Node.result,AI_Node.count);
-		F.OutNext	("aiVision:    %2.2fms, %d",AI_Vis.result,AI_Vis.count);
-		F.OutNext	("  Query:     %2.2fms",	AI_Vis_Query.result);
-		F.OutNext	("  RayCast:   %2.2fms",	AI_Vis_RayTests.result);
 		F.OutSkip	();
 								   
 #undef  PPP
@@ -386,13 +319,6 @@ void CStats::Show()
 		ph_collision.FrameStart		();
 		ph_core.FrameStart			();
 		Animation.FrameStart		();	
-		AI_Think.FrameStart			();
-		AI_Range.FrameStart			();
-		AI_Path.FrameStart			();
-		AI_Node.FrameStart			();
-		AI_Vis.FrameStart			();
-		AI_Vis_Query.FrameStart		();
-		AI_Vis_RayTests.FrameStart	();
 		
 		RenderTOTAL.FrameStart		();
 		RenderCALC.FrameStart		();
@@ -455,17 +381,6 @@ void CStats::OnDeviceCreate			()
 	pFont	= xr_new<CGameFont>		("stat_font", CGameFont::fsDeviceIndependent);
 #endif
 	
-	if(!pSettings->section_exist("evaluation")
-		||!pSettings->line_exist("evaluation","line1")
-		||!pSettings->line_exist("evaluation","line2")
-		||!pSettings->line_exist("evaluation","line3") )
-		FATAL	("");
-
-	eval_line_1 = pSettings->r_string_wb("evaluation","line1");
-	eval_line_2 = pSettings->r_string_wb("evaluation","line2");
-	eval_line_3 = pSettings->r_string_wb("evaluation","line3");
-
-	// 
 #ifdef DEBUG
 	if (!g_bDisableRedText)			SetLogCB	(_LogCallback);
 #endif

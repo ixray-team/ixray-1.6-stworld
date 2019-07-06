@@ -5,12 +5,10 @@
 #include "stdafx.h"
 #include "igame_level.h"
 #include "fdemoplay.h"
-#include "xr_ioconsole.h"
+#include "xr_ioc_cmd.h"
 #include "motion.h"
 #include "Render.h"
 #include "CameraManager.h"
-
-#include "xrSash.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -18,10 +16,11 @@
 
 CDemoPlay::CDemoPlay(const char *name, float ms, u32 cycles, float life_time) : CEffectorCam(cefDemo,life_time/*,FALSE*/)
 {
-	Msg					("*** Playing demo: %s",name);
-	Console->Execute	("hud_weapon 0");
-	if( g_bBenchmark || g_SASH.IsRunning() )
-		Console->Execute	("hud_draw 0");
+	Msg							("*** Playing demo: %s",name);
+	pConsoleCommands->Execute	("hud_weapon 0");
+
+	if( g_bBenchmark )
+		pConsoleCommands->Execute("hud_draw 0");
 
 	fSpeed				= ms;
 	dwCyclesLeft		= cycles?cycles:1;
@@ -69,9 +68,10 @@ CDemoPlay::~CDemoPlay		()
 	stat_Stop				();
 	xr_delete				(m_pMotion	);
 	xr_delete				(m_MParam	);
-	Console->Execute		("hud_weapon 1");
-	if(g_bBenchmark || g_SASH.IsRunning())		
-		Console->Execute	("hud_draw 1");
+	pConsoleCommands->Execute("hud_weapon 1");
+
+	if(g_bBenchmark)		
+		pConsoleCommands->Execute	("hud_draw 1");
 }
 
 void CDemoPlay::stat_Start	()
@@ -93,8 +93,6 @@ extern string512		g_sBenchmarkName;
 void CDemoPlay::stat_Stop	()
 {
 	if (!stat_started)		return;
-
-	//g_SASH.EndBenchmark();
 
 	stat_started			= FALSE;
 	float	stat_total		= stat_Timer_total.GetElapsed_sec	();
@@ -179,7 +177,7 @@ void CDemoPlay::stat_Stop	()
 			res.w_float		("per_frame_stats",	id, 1.f / stat_table[it]);
 		}
 
-		Console->Execute	("quit");
+		pConsoleCommands->Execute	("quit");
 	}
 }
 

@@ -8,7 +8,7 @@
 #include <d3dx9.h>
 #pragma warning(default:4995)
 #include "../xrRender/HW.h"
-#include "../../xrEngine/XR_IOConsole.h"
+#include "../../xrEngine/xr_ioc_cmd.h"
 #include "../../Include/xrAPI/xrAPI.h"
 
 #include "StateManager\dx10SamplerStateCache.h"
@@ -30,11 +30,6 @@ void	free_render_mode_list		()			{}
 CHW			HW;
 
 //	DX10: Don't neeed this?
-/*
-#ifdef DEBUG
-IDirect3DStateBlock9*	dwDebugSB = 0;
-#endif
-*/
 
 CHW::CHW() : 
 //	hD3D(NULL),
@@ -411,10 +406,6 @@ void CHW::CreateDevice( HWND m_hWnd, bool move_window )
 	*/
 
 	// Capture misc data
-//	DX10: Don't neeed this?
-//#ifdef DEBUG
-//	R_CHK	(pDevice->CreateStateBlock			(D3DSBT_ALL,&dwDebugSB));
-//#endif
 	//	Create render target and depth-stencil views here
 	UpdateViews();
 
@@ -442,10 +433,6 @@ void CHW::DestroyDevice()
 
 	_SHOW_REF				("refCount:pBaseRT",pBaseRT);
 	_RELEASE				(pBaseRT);
-//#ifdef DEBUG
-//	_SHOW_REF				("refCount:dwDebugSB",dwDebugSB);
-//	_RELEASE				(dwDebugSB);
-//#endif
 
 	//	Must switch to windowed mode to release swap chain
 	if (!m_ChainDesc.Windowed) m_pSwapChain->SetFullscreenState( FALSE, NULL);
@@ -498,9 +485,6 @@ void CHW::Reset (HWND hwnd)
 	CHK_DX(m_pSwapChain->ResizeTarget(&desc));
 
 
-#ifdef DEBUG
-	//	_RELEASE			(dwDebugSB);
-#endif
 	_SHOW_REF				("refCount:pBaseZB",pBaseZB);
 	_SHOW_REF				("refCount:pBaseRT",pBaseRT);
 
@@ -536,17 +520,10 @@ void CHW::Reset (HWND hwnd)
 */
 
 
-//#ifdef DEBUG
-//	R_CHK				(pDevice->CreateStateBlock			(D3DSBT_ALL,&dwDebugSB));
-//#endif
-
 	updateWindowProps	(hwnd);
 
 
 		/*
-#ifdef DEBUG
-	_RELEASE			(dwDebugSB);
-#endif
 	_RELEASE			(pBaseZB);
 	_RELEASE			(pBaseRT);
 
@@ -572,9 +549,6 @@ void CHW::Reset (HWND hwnd)
 	}
 	R_CHK				(pDevice->GetRenderTarget			(0,&pBaseRT));
 	R_CHK				(pDevice->GetDepthStencilSurface	(&pBaseZB));
-#ifdef DEBUG
-	R_CHK				(pDevice->CreateStateBlock			(D3DSBT_ALL,&dwDebugSB));
-#endif
 #ifndef _EDITOR
 	updateWindowProps	(hwnd);
 #endif
@@ -605,7 +579,7 @@ void CHW::selectResolution( u32 &dwWidth, u32 &dwHeight, BOOL bWindowed )
 		if(_ParseItem(buff,vid_mode_token)==u32(-1)) //not found
 		{ //select safe
 			xr_sprintf				(buff,sizeof(buff),"vid_mode %s",vid_mode_token[0].name);
-			Console->Execute		(buff);
+			pConsoleCommands->Execute		(buff);
 		}
 
 		dwWidth						= psCurrentVidMode[0];

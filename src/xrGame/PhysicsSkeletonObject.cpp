@@ -75,23 +75,9 @@ void CPhysicsSkeletonObject::shedule_Update(u32 dt)
 	CPHSkeleton::Update(dt);
 }
 
-void CPhysicsSkeletonObject::net_Save(NET_Packet &P)
-{
-	inherited::net_Save(P);
-	CPHSkeleton::SaveNetState	   (P);
-}
-
-
-
 BOOL CPhysicsSkeletonObject::net_SaveRelevant()
 {
-	return TRUE;//!m_flags.test(CSE_ALifeObjectPhysic::flSpawnCopy);
-}
-
-
-BOOL CPhysicsSkeletonObject::UsedAI_Locations()
-{
-	return					(FALSE);
+	return TRUE;
 }
 
 void CPhysicsSkeletonObject::UpdateCL()
@@ -100,7 +86,7 @@ void CPhysicsSkeletonObject::UpdateCL()
 	PHObjectPositionUpdate	();
 }
 
-void CPhysicsSkeletonObject::	PHObjectPositionUpdate()
+void CPhysicsSkeletonObject::PHObjectPositionUpdate()
 {
 	if(m_pPhysicsShell)
 	{

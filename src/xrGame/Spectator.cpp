@@ -12,10 +12,6 @@
 #include "game_cl_base.h"
 #include "level.h"
 #include "xr_level_controller.h"
-#include "seniority_hierarchy_holder.h"
-#include "team_hierarchy_holder.h"
-#include "squad_hierarchy_holder.h"
-#include "group_hierarchy_holder.h"
 #include "../xrEngine/CameraManager.h"
 #include "Inventory.h"
 #include "huditem.h"
@@ -66,6 +62,9 @@ void CSpectator::UpdateCL()
 {
 	inherited::UpdateCL();
 	
+	if(g_dedicated_server)
+		return;
+
 	float fPreviousFrameTime = m_timer.GetElapsed_sec();
 	m_timer.Start();
 	m_fTimeDelta = 0.3f * m_fTimeDelta + 0.7f * fPreviousFrameTime;
@@ -100,64 +99,30 @@ void CSpectator::UpdateCL()
 		}
 	}
 
-	if (GameID() != eGameIDSingle)
+	if (Game().local_player && ((Game().local_player->GameID == ID()) ) )
 	{
-		if (Game().local_player && (
-					(Game().local_player->GameID == ID()) ||
-					Level().IsDemoPlay()
-				)
-			)
+		if (cam_active != eacFreeFly)
 		{
-			if (cam_active != eacFreeFly)
+			if (m_pActorToLookAt && !m_pActorToLookAt->g_Alive())
+				cam_Set(eacFreeLook);
+			if (!m_pActorToLookAt)
 			{
-				if (m_pActorToLookAt && !m_pActorToLookAt->g_Alive())
-					cam_Set(eacFreeLook);
-				if (!m_pActorToLookAt)
-				{
-					SelectNextPlayerToLook(false);
-					if (m_pActorToLookAt)
-						cam_Set(m_last_camera);
-				};
-			}
-			if (Level().CurrentViewEntity() == this) 
-			{
-				cam_Update(m_pActorToLookAt);
-			}
-			return;
-		}		
-		
-	};
+				SelectNextPlayerToLook(false);
+				if (m_pActorToLookAt)
+					cam_Set(m_last_camera);
+			};
+		}
+		if (Level().CurrentViewActor() == this) 
+		{
+			cam_Update(m_pActorToLookAt);
+		}
+		return;
+	}		
+
 	
-	if (g_pGameLevel->CurrentViewEntity()==this){
+	if (g_pGameLevel->CurrentViewActor()==this){
 		if (eacFreeFly!=cam_active){
-			//-------------------------------------
-		
-			//-------------------------------------
-			int idx			= 0;
-			game_PlayerState* P = Game().local_player;
-			if (P&&(P->team>=0)&&(P->team<(int)Level().seniority_holder().teams().size())){
-				const CTeamHierarchyHolder& T		= Level().seniority_holder().team(P->team);
-				for (u32 i=0; i<T.squads().size(); ++i){
-					const CSquadHierarchyHolder& S = T.squad(i);
-					for (u32 j=0; j<S.groups().size(); ++j){
-						const CGroupHierarchyHolder& G = S.group(j);
-						for (u32 k=0; k<G.members().size(); ++k){
-							CActor* A = smart_cast<CActor*>(G.members()[k]);
-							if (A/*&&A->g_Alive()*/){
-								if(idx==look_idx){
-									cam_Update	(A);
-									return;
-								}
-								++idx;
-							}
-						}
-					}
-				}
-			}
-			// не найден объект с таким индексом - сбросим на первый объект
-			look_idx = 0;
-			// никого нет за кем смотреть - переключимся на 
-			if (0==idx) cam_Set(eacFreeFly);
+			cam_Set		(eacFreeFly);
 		}
 		// по умолчанию eacFreeFly
 		cam_Update		(0);
@@ -203,7 +168,7 @@ void CSpectator::IR_OnKeyboardPress(int cmd)
 			game_cl_mp* pMPGame = smart_cast<game_cl_mp*> (&Game());
 			if (!pMPGame) break;
 			game_PlayerState* PS = Game().local_player;
-			if (!Level().IsDemoPlay() && (!PS || PS->GameID != ID())) break;
+			if( (!PS || PS->GameID != ID())) break;
 			
 
 			EActorCameras new_camera = EActorCameras((cam_active+1)%eacMaxCam);
@@ -314,7 +279,7 @@ void CSpectator::IR_OnMouseMove(int dx, int dy)
 
 void CSpectator::FirstEye_ToPlayer(CObject* pObject)
 {
-	CObject*	pCurViewEntity = Level().CurrentEntity();
+	CObject*	pCurViewEntity = Level().CurrentActor();
 	CActor*		pOldActor = NULL;
 	if (pCurViewEntity)
 	{
@@ -510,8 +475,7 @@ void			CSpectator::net_Destroy	()
 
 bool			CSpectator::SelectNextPlayerToLook	(bool const search_next)
 {
-	if (GameID() == eGameIDSingle) return false;
-	
+
 	game_PlayerState* PS = Game().local_player;
 	if (!PS) return false;
 	m_pActorToLookAt = NULL;
@@ -571,7 +535,7 @@ void			CSpectator::net_Relcase				(CObject *O)
 	if (O != m_pActorToLookAt)
 		return;
 	
-	if (m_pActorToLookAt != Level().CurrentEntity()) //new spectator was spawned
+	if (m_pActorToLookAt != Level().CurrentActor()) //new spectator was spawned
 	{
 		m_pActorToLookAt = NULL;
 		return;
@@ -592,7 +556,6 @@ void			CSpectator::net_Relcase				(CObject *O)
 void CSpectator::GetSpectatorString		(string1024& pStr)
 {
 	if (!pStr) return;
-	if (GameID() == eGameIDSingle) return;
 	
 	xr_string	SpectatorMsg;
 	CStringTable st;

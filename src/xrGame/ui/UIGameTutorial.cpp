@@ -1,35 +1,16 @@
-#include "pch_script.h"
+#include "stdafx.h"
 #include "UIGameTutorial.h"
 #include "UIWindow.h"
 #include "UIStatic.h"
 #include "UIXmlInit.h"
-#include "object_broker.h"
 #include "../../xrEngine/xr_input.h"
 #include "../xr_level_controller.h"
-#include "../../xrServerEntities/script_engine.h"
-#include "../ai_space.h"
-#include "../../xrEngine/xr_ioconsole.h"
+#include "../../xrEngine/xr_ioc_cmd.h"
 #include "../UIGameCustom.h"
 #include "UIActorMenu.h"
-#include "UIPdaWnd.h"
 
 extern ENGINE_API BOOL bShowPauseString;
 
-void CallFunction(shared_str const& func)
-{
-	luabind::functor<void>		functor_to_call;
-	bool functor_exists			= ai().script_engine().functor(func.c_str() ,functor_to_call);
-	THROW3						(functor_exists, "Cannot find script function described in tutorial item ", func.c_str());
-	if( functor_to_call.is_valid() ) 
-		functor_to_call();
-}
-
-void CallFunctions(xr_vector<shared_str>& v)
-{
-	xr_vector<shared_str>::const_iterator it	= v.begin();
-	for(;it!=v.end();++it)
-		CallFunction(*it);
-}
 
 void CUISequenceItem::Load(CUIXml* xml, int idx)
 {
@@ -42,20 +23,6 @@ void CUISequenceItem::Load(CUIXml* xml, int idx)
 		LPCSTR str					= xml->Read			("disabled_key", i, NULL);
 		m_disabled_actions.push_back( action_name_to_id(str) );
 	}
-
-	int			j;
-	int			f_num				= xml->GetNodesNum(xml->GetLocalRoot(),"function_on_start");
-	m_start_lua_functions.resize	(f_num);
-	for(j=0; j<f_num; ++j)
-		m_start_lua_functions[j]	= xml->Read(xml->GetLocalRoot(), "function_on_start", j, NULL);
-	
-	f_num							= xml->GetNodesNum(xml->GetLocalRoot(),"function_on_stop");
-	m_stop_lua_functions.resize		(f_num);
-	for(j=0; j<f_num; ++j)
-		m_stop_lua_functions[j]		= xml->Read(xml->GetLocalRoot(), "function_on_stop", j, NULL);
-
-	m_check_lua_function			= xml->Read(xml->GetLocalRoot(), "function_check_start", 0, NULL);
-	m_onframe_lua_function			= xml->Read(xml->GetLocalRoot(), "function_on_frame", 0, NULL);
 
 	xml->SetLocalRoot				(_stored_root);
 }
@@ -71,23 +38,14 @@ bool CUISequenceItem::AllowKey(int dik)
 
 void CUISequenceItem::Update()
 {
-	if( m_onframe_functor.is_valid() ) 
-		m_onframe_functor(current_factor());
 }
 
 void CUISequenceItem::Start()
 {
-	CallFunctions(m_start_lua_functions);
-	if(m_onframe_lua_function.size())
-	{
-		bool functor_exists			= ai().script_engine().functor(m_onframe_lua_function.c_str() ,m_onframe_functor);
-		THROW3						(functor_exists, "Cannot find script function described in tutorial item ", m_onframe_lua_function.c_str());
-	}
 }
 
 bool CUISequenceItem::Stop(bool bForce)
 {
-	CallFunctions(m_stop_lua_functions);
 	return true;
 }
 
@@ -137,10 +95,8 @@ void CUISequencer::Start(LPCSTR tutor_name)
 
 	LPCSTR snd_name				= uiXml.Read("sound", 0, "");
 	if (snd_name && snd_name[0])
-	{
 		m_global_sound.create	(snd_name, st_Effect,sg_Undefined);	
-		VERIFY					(m_global_sound._handle() || strstr(Core.Params,"-nosound"));
-	}
+
 	m_start_lua_function		= uiXml.Read("function_on_start", 0, "");
 	m_stop_lua_function			= uiXml.Read("function_on_stop", 0, "");
 
@@ -181,8 +137,6 @@ void CUISequencer::Start(LPCSTR tutor_name)
 	if (m_global_sound._handle())		
 		m_global_sound.play(NULL, sm_2D);
 
-	if(m_start_lua_function.size())
-		CallFunction(m_start_lua_function);
 }
 
 CUISequenceItem* CUISequencer::GetNextItem()
@@ -191,27 +145,8 @@ CUISequenceItem* CUISequencer::GetNextItem()
 
 	while(m_sequencer_items.size())
 	{
-		luabind::functor<bool>		functor_to_call;
 		result						= m_sequencer_items.front();
-		shared_str const f			= result->m_check_lua_function;
-		if(f.size()==0)
-			break;
-
-		bool functor_exists			= ai().script_engine().functor(f.c_str() ,functor_to_call);
-		THROW3						(functor_exists, "Cannot find script function described in tutorial item ", f.c_str());
-		
-		bool call_result			= true;
-		if( functor_to_call.is_valid() ) 
-			call_result	= functor_to_call();
-
-		if(!call_result)
-		{
-			m_sequencer_items.pop_front();
-			result					= NULL;
-		}else
-		{
-			break;
-		}
+		break;
 	}
 
 	return result;
@@ -222,9 +157,6 @@ extern CUISequencer * g_tutorial2;
 
 void CUISequencer::Destroy()
 {
-	if(m_stop_lua_function.size())
-		CallFunction(m_stop_lua_function);
-
 	m_global_sound.stop			();
 	Device.seqFrame.Remove		(this);
 	Device.seqRender.Remove		(this);
@@ -409,12 +341,7 @@ void CUISequencer::IR_OnKeyboardPress	(int dik)
 			CurrentGameUI()->HideActorMenu();
 			return;
 		}
-		if(CurrentGameUI()->PdaMenu().IsShown())
-		{
-			CurrentGameUI()->HidePdaMenu();
-			return;
-		}
-		Console->Execute("main_menu");
+		pConsoleCommands->Execute("main_menu");
 		return;
 	}
 

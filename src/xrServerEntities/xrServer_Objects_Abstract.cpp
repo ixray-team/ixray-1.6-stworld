@@ -49,8 +49,7 @@ void CSE_Visual::set_visual	   	(LPCSTR name, bool load)
 void CSE_Visual::visual_read   	(NET_Packet &tNetPacket, u16 version)
 {
 	tNetPacket.r_stringZ		(visual_name);
-	if (version>103)
-		flags.assign			(tNetPacket.r_u8());
+	flags.assign				(tNetPacket.r_u8());
 }
 
 void CSE_Visual::visual_write  	(NET_Packet	&tNetPacket)

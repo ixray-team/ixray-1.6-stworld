@@ -55,7 +55,6 @@ class IPhysicsShellHolder
 	virtual	IPHCapture*					_BCL	PHCapture							()						=0;
 	virtual	bool						_BCL	IsInventoryItem						()						=0;
 	virtual	bool						_BCL	IsActor								()						=0;
-	virtual bool						_BCL	IsStalker							()						=0;
 	//virtual	void							SetWeaponHideState					( u16 State, bool bSet )=0;
 	virtual	void						_BCL	HideAllWeapons						( bool v )				=0;//(SetWeaponHideState(INV_STATE_BLOCK_ALL,true))
 	virtual	void						_BCL	MovementCollisionEnable				( bool enable )			=0;

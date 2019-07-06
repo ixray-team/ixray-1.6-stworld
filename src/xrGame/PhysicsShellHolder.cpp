@@ -1,20 +1,16 @@
-#include "pch_script.h"
+#include "stdafx.h"
 #include "PhysicsShellHolder.h"
 #include "../xrphysics/PhysicsShell.h"
 #include "xrMessages.h"
 #include "ph_shell_interface.h"
 #include "../Include/xrRender/Kinematics.h"
-#include "script_callback_ex.h"
 #include "Level.h"
 #include "PHCommander.h"
-#include "PHScriptCall.h"
 #include "CustomRocket.h"
 #include "Grenade.h"
 
-//#include "phactivationshape.h"
 #include "../xrphysics/iphworld.h"
 #include "../xrphysics/iActivationShape.h"
-//#include "../xrphysics/phvalide.h"
 #include "characterphysicssupport.h"
 #include "phmovementcontrol.h"
 #include "physics_shell_animated.h"
@@ -23,6 +19,7 @@
 #ifdef	DEBUG
 #include "../xrengine/objectdump.h"
 #endif
+
 CPhysicsShellHolder::CPhysicsShellHolder()
 {
 	init();
@@ -65,11 +62,9 @@ const IPhysicsElement* CPhysicsShellHolder::physics_character()  const
 	VERIFY( mov );
 	return mov->IElement();
 }
+
 void CPhysicsShellHolder::net_Destroy()
 {
-	//remove calls
-	CPHSriptReqGObjComparer cmpr(this);
-	Level().ph_commander_scripts().remove_calls(&cmpr);
 	//удалить партиклы из ParticlePlayer
 	CParticlesPlayer::net_DestroyParticles		();
 	CCharacterPhysicsSupport	*char_support = character_physics_support();
@@ -230,10 +225,7 @@ void CPhysicsShellHolder::activate_physic_shell()
 	}
 	smart_cast<IKinematics*>(Visual())->CalculateBones_Invalidate	();
 	smart_cast<IKinematics*>(Visual())->CalculateBones(TRUE);
-	if(!IsGameTypeSingle())
-	{
-		if(!smart_cast<CCustomRocket*>(this)&&!smart_cast<CGrenade*>(this)) PPhysicsShell()->SetIgnoreDynamic();
-	}
+	if(!smart_cast<CCustomRocket*>(this)&&!smart_cast<CGrenade*>(this)) PPhysicsShell()->SetIgnoreDynamic();
 //	XFORM().set					(l_p1);
 	correct_spawn_pos();
 
@@ -266,7 +258,7 @@ void CPhysicsShellHolder::setup_physic_shell	()
 	smart_cast<IKinematics*>(Visual())->CalculateBones_Invalidate	();
 	smart_cast<IKinematics*>(Visual())->CalculateBones(TRUE);
 		
-	ApplySpawnIniToPhysicShell(spawn_ini(),PPhysicsShell(),false);
+//	ApplySpawnIniToPhysicShell(spawn_ini(),PPhysicsShell(),false);
 	correct_spawn_pos();
 	m_pPhysicsShell->GetGlobalTransformDynamic(&XFORM());
 
@@ -364,23 +356,7 @@ float CPhysicsShellHolder::EffectiveGravity()
 	return physics_world()->Gravity();
 }
 
-void		CPhysicsShellHolder::	save				(NET_Packet &output_packet)
-{
-	inherited::save(output_packet);
-	u8 enable_state=(u8)stNotDefitnite;
-	if(PPhysicsShell()&&PPhysicsShell()->isActive())
-	{
-		enable_state=u8(PPhysicsShell()->isEnabled() ? stEnable:stDisable);
-	}
-	output_packet.w_u8(enable_state);
-}
 
-void		CPhysicsShellHolder::	load				(IReader &input_packet)
-{
-	inherited::load(input_packet);
-	st_enable_state=input_packet.r_u8();
-
-}
 
 void CPhysicsShellHolder::PHSaveState(NET_Packet &P)
 {
@@ -439,8 +415,8 @@ void CPhysicsShellHolder::PHSaveState(NET_Packet &P)
 		state.net_Save(P,min,max);
 	}
 }
-void
-CPhysicsShellHolder::PHLoadState(IReader &P)
+
+void CPhysicsShellHolder::PHLoadState(IReader &P)
 {
 	
 //	Flags8 lflags;
@@ -473,14 +449,7 @@ bool CPhysicsShellHolder::register_schedule	() const
 
 void CPhysicsShellHolder::on_physics_disable()
 {
-	if (IsGameTypeSingle())
-		return;
-
-	/*NET_Packet			net_packet;
-	u_EventGen			(net_packet,GE_FREEZE_OBJECT,ID());
-	Level().Send		(net_packet,net_flags(TRUE,TRUE));*/
 }
-
 
 Fmatrix& CPhysicsShellHolder::ObjectXFORM()
 {
@@ -573,10 +542,6 @@ bool CPhysicsShellHolder::IsInventoryItem()
 bool CPhysicsShellHolder::IsActor()
 {
 	return !!cast_actor();
-}
-bool CPhysicsShellHolder::IsStalker()	
-{
-	return !!cast_stalker();
 }
 //void						SetWeaponHideState( u16 State, bool bSet )
 void CPhysicsShellHolder::HideAllWeapons( bool v )	

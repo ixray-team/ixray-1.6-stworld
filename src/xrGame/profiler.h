@@ -15,7 +15,6 @@
 #endif // XRGAME_EXPORTS
 
 #ifdef USE_PROFILER
-#	include "ai_debug.h"
 
 #ifdef PROFILE_CRITICAL_SECTIONS
 	extern void add_profile_portion(LPCSTR id, const u64 &time);

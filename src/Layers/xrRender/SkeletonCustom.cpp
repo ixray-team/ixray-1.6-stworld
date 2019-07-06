@@ -149,15 +149,18 @@ CSkeletonX* CKinematics::LL_GetChild	(u32 idx)
 	return			B	;
 }
 
-void	CKinematics::Load(const char* N, IReader *data, u32 dwFlags)
+void CKinematics::Load(const char* N, IReader *data, u32 dwFlags)
 {
-	//Msg				("skeleton: %s",N);
 	inherited::Load	(N, data, dwFlags);
 
     pUserData		= NULL;
     m_lod			= NULL;
-    // loading lods
+	// loading lods
 
+#ifndef _EDITOR
+if(!g_dedicated_server)
+#endif //#ifndef _EDITOR
+{
 	IReader* LD 	= data->open_chunk(OGF_S_LODS);
     if (LD)
 	{
@@ -169,28 +172,20 @@ void	CKinematics::Load(const char* N, IReader *data, u32 dwFlags)
 		{
 			string_path		lod_name;
 			LD->r_string	(lod_name, sizeof(lod_name));
-//.         strconcat		(sizeof(name_load),name_load, short_name, ":lod:", lod_name.c_str());
             m_lod 			= (dxRender_Visual*) ::Render->model_CreateChild(lod_name, NULL);
 
 			if ( CKinematics* lod_kinematics = dynamic_cast<CKinematics*>(m_lod) )
-			{
 				lod_kinematics->m_is_original_lod = true;
-			}
 
             VERIFY3(m_lod,"Cant create LOD model for", N);
-//.			VERIFY2			(m_lod->Type==MT_HIERRARHY || m_lod->Type==MT_PROGRESSIVE || m_lod->Type==MT_NORMAL,lod_name.c_str());
-/*
-			strconcat		(name_load, short_name, ":lod:1");
-            m_lod 			= ::Render->model_CreateChild(name_load,LD);
-			VERIFY			(m_lod->Type==MT_SKELETON_GEOMDEF_PM || m_lod->Type==MT_SKELETON_GEOMDEF_ST);
-*/
         }
         LD->close	();
     }
+}
 
-#ifndef _EDITOR    
-	// User data
-	IReader* UD 	= data->open_chunk(OGF_S_USERDATA);
+#ifndef _EDITOR
+    // User data
+    IReader* UD 	= data->open_chunk(OGF_S_USERDATA);
     pUserData		= UD?xr_new<CInifile>(UD,FS.get_path("$game_config$")->m_Path):0;
     if (UD)			UD->close();
 #endif

@@ -44,11 +44,6 @@ public:
 	IC		const Fmatrix		&offset					() const;
 	IC		bool				enabled					() const;
 	virtual	void				enable					(bool value);
-protected:
-	virtual bool		use_parent_ai_locations	() const	=0
-	{
-		return !enabled();
-	}
 public:
 #ifdef DEBUG
 	static CAttachableItem		*m_dbgItem;

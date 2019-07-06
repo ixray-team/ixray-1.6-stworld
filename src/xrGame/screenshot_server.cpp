@@ -42,7 +42,6 @@ void clientdata_proxy::make_screenshot(ClientID const & admin_id, ClientID const
 		Msg("! Receiving from client [%u] already active, please try later", cheater_id.value());
 		return;
 	}
-	m_cheater_digest = tmp_cheater->m_cdkey_digest;
 	m_cheater_name	= tmp_cheater->ps ? tmp_cheater->ps->getName() : "unknown";
 	NET_Packet ssr_packet;
 	ssr_packet.w_begin				(M_GAMEMESSAGE); 
@@ -81,7 +80,6 @@ void clientdata_proxy::make_config_dump(ClientID const & admin_id, ClientID cons
 		Msg("! Receiving from client [%u] already active, please try later", cheater_id.value());
 		return;
 	}
-	m_cheater_digest = tmp_cheater->m_cdkey_digest;
 	m_cheater_name	= tmp_cheater->ps ? tmp_cheater->ps->getName() : "unknown";
 	NET_Packet ssr_packet;
 	ssr_packet.w_begin				(M_GAMEMESSAGE); 

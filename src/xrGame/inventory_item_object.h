@@ -47,8 +47,6 @@ public:
 	virtual void	net_Destroy				();
 	virtual void	net_Import				(NET_Packet& P);					// import from server
 	virtual void	net_Export				(NET_Packet& P);					// export to server
-	virtual void	save					(NET_Packet &output_packet);
-	virtual void	load					(IReader &input_packet);
 	virtual BOOL	net_SaveRelevant		()								{return TRUE;}
 	virtual void	renderable_Render		();
 	virtual void	reload					(LPCSTR section);
@@ -74,14 +72,6 @@ protected:
 
 public:
 	virtual bool	Useful					() const;
-
-public:
-	virtual u32		ef_weapon_type			() const;
-protected:
-	virtual bool	use_parent_ai_locations	() const
-	{
-		return CAttachableItem::use_parent_ai_locations();
-	}
 
 };
 

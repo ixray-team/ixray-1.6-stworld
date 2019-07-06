@@ -66,35 +66,35 @@ void CPPEffectorCustomController<_Effector>::load(LPCSTR section)
 
 class CPPEffectorController;
 
-class CPPEffectorControlled : public CPPEffectorCustom {
-	typedef CPPEffectorCustom inherited;
-
-	CPPEffectorController	*m_controller;
-public:
-					CPPEffectorControlled	(CPPEffectorController *controller, const SPPInfo &ppi, bool one_instance = false, bool destroy_from_engine = true);
-	virtual BOOL	update					();
-	IC		void	set_factor				(float value){m_factor = value;}
-};
+//class CPPEffectorControlled : public CPPEffectorCustom {
+//	typedef CPPEffectorCustom inherited;
+//
+//	CPPEffectorController	*m_controller;
+//public:
+//					CPPEffectorControlled	(CPPEffectorController *controller, const SPPInfo &ppi, bool one_instance = false, bool destroy_from_engine = true);
+//	virtual BOOL	update					();
+//	IC		void	set_factor				(float value){m_factor = value;}
+//};
 
 //////////////////////////////////////////////////////////////////////////
 
 
-class CPPEffectorController : public CPPEffectorCustomController<CPPEffectorControlled>{
-public:
-					CPPEffectorController	();
-	virtual 		~CPPEffectorController	();
-
-	virtual void	frame_update			(); 
-
-	virtual bool	check_completion		() = 0;
-	virtual bool	check_start_conditions	() = 0;
-	virtual void	update_factor			() = 0;
-	
-	// factory method
-	virtual CPPEffectorControlled *create_effector	() = 0;
-
-protected:
-			void	activate				();
-			void	deactivate				();
-};
-
+//class CPPEffectorController : public CPPEffectorCustomController<CPPEffectorControlled>{
+//public:
+//					CPPEffectorController	();
+//	virtual 		~CPPEffectorController	();
+//
+//	virtual void	frame_update			(); 
+//
+//	virtual bool	check_completion		() = 0;
+//	virtual bool	check_start_conditions	() = 0;
+//	virtual void	update_factor			() = 0;
+//	
+//	// factory method
+//	virtual CPPEffectorControlled *create_effector	() = 0;
+//
+//protected:
+//			void	activate				();
+//			void	deactivate				();
+//};
+//

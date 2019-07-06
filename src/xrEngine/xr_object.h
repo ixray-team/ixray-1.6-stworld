@@ -56,8 +56,6 @@ public:
 		u32	storage;
 	};
 private:
-	BENCH_SEC_SCRAMBLEMEMBER1
-	BENCH_SEC_SCRAMBLEVTBL2
 	// Some property variables
 	ObjectProperties					Props;
 	shared_str							NameObject;
@@ -180,7 +178,6 @@ virtual	const IObjectPhysicsCollision	*physics_collision	()					{ return  0; }
 	virtual void						net_Destroy			();
 	virtual void						net_Export			(NET_Packet& P) {};					// export to server
 	virtual void						net_Import			(NET_Packet& P) {};					// import from server
-	virtual	void						net_ImportInput		(NET_Packet& P)	{};
 	virtual BOOL						net_Relevant		()				{ return FALSE; };	// relevant for export to server
 	virtual void						net_MigrateInactive	(NET_Packet& P)	{ Props.net_Local = FALSE;		};
 	virtual void						net_MigrateActive	(NET_Packet& P)	{ Props.net_Local = TRUE;		};

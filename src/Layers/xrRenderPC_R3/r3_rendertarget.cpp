@@ -13,6 +13,7 @@
 #include "dx10MinMaxSMBlender.h"
 #include "../xrRenderDX10/msaa/dx10MSAABlender.h"
 #include "../xrRenderDX10/DX10 Rain/dx10RainBlender.h"
+#include "../../xrEngine/Environment.h"
 
 
 #include "../xrRender/dxRenderDeviceRender.h"

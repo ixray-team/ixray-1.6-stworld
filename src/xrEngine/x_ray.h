@@ -27,7 +27,7 @@ public:
 private:
 	FactoryPtr<IApplicationRender>	m_pRender;
 
-	int		max_load_stage;
+	int						max_load_stage;
 
 	int						load_stage;
 
@@ -35,10 +35,8 @@ private:
 private:
 	EVENT					eQuit;
 	EVENT					eStart;
-	EVENT					eStartLoad;
+	EVENT					eStartLobby;
 	EVENT					eDisconnect;
-	EVENT					eConsole;
-	EVENT					eStartMPDemo;
 
 	void					Level_Append		(LPCSTR lname);
 public:
@@ -46,7 +44,6 @@ public:
 
 	// Levels
 	xr_vector<sLevelInfo>	Levels;
-	u32						Level_Current;
 	void					Level_Scan			();
 	int						Level_ID			(LPCSTR name, LPCSTR ver, bool bSet);
 	void					Level_Set			(u32 ID);

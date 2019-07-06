@@ -15,8 +15,6 @@
 
 #include "CameraLook.h"
 #include "CameraFirstEye.h"
-#include "holder_custom.h"
-//.#include "ui/uiinventoryWnd.h"
 #include "game_base_space.h"
 #ifdef DEBUG
 #include "PHDebug.h"
@@ -44,7 +42,7 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
 			}
 		
 			CGameObject* _GO		= smart_cast<CGameObject*>(Obj);
-			if (!IsGameTypeSingle() && !g_Alive())
+			if (!g_Alive())
 			{
 				Msg("! WARNING: dead player [%d][%s] can't take items [%d][%s]",
 					ID(), Name(), _GO->ID(), _GO->cNameSect().c_str());
@@ -67,13 +65,6 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
 			}
 			else
 			{
-				if (IsGameTypeSingle())
-				{
-					NET_Packet		P;
-					u_EventGen		(P,GE_OWNERSHIP_REJECT,ID());
-					P.w_u16			(u16(Obj->ID()));
-					u_EventSend		(P);
-				} else
 				{
 					Msg("! ERROR: Actor [%d][%s]  tries to drop on take [%d][%s]", ID(), Name(), _GO->ID(), _GO->cNameSect().c_str());
 				}
@@ -160,7 +151,7 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
 			P.r_u32		(flags);
 			s32 ZoomRndSeed = P.r_s32();
 			s32 ShotRndSeed = P.r_s32();
-			if (!IsGameTypeSingle() && !g_Alive())
+			if (!g_Alive())
 			{
 //				Msg("! WARNING: dead player tries to rize inventory action");
 				break;
@@ -201,7 +192,7 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
 				break;
 			}
 
-			if (!IsGameTypeSingle() && !g_Alive())
+			if (!g_Alive())
 			{
 				Msg("! WARNING: dead player [%d][%s] can't use items [%d][%s]",
 					ID(), Name(), Obj->ID(), Obj->cNameSect().c_str());
@@ -287,27 +278,6 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
 	case GE_ACTOR_MAX_HEALTH:
 		{
 			SetfHealth(GetMaxHealth());
-		}break;
-	case GEG_PLAYER_ATTACH_HOLDER:
-		{
-			u16 id = P.r_u16();
-			CObject* O	= Level().Objects.net_Find	(id);
-			if (!O){
-				Msg("! Error: No object to attach holder [%d]", id);
-				break;
-			}
-			VERIFY(m_holder==NULL);
-			CHolderCustom*	holder = smart_cast<CHolderCustom*>(O);
-			if(!holder->Engaged())	use_Holder		(holder);
-
-		}break;
-	case GEG_PLAYER_DETACH_HOLDER:
-		{
-			if			(!m_holder)	break;
-			u16 id			= P.r_u16();
-			CGameObject*	GO	= smart_cast<CGameObject*>(m_holder);
-			VERIFY			(id==GO->ID());
-			use_Holder		(NULL);
 		}break;
 	case GEG_PLAYER_PLAY_HEADSHOT_PARTICLE:
 		{

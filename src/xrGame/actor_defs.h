@@ -9,11 +9,7 @@
 
 namespace ACTOR_DEFS 
 {
-
-enum ESoundCcount {
-//	SND_HIT_COUNT=8,
-	SND_DIE_COUNT=4
-};
+#define SND_DIE_COUNT 4
 
 enum EActorCameras {
 	eacFirstEye		= 0,
@@ -48,52 +44,10 @@ enum EMoveCommand
 	mcLookout	= (mcLLookout|mcRLookout),
 };
 
-// enum для определения действия над вещью на которую наведен в текущее время прицел.
-// Используется для показа всплывающих динамических подсказок
-enum EActorAction
-{
-	eaaNoAction			= 0,
-	eaaPickup,
-	eaaTalk,
-	eaaOpenDoor,
-	eaaSearchCorpse,
-};
-
-typedef const char*		EActorSleep;
-extern EActorSleep		easCanSleepResult;
 extern 	string32		g_quick_use_slots[4];
 
-/*
-//результат функции GoSleep у актера
-enum EActorSleep
-{
-	easCanSleep			= 0,
-	easNotSolidGround,
-	easEnemies		
-};
-*/
-
-//---------------------------------------------
-// ввод с клавиатуры и мыши
-struct					net_input
-{
-	u32					m_dwTimeStamp;
-
-	u32					mstate_wishful;	
-
-	u8					cam_mode;
-	float				cam_yaw;
-	float				cam_pitch;
-	float				cam_roll;
-
-	bool operator < (const u32 Time)
-	{
-		return m_dwTimeStamp < Time;
-	};
-};
-
 //------------------------------
-struct				net_update 		
+struct net_update 		
 {
 	u32					dwTimeStamp;			// server(game) timestamp
 	float				o_model;				// model yaw
@@ -104,7 +58,6 @@ struct				net_update
 	u32					mstate;
 	int					weapon;
 	float				fHealth;
-//	float				fArmor;
 
 	net_update()	{
 		dwTimeStamp		= 0;
@@ -121,8 +74,6 @@ struct				net_update
 struct					net_update_A
 {
 	u32					dwTimeStamp;
-//	u32					dwTime0;
-//	u32					dwTime1;
 	SPHNetState			State;
 };
 

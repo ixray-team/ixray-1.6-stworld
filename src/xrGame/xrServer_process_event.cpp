@@ -1,12 +1,8 @@
 #include "stdafx.h"
 #include "xrServer.h"
-#include "game_sv_single.h"
-#include "alife_simulator.h"
 #include "xrserver_objects.h"
 #include "game_base.h"
 #include "game_cl_base.h"
-#include "ai_space.h"
-#include "alife_object_registry.h"
 #include "xrServer_Objects_ALife_Items.h"
 #include "xrServer_Objects_ALife_Monsters.h"
 
@@ -44,7 +40,6 @@ void xrServer::Process_event	(NET_Packet& P, ClientID sender)
 			P.r_u16(game_event_type);
 			game->AddDelayedEvent(P,game_event_type,timestamp,sender);
 		}break;
-	case GE_INFO_TRANSFER:
 	case GE_WPN_STATE_CHANGE:
 	case GE_ZONE_STATE_CHANGE:
 	case GE_ACTOR_JUMPING:
@@ -172,7 +167,7 @@ void xrServer::Process_event	(NET_Packet& P, ClientID sender)
 			xrClientData *l_pC	= ID_to_client(sender);
 			VERIFY				(game && l_pC);
 #ifndef MASTER_GOLD
-			if ((game->Type() != eGameIDSingle) && l_pC && l_pC->owner)
+			if(l_pC && l_pC->owner_)
 			{
 				Msg					("* [%2d] killed by [%2d] - sended by [0x%08x]", id_dest, id_src, l_pC->ID.value());
 			}
@@ -184,14 +179,13 @@ void xrServer::Process_event	(NET_Packet& P, ClientID sender)
 				break;
 
 #ifndef MASTER_GOLD
-			if (game->Type() != eGameIDSingle)
-				Msg				("* [%2d] is [%s:%s]", id_dest, *e_dest->s_name, e_dest->name_replace());
+			Msg				("* [%2d] is [%s:%s]", id_dest, *e_dest->s_name, e_dest->name_replace());
 #endif // #ifndef MASTER_GOLD
 
 			CSE_Abstract*		e_src		= game->get_entity_from_eid	(id_src	);	// кто убил
 			if (!e_src) {
 				xrClientData*	C = (xrClientData*)	game->get_client(id_src);
-				if (C) e_src = C->owner;
+				if (C) e_src = C->owner_;
 			};
 			VERIFY				(e_src);
 			if (!e_src)
@@ -201,15 +195,15 @@ void xrServer::Process_event	(NET_Packet& P, ClientID sender)
 			}
 //			R_ASSERT2			(e_dest && e_src, "Killer or/and being killed are offline or not exist at all :(");
 #ifndef MASTER_GOLD
-			if (game->Type() != eGameIDSingle)
-				Msg				("* [%2d] is [%s:%s]", id_src, *e_src->s_name, e_src->name_replace());
+			Msg				("* [%2d] is [%s:%s]", id_src, *e_src->s_name, e_src->name_replace());
 #endif // #ifndef MASTER_GOLD
 
 			game->on_death		(e_dest,e_src);
 
 			xrClientData*		c_src		= e_src->owner;				// клиент, чей юнит убил
 
-			if (c_src->owner->ID == id_src) {
+			if (c_src->owner_->ID == id_src) 
+			{
 				// Main unit
 				P.w_begin			(M_EVENT);
 				P.w_u32				(timestamp);
@@ -220,18 +214,6 @@ void xrServer::Process_event	(NET_Packet& P, ClientID sender)
 			}
 
 			SendBroadcast			(BroadcastCID,P,MODE);
-
-			//////////////////////////////////////////////////////////////////////////
-			// 
-			if (game->Type() == eGameIDSingle) {
-				P.w_begin			(M_EVENT);
-				P.w_u32				(timestamp);
-				P.w_u16				(GE_KILL_SOMEONE);
-				P.w_u16				(id_src);
-				P.w_u16				(destination);
-				SendTo				(c_src->ID, P, net_flags(TRUE, TRUE));
-			}
-			//////////////////////////////////////////////////////////////////////////
 
 			VERIFY					(verify_entities());
 		}
@@ -284,8 +266,6 @@ void xrServer::Process_event	(NET_Packet& P, ClientID sender)
 			{
 				break;
 			}
-			iowner->m_deadbody_can_take = (can_take == 1);
-			iowner->m_deadbody_closed   = (closed == 1);
 		}break;
 
 	case GEG_PLAYER_DISABLE_SPRINT:
@@ -318,22 +298,6 @@ void xrServer::Process_event	(NET_Packet& P, ClientID sender)
 		{
 			game->OnPlayer_Sell_Item(sender, P);
 		}break;
-	case GE_TELEPORT_OBJECT:
-		{
-			game->teleport_object	(P,destination);
-		}break;
-	case GE_ADD_RESTRICTION:
-		{
-			game->add_restriction	(P,destination);
-		}break;
-	case GE_REMOVE_RESTRICTION:
-		{
-			game->remove_restriction(P,destination);
-		}break;
-	case GE_REMOVE_ALL_RESTRICTIONS:
-		{
-			game->remove_all_restrictions(P,destination);
-		}break;
 	case GE_MONEY:
 		{
 			CSE_Abstract				*e_dest = receiver;
@@ -341,8 +305,6 @@ void xrServer::Process_event	(NET_Packet& P, ClientID sender)
 			pTa->m_dwMoney				= P.r_u32();
 						
 		}break;
-	case GE_FREEZE_OBJECT:
-		break;
 	case GE_REQUEST_PLAYERS_INFO:
 		{
 			SendPlayersInfo(sender);

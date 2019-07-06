@@ -1,14 +1,12 @@
 #include "StdAfx.h"
 #include "RegistryFuncs.h"
-#include "../xrGameSpy/xrGameSpy_MainDefs.h"
 
 #define REGISTRY_BASE	HKEY_LOCAL_MACHINE
 
 bool	ReadRegistryValue(LPCSTR rKeyName, DWORD rKeyType, void* value )
 {	
 	HKEY hKey = 0;	
-	long res = RegOpenKeyEx(REGISTRY_BASE, 
-		REGISTRY_PATH, 0, KEY_READ, &hKey);
+	long res = RegOpenKeyEx(REGISTRY_BASE, REGISTRY_PATH, 0, KEY_READ, &hKey);
 
 	if (res != ERROR_SUCCESS)
 	{

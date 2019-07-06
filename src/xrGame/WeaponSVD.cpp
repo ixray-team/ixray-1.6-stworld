@@ -1,4 +1,4 @@
-#include "pch_script.h"
+#include "stdafx.h"
 #include "weaponsvd.h"
 
 CWeaponSVD::CWeaponSVD(void)
@@ -28,14 +28,3 @@ void CWeaponSVD::OnAnimationEnd(u32 state)
 	inherited::OnAnimationEnd(state);
 }
 
-using namespace luabind;
-
-#pragma optimize("s",on)
-void CWeaponSVD::script_register	(lua_State *L)
-{
-	module(L)
-	[
-		class_<CWeaponSVD,CGameObject>("CWeaponSVD")
-			.def(constructor<>())
-	];
-}

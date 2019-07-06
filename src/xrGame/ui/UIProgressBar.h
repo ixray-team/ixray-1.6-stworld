@@ -2,7 +2,6 @@
 
 #include "uiwindow.h"
 #include "uibutton.h"
-#include "../../xrServerEntities/script_export_space.h"
 
 class CUIProgressBar : public CUIWindow
 {
@@ -59,6 +58,4 @@ public:
 
 	virtual void		Draw						();
 	virtual void		Update						();
-
-	DECLARE_SCRIPT_REGISTER_FUNCTION
 };

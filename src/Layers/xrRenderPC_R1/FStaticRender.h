@@ -49,7 +49,6 @@ public:
 	xrXRC														Sectors_xrc;
 	CDB::MODEL*													rmPortals;
 	CHOM														HOM;
-//.	R_occlusion													HWOCC;
 	
 	// Global containers
 	xr_vector<FSlideWindowItem>									SWIs;
@@ -187,7 +186,7 @@ public:
 	virtual void 					model_Delete			(IRender_DetailModel* & F);
 	virtual void					model_Logging			(BOOL bEnable)				{ Models->Logging(bEnable);	}
 	virtual void					models_Prefetch			();
-	virtual void					models_Clear			(BOOL b_complete);
+	virtual void					ClearPool				(BOOL b_complete);
 	
 	// Occlusion culling
 	virtual BOOL					occ_visible				(vis_data&	V);

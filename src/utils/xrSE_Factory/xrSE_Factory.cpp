@@ -6,31 +6,52 @@
 //	Description : Precompiled header creatore
 ////////////////////////////////////////////////////////////////////////////
 
-#include "pch_script.h"
+#include "stdafx.h"
+
 #include "xrSE_Factory.h"
-#include "ai_space.h"
-#include "script_engine.h"
 #include "object_factory.h"
 #include "xrEProps.h"
 #include "xrSE_Factory_import_export.h"
-#include "script_properties_list_helper.h"
-
-#include "character_info.h"
-#include "specific_character.h"
-//#include "character_community.h"
-//#include "monster_community.h"
-//#include "character_rank.h"
-//#include "character_reputation.h"
-
-#include <lua/library_linkage.h>
-#include <luabind/library_linkage.h>
 
 #pragma comment(lib,"xrCore.lib")
 
 extern CSE_Abstract *F_entity_Create	(LPCSTR section);
 
-extern CScriptPropertiesListHelper	*g_property_list_helper;
 extern HMODULE						prop_helper_module;
+
+struct CChooseType {};
+
+typedef IPropHelper& (__stdcall *TPHelper) ();
+
+TPHelper					_PHelper = 0;
+HMODULE						prop_helper_module = 0;
+LPCSTR						prop_helper_library = "xrEPropsB.dll", prop_helper_func = "PHelper";
+
+
+void load_prop_helper( )
+{
+	prop_helper_module		= LoadLibrary(prop_helper_library);
+	if (!prop_helper_module) {
+		Msg					("! Cannot find library %s",prop_helper_library);
+		return;
+	}
+	_PHelper				= (TPHelper)GetProcAddress(prop_helper_module,prop_helper_func);
+	if (!_PHelper) {
+		Msg					("! Cannot find entry point of the function %s in the library %s",prop_helper_func,prop_helper_func);
+		return;
+	}
+}
+
+IPropHelper &PHelper()
+{
+	static	bool			first_time = true;
+	if (first_time) {
+		first_time			= false;
+		load_prop_helper	();
+	}
+	R_ASSERT3				(_PHelper, "Cannot find entry point of the function or Cannot find library",prop_helper_library);
+	return					(_PHelper());
+}
 
 #ifdef NDEBUG
 
@@ -57,10 +78,7 @@ extern "C" {
 	}
 };
 
-//typedef void DUMMY_STUFF (const void*,const u32&,void*);
-//XRCORE_API DUMMY_STUFF	*g_temporary_stuff;
-
-void setup_luabind_allocator		();
+//void setup_luabind_allocator		();
 
 //#define TRIVIAL_ENCRYPTOR_DECODER
 //#include UP(xrEngine/trivial_encryptor.h)
@@ -77,25 +95,15 @@ BOOL APIENTRY DllMain		(HANDLE module_handle, DWORD call_reason, LPVOID reserved
 			FS.update_path				(SYSTEM_LTX,"$game_config$","system.ltx");
 			pSettings					= xr_new<CInifile>(SYSTEM_LTX);
 
-			setup_luabind_allocator		();
-
-			CCharacterInfo::InitInternal					();
-			CSpecificCharacter::InitInternal				();
+//			setup_luabind_allocator		();
 
 			break;
 		}
 		case DLL_PROCESS_DETACH: {
-			CCharacterInfo::DeleteSharedData				();
-			CCharacterInfo::DeleteIdToIndexData				();
-			CSpecificCharacter::DeleteSharedData			();
-			CSpecificCharacter::DeleteIdToIndexData			();
-
 
 			xr_delete					(g_object_factory);
 			CInifile** s				= (CInifile**)(&pSettings);
 			xr_delete					(*s);
-			xr_delete					(g_property_list_helper);
-			xr_delete					(g_ai_space);
 			xr_delete					(g_object_factory);
 			if (prop_helper_module)
 				FreeLibrary				(prop_helper_module);
@@ -106,17 +114,17 @@ BOOL APIENTRY DllMain		(HANDLE module_handle, DWORD call_reason, LPVOID reserved
     return				(TRUE);
 }
 
-void _destroy_item_data_vector_cont(T_VECTOR* vec)
-{
-	T_VECTOR::iterator it		= vec->begin();
-	T_VECTOR::iterator it_e		= vec->end();
-
-	xr_vector<CUIXml*>			_tmp;	
-	for(;it!=it_e;++it)
-	{
-		xr_vector<CUIXml*>::iterator it_f = std::find(_tmp.begin(), _tmp.end(), (*it)._xml);
-		if(it_f==_tmp.end())
-			_tmp.push_back	((*it)._xml);
-	}
-	delete_data	(_tmp);
-}
+//void _destroy_item_data_vector_cont(T_VECTOR* vec)
+//{
+//	T_VECTOR::iterator it		= vec->begin();
+//	T_VECTOR::iterator it_e		= vec->end();
+//
+//	xr_vector<CUIXml*>			_tmp;	
+//	for(;it!=it_e;++it)
+//	{
+//		xr_vector<CUIXml*>::iterator it_f = std::find(_tmp.begin(), _tmp.end(), (*it)._xml);
+//		if(it_f==_tmp.end())
+//			_tmp.push_back	((*it)._xml);
+//	}
+//	delete_data	(_tmp);
+//}

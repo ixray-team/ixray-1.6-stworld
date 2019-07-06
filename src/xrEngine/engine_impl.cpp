@@ -10,7 +10,7 @@
 
 #ifdef INGAME_EDITOR
 #include "engine_impl.hpp"
-#include "xr_ioconsole.h"
+#include "xr_ioc_cmd.h"
 #include "xr_input.h"
 #include "IGame_Persistent.h"
 #include "IGame_Level.h"
@@ -18,7 +18,7 @@
 #include "editor_environment_manager.hpp"
 #include "editor_environment_weathers_manager.hpp"
 
-ENGINE_API extern CConsole* Console;
+ENGINE_API extern CConsole* pConsole;
 
 using editor::property_holder;
 
@@ -52,8 +52,8 @@ void engine_impl::on_idle		()
 
 void engine_impl::on_resize		()
 {
-	if (Console)
-		Console->Execute("vid_restart");
+	if (pConsoleCommands)
+		pConsoleCommands->Execute("vid_restart");
 }
 
 void engine_impl::pause			(bool const &value)
@@ -79,7 +79,7 @@ void engine_impl::capture_input	(bool const &value)
 
 void engine_impl::disconnect	()
 {
-	Console->Execute("quit");
+	pConsoleCommands->Execute("quit");
 }
 
 void engine_impl::value					(LPCSTR value, shared_str& result)

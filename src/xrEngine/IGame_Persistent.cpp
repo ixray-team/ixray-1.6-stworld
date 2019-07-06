@@ -2,15 +2,17 @@
 #pragma hdrstop
 
 #include "IGame_Persistent.h"
+#include "std_classes.h"
 
 #ifndef _EDITOR
-#include "environment.h"
+#	include "environment.h"
 #	include "x_ray.h"
 #	include "IGame_Level.h"
 #	include "XR_IOConsole.h"
 #	include "Render.h"
 #	include "ps_instance.h"
 #	include "CustomHUD.h"
+#	include "xr_ioc_cmd.h"
 #endif
 
 #ifdef _EDITOR
@@ -24,6 +26,10 @@
 ENGINE_API	IGame_Persistent*		g_pGamePersistent	= NULL;
 
 IGame_Persistent::IGame_Persistent	()
+:m_e_game_type(eGameIDNoGame)
+#ifndef _EDITOR
+,pEnvironment(NULL)
+#endif //#ifndef _EDITOR
 {
 	RDEVICE.seqAppStart.Add			(this);
 	RDEVICE.seqAppEnd.Add			(this);
@@ -33,16 +39,19 @@ IGame_Persistent::IGame_Persistent	()
 
 	m_pMainMenu						= NULL;
 
-#ifndef INGAME_EDITOR
-	#ifndef _EDITOR
-	pEnvironment					= xr_new<CEnvironment>();
-	#endif
-#else // #ifdef INGAME_EDITOR
-	if (RDEVICE.editor())
-		pEnvironment				= xr_new<editor::environment::manager>();
-	else
-		pEnvironment				= xr_new<CEnvironment>();
-#endif // #ifdef INGAME_EDITOR
+#ifndef DEDICATED_SERVER
+
+	#ifndef INGAME_EDITOR
+		#ifndef _EDITOR
+		pEnvironment					= xr_new<CEnvironment>();
+		#endif
+	#else // #ifdef INGAME_EDITOR
+		if (RDEVICE.editor())
+			pEnvironment				= xr_new<editor::environment::manager>();
+		else
+			pEnvironment				= xr_new<CEnvironment>();
+	#endif // #ifdef INGAME_EDITOR
+#endif // #ifndef DEDICATED_SERVER
 }
 
 IGame_Persistent::~IGame_Persistent	()
@@ -57,26 +66,23 @@ IGame_Persistent::~IGame_Persistent	()
 #endif
 }
 
-void IGame_Persistent::OnAppActivate		()
-{
-}
-
-void IGame_Persistent::OnAppDeactivate		()
-{
-}
-
 void IGame_Persistent::OnAppStart	()
 {
-#ifndef _EDITOR
-	Environment().load				();
+#ifndef DEDICATED_SERVER
+	#ifndef _EDITOR
+		Environment().load				();
+	#endif    
 #endif    
 }
 
 void IGame_Persistent::OnAppEnd		()
 {
-#ifndef _EDITOR
-	Environment().unload			 ();
+#ifndef DEDICATED_SERVER
+	#ifndef _EDITOR
+		Environment().unload			 ();
+	#endif    
 #endif    
+
 	OnGameEnd						();
 
 #ifndef _EDITOR
@@ -84,55 +90,93 @@ void IGame_Persistent::OnAppEnd		()
 #endif    
 }
 
-
-void IGame_Persistent::PreStart		(LPCSTR op)
+void IGame_Persistent::StartLobby( LPCSTR lobby_menu_name )
 {
-	string256						prev_type;
-	params							new_game_params;
-	xr_strcpy							(prev_type,m_game_params.m_game_type);
-	new_game_params.parse_cmd_line	(op);
-
-	// change game type
-	if (0!=xr_strcmp(prev_type,new_game_params.m_game_type)){
-		OnGameEnd					();
-	}
-}
-void IGame_Persistent::Start		(LPCSTR op)
-{
-	string256						prev_type;
-	xr_strcpy							(prev_type,m_game_params.m_game_type);
-	m_game_params.parse_cmd_line	(op);
-	// change game type
-	if ((0!=xr_strcmp(prev_type,m_game_params.m_game_type))) 
+	if(g_pGameLevel)
 	{
-		if (*m_game_params.m_game_type)
-			OnGameStart					();
+		g_pGameLevel->net_Stop	( );
+		DEL_INSTANCE			( g_pGameLevel );
+		Disconnect				( );
+	}
+	g_pGameLevel			= (IGame_Level*)NEW_INSTANCE(CLSID_GAME_LEVEL);
+	pApp->LoadBegin			( ); 
+	m_e_game_type			= eGameIDLobbyMenu;
+	Start					( lobby_menu_name, eGameIDLobbyMenu );
+	g_pGameLevel->LoadLobbyMenu	(lobby_menu_name);
+	pApp->LoadEnd			( ); 
+}
+
+void IGame_Persistent::StartNetGame( LPCSTR op_server, LPCSTR op_client )
+{
+	string256		level_name = "";
+	string256		game_mode_str;
+	EGameIDs		game_type = eGameIDNoGame;
+
+	// parse cmd_line
+	int		n = _GetItemCount(op_server,'/');
+	if(n>=2)
+	{
+		_GetItem			(op_server,0,level_name,'/');
+		strlwr				(level_name);
+
+		_GetItem			(op_server,1,game_mode_str,'/');
+		strlwr				(game_mode_str);
+		game_type			= IGame_Persistent::ParseStringToGameType(game_mode_str);
+	}else
+	{
+		if(op_server)
+		{
+			string1024 error_msg;
+			strconcat(sizeof(error_msg), error_msg, "incorrect server options passed: ", op_server);
+			CHECK_OR_EXIT(FALSE,error_msg);
+		}
+	}
+
+#ifndef DEDICATED_SERVER
+	pConsoleCommands->Execute	( "main_menu off" );
+	pConsole->Hide				( );
+#endif //#ifndef DEDICATED_SERVER
+
+	if(game_type!=GameType()) 
+		OnGameEnd	( );
+
+	g_pGameLevel			= (IGame_Level*)NEW_INSTANCE(CLSID_GAME_LEVEL);
+	pApp->LoadBegin			( ); 
+	Start					( level_name, game_type );
+	g_pGameLevel->net_Start	( op_server, op_client[0]?op_client : "localhost" );
+	pApp->LoadEnd			( ); 
+}
+
+void IGame_Persistent::Start( LPCSTR level_name, EGameIDs game_type )
+{
+	// change game type
+	if(game_type!=m_e_game_type) 
+	{
+		m_e_game_type		= game_type;
+		OnGameStart			( );
 #ifndef _EDITOR
 		if(g_hud)
-			DEL_INSTANCE			(g_hud);
+			DEL_INSTANCE	( g_hud );
 #endif            
 	}
-	else UpdateGameType();
 
-	VERIFY							(ps_destroy.empty());
+	VERIFY					( ps_destroy.empty() );
 }
 
-void IGame_Persistent::Disconnect	()
+void IGame_Persistent::Disconnect( )
 {
 #ifndef _EDITOR
-	// clear "need to play" particles
-	destroy_particles					(true);
+	destroy_particles		(true);
 
 	if(g_hud)
-			DEL_INSTANCE			(g_hud);
-//.		g_hud->OnDisconnected			();
+			DEL_INSTANCE	(g_hud);
 #endif
+	m_e_game_type			= eGameIDNoGame;
 }
 
 void IGame_Persistent::OnGameStart()
 {
 #ifndef _EDITOR
-//	LoadTitle("st_prefetching_objects");
 	LoadTitle();
 	if(!strstr(Core.Params,"-noprefetch"))
 		Prefetch();
@@ -143,37 +187,32 @@ void IGame_Persistent::OnGameStart()
 void IGame_Persistent::Prefetch()
 {
 	// prefetch game objects & models
-	float	p_time		=			1000.f*Device.GetTimerGlobal()->GetElapsed_sec();
-	u32	mem_0			=			Memory.mem_usage()	;
+	float	p_time						= 1000.f*Device.GetTimerGlobal()->GetElapsed_sec();
+	u32	mem_0							= Memory.mem_usage()	;
 
-	Log				("Loading objects...");
-	ObjectPool.prefetch					();
-	Log				("Loading models...");
+	Log									("Prefetching models...");
 	Render->models_Prefetch				();
-	//Device.Resources->DeferredUpload	();
 	Device.m_pRender->ResourcesDeferredUpload();
 
-	p_time				=			1000.f*Device.GetTimerGlobal()->GetElapsed_sec() - p_time;
-	u32		p_mem		=			Memory.mem_usage() - mem_0	;
+	p_time				= 1000.f*Device.GetTimerGlobal()->GetElapsed_sec() - p_time;
+	u32		p_mem		= Memory.mem_usage() - mem_0	;
 
 	Msg					("* [prefetch] time:    %d ms",	iFloor(p_time));
 	Msg					("* [prefetch] memory:  %dKb",	p_mem/1024);
 }
 #endif
 
-
-void IGame_Persistent::OnGameEnd	()
+void IGame_Persistent::OnGameEnd( )
 {
 #ifndef _EDITOR
-	ObjectPool.clear					();
-	Render->models_Clear				(TRUE);
+	Render->ClearPool		(TRUE);
 #endif
 }
 
 void IGame_Persistent::OnFrame		()
 {
+#ifndef DEDICATED_SERVER
 #ifndef _EDITOR
-
 	if(!Device.Paused() || Device.dwPrecacheFrame)
 		Environment().OnFrame	();
 
@@ -192,7 +231,6 @@ void IGame_Persistent::OnFrame		()
 	// Destroy inactive particle systems
 	while (ps_destroy.size())
 	{
-//		u32 cnt					= ps_destroy.size();
 		CPS_Instance*	psi		= ps_destroy.back();
 		VERIFY					(psi);
 		if (psi->Locked())
@@ -204,9 +242,10 @@ void IGame_Persistent::OnFrame		()
 		psi->PSI_internal_delete();
 	}
 #endif
+#endif //#ifndef DEDICATED_SERVER
 }
 
-void IGame_Persistent::destroy_particles		(const bool &all_particles)
+void IGame_Persistent::destroy_particles(const bool& all_particles)
 {
 #ifndef _EDITOR
 	ps_needtoplay.clear				();
@@ -249,6 +288,52 @@ void IGame_Persistent::destroy_particles		(const bool &all_particles)
 void IGame_Persistent::OnAssetsChanged()
 {
 #ifndef _EDITOR
-	Device.m_pRender->OnAssetsChanged(); //Resources->m_textures_description.Load();
+	Device.m_pRender->OnAssetsChanged();
 #endif    
+}
+
+LPCSTR GameTypeToString(EGameIDs gt, bool bShort)
+{
+	switch(gt)
+	{
+	case eGameIDDeathmatch:
+		return (bShort)?"dm":"deathmatch";
+		break;
+	case eGameIDTeamDeathmatch:
+		return (bShort)?"tdm":"teamdeathmatch";
+		break;
+	case eGameIDArtefactHunt:
+		return (bShort)?"ah":"artefacthunt";
+		break;
+	case eGameIDCaptureTheArtefact:
+		return (bShort)?"cta":"capturetheartefact";
+		break;
+	default :
+		return		"---";
+	}
+}
+
+EGameIDs IGame_Persistent::ParseStringToGameType(LPCSTR str)
+{
+	if (!xr_strcmp(str, "deathmatch") || !xr_strcmp(str, "dm")) 
+		return eGameIDDeathmatch;
+	else
+	if (!xr_strcmp(str, "teamdeathmatch") || !xr_strcmp(str, "tdm")) 
+		return eGameIDTeamDeathmatch;
+	else
+	if (!xr_strcmp(str, "artefacthunt") || !xr_strcmp(str, "ah")) 
+		return eGameIDArtefactHunt;
+	else
+	if (!xr_strcmp(str, "capturetheartefact") || !xr_strcmp(str, "cta")) 
+		return eGameIDCaptureTheArtefact;
+	else
+	{
+		R_ASSERT3(false, "unknown game type:", str);
+		return eGameIDNoGame;
+	}
+}
+
+LPCSTR IGame_Persistent::GameTypeStr( ) const
+{
+	return GameTypeToString(m_e_game_type, true);
 }

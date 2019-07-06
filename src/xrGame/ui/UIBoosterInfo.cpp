@@ -1,9 +1,8 @@
 #include "stdafx.h"
 #include "UIBoosterInfo.h"
 #include "UIStatic.h"
-#include "object_broker.h"
 #include "../EntityCondition.h"
-#include "..\actor.h"
+#include "../actor.h"
 #include "../ActorCondition.h"
 #include "UIXmlInit.h"
 #include "UIHelper.h"
@@ -102,7 +101,7 @@ void CUIBoosterInfo::SetInfo( shared_str const& section )
 	DetachAll();
 	AttachChild( m_Prop_line );
 
-	CActor* actor = smart_cast<CActor*>( Level().CurrentViewEntity() );
+	CActor* actor = smart_cast<CActor*>( Level().CurrentViewActor() );
 	if ( !actor )
 	{
 		return;

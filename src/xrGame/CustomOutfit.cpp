@@ -33,9 +33,6 @@ CCustomOutfit::~CCustomOutfit()
 
 BOOL CCustomOutfit::net_Spawn(CSE_Abstract* DC)
 {
-	if(IsGameTypeSingle())
-		ReloadBonesProtection();
-
 	BOOL res = inherited::net_Spawn(DC);
 	return					(res);
 }
@@ -57,8 +54,7 @@ void CCustomOutfit::net_Import(NET_Packet& P)
 void CCustomOutfit::OnH_A_Chield()
 {
 	inherited::OnH_A_Chield();
-	if (!IsGameTypeSingle())
-		ReloadBonesProtection();
+	ReloadBonesProtection();
 }
 
 
@@ -89,7 +85,6 @@ void CCustomOutfit::Load(LPCSTR section)
 	else
 		m_ActorVisual = NULL;
 
-	m_ef_equipment_type		= pSettings->r_u32(section,"ef_equipment_type");
 	m_fPowerLoss			= READ_IF_EXISTS(pSettings, r_float, section, "power_loss",    1.0f );
 	clamp					( m_fPowerLoss, 0.0f, 1.0f );
 
@@ -114,8 +109,6 @@ void CCustomOutfit::Load(LPCSTR section)
 void CCustomOutfit::ReloadBonesProtection()
 {
 	CObject* parent = H_Parent();
-	if(IsGameTypeSingle())
-		parent = smart_cast<CObject*>(Level().CurrentViewEntity());
 
 	if(parent && parent->Visual() && m_BonesProtectionSect.size())
 		m_boneProtection->reload( m_BonesProtectionSect, smart_cast<IKinematics*>(parent->Visual()));
@@ -156,17 +149,12 @@ float CCustomOutfit::HitThroughArmor(float hit_power, s16 element, float ap, boo
 		float BoneArmor = ba*GetCondition();
 		if(/*!fis_zero(ba, EPS) && */(ap > BoneArmor))
 		{
-			//пуля пробила бронь
-			if(!IsGameTypeSingle())
-			{
-				float hit_fraction = (ap - BoneArmor) / ap;
-				if(hit_fraction < m_boneProtection->m_fHitFracActor)
-					hit_fraction = m_boneProtection->m_fHitFracActor;
+			float hit_fraction = (ap - BoneArmor) / ap;
+			if(hit_fraction < m_boneProtection->m_fHitFracActor)
+				hit_fraction = m_boneProtection->m_fHitFracActor;
 
-				NewHitPower *= hit_fraction;
-				NewHitPower *= m_boneProtection->getBoneProtection(element);
-			}
-
+			NewHitPower *= hit_fraction;
+			NewHitPower *= m_boneProtection->getBoneProtection(element);
 			VERIFY(NewHitPower>=0.0f);
 		}
 		else
@@ -253,7 +241,7 @@ void CCustomOutfit::ApplySkinModel(CActor* pActor, bool bDress, bool bHUDOnly)
 		}
 
 
-		if (pActor == Level().CurrentViewEntity())	
+		if (pActor == Level().CurrentViewActor())	
 			g_player_hud->load(pSettings->r_string(cNameSect(),"player_hud_section"));
 	}else
 	{
@@ -266,7 +254,7 @@ void CCustomOutfit::ApplySkinModel(CActor* pActor, bool bDress, bool bHUDOnly)
 			};
 		}
 
-		if (pActor == Level().CurrentViewEntity())	
+		if (pActor == Level().CurrentViewActor())	
 			g_player_hud->load_default();
 	}
 
@@ -287,10 +275,6 @@ void	CCustomOutfit::OnMoveToRuck		(const SInvItemPlace& prev)
 	}
 };
 
-u32	CCustomOutfit::ef_equipment_type	() const
-{
-	return		(m_ef_equipment_type);
-}
 
 bool CCustomOutfit::install_upgrade_impl( LPCSTR section, bool test )
 {
@@ -348,9 +332,6 @@ bool CCustomOutfit::install_upgrade_impl( LPCSTR section, bool test )
 void CCustomOutfit::AddBonesProtection(LPCSTR bones_section)
 {
 	CObject* parent = H_Parent();
-	if(IsGameTypeSingle())
-		parent = smart_cast<CObject*>(Level().CurrentViewEntity());
-
 	if ( parent && parent->Visual() && m_BonesProtectionSect.size() )
 		m_boneProtection->add(bones_section, smart_cast<IKinematics*>( parent->Visual() ) );
 }

@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifdef XRSE_FACTORY_EXPORTS
+#	define _WIN32_WINNT 0x0550
+#endif // #ifdef XRSE_FACTORY_EXPORTS
+
 #include "../../xrCore/xrCore.h"
 
 #define STRINGIZE(a)			#a
@@ -25,6 +29,8 @@
 
 namespace std { class exception; }
 namespace boost { void throw_exception( std::exception const& A ); }
+
+#include "../xrServerEntities/object_broker.h"
 
 #include "smart_cast.h"
 

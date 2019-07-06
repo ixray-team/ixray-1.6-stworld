@@ -177,7 +177,7 @@ void UIPlayerItem::GetIconParamValue(game_PlayerState const * ps,
 			xr_strcpy(dest.begin(), dest.size(), "death");
 			return;
 		}
-		if (cl_game->Type() == eGameIDCaptureTheArtefact)
+		if (g_pGamePersistent->GameType() == eGameIDCaptureTheArtefact)
 		{
 			game_cl_CaptureTheArtefact* cta_cl_game = static_cast<game_cl_CaptureTheArtefact*>(cl_game);
 			R_ASSERT(cta_cl_game);
@@ -186,7 +186,7 @@ void UIPlayerItem::GetIconParamValue(game_PlayerState const * ps,
 			{
 				xr_strcpy(dest.begin(), dest.size(), "artefact");
 			}
-		} else if (cl_game->Type() == eGameIDArtefactHunt)
+		} else if (g_pGamePersistent->GameType() == eGameIDArtefactHunt)
 		{
 			game_cl_ArtefactHunt* ahunt_cl_game = static_cast<game_cl_ArtefactHunt*>(cl_game);
 			R_ASSERT(ahunt_cl_game);

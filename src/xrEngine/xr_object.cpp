@@ -308,7 +308,7 @@ void CObject::UpdateCL			()
 	spatial_update				(base_spu_epsP*5,base_spu_epsR*5);
 
 	// crow
-	if (Parent == g_pGameLevel->CurrentViewEntity())										
+	if (Parent == g_pGameLevel->CurrentViewActor())										
 		MakeMeCrow	();
 	else if (AlwaysTheCrow())																
 		MakeMeCrow	();
@@ -415,14 +415,14 @@ void CObject::setDestroy			(BOOL _destroy)
 	if (_destroy)
 	{
 		g_pGameLevel->Objects.register_object_to_destroy	(this);
-#ifdef DEBUG
-		extern BOOL debug_destroy;
-		if(debug_destroy)
-			Msg("cl setDestroy [%d][%d]",ID(),Device.dwFrame);
-#endif
-#ifdef MP_LOGGING
-		Msg("cl setDestroy [%d][%d]",ID(),Device.dwFrame);
-#endif //#ifdef MP_LOGGING
+//#ifdef DEBUG
+//		extern BOOL debug_destroy;
+//		if(debug_destroy)
+//			Msg("cl setDestroy [%d][%d]",ID(),Device.dwFrame);
+//#endif
+//#ifdef MP_LOGGING
+//		Msg("cl setDestroy [%d][%d]",ID(),Device.dwFrame);
+//#endif //#ifdef MP_LOGGING
 	}else
 		VERIFY		(!g_pGameLevel->Objects.registered_object_to_destroy(this));
 }

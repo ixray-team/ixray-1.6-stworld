@@ -20,22 +20,22 @@ struct LevelMapSyncData
 	bool						invalid_map_or_version;
 	
 	LevelMapSyncData()
-	{
-		m_sended_map_name_request = false;
-		m_map_sync_received	= false;
-		invalid_map_or_version = false;
-		m_map_loaded = false;
-		invalid_geom_checksum = false;
-		m_level_geom_crc32 = 0;
-		m_wait_map_time = 0;
-	}
-	~LevelMapSyncData()
-	{
-	}
-	void	CheckToSendMapSync();
-	void	ReceiveServerMapSync(NET_Packet& P);
-	inline bool IsInvalidMapOrVersion()		{ return invalid_map_or_version; }
-	inline bool	IsInvalidClientChecksum()	{ return invalid_geom_checksum; }
+	:	m_sended_map_name_request(false),
+		m_map_sync_received(false),
+		invalid_map_or_version(false),
+		m_map_loaded(false),
+		invalid_geom_checksum(false),
+		m_level_geom_crc32(0),
+		m_wait_map_time(0),
+		m_name(""),
+		m_map_version(""),
+		m_map_download_url("")
+	{}
+
+	void		CheckToSendMapSync		( );
+	void		ReceiveServerMapSync	( NET_Packet& P);
+	inline bool IsInvalidMapOrVersion	( ) const				{ return invalid_map_or_version; }
+	inline bool	IsInvalidClientChecksum	( )	const				{ return invalid_geom_checksum; }
 
 
 }; //class LevelMapSyncData

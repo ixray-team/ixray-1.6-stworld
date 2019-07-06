@@ -1,49 +1,12 @@
-#include "pch_script.h"
+#include "stdafx.h"
 #include "UIWpnParams.h"
 #include "UIXmlInit.h"
 #include "../level.h"
 #include "game_base_space.h"
-#include "../ai_space.h"
-#include "../../xrServerEntities/script_engine.h"
 #include "inventory_item_object.h"
 #include "UIInventoryUtilities.h"
 #include "Weapon.h"
 
-struct SLuaWpnParams
-{
-	luabind::functor<float>		m_functorRPM;
-	luabind::functor<float>		m_functorAccuracy;
-	luabind::functor<float>		m_functorDamage;
-	luabind::functor<float>		m_functorDamageMP;
-	luabind::functor<float>		m_functorHandling;
-
-	SLuaWpnParams();
-	~SLuaWpnParams();
-};
-
-SLuaWpnParams::SLuaWpnParams()
-{
-	bool	functor_exists;
-	functor_exists	= ai().script_engine().functor("ui_wpn_params.GetRPM",		m_functorRPM);		VERIFY(functor_exists);
-	functor_exists	= ai().script_engine().functor("ui_wpn_params.GetDamage",	m_functorDamage);	VERIFY(functor_exists);
-	functor_exists	= ai().script_engine().functor("ui_wpn_params.GetDamageMP", m_functorDamageMP);	VERIFY(functor_exists);
-	functor_exists	= ai().script_engine().functor("ui_wpn_params.GetHandling", m_functorHandling);	VERIFY(functor_exists);
-	functor_exists	= ai().script_engine().functor("ui_wpn_params.GetAccuracy", m_functorAccuracy);	VERIFY(functor_exists);
-}
-
-SLuaWpnParams::~SLuaWpnParams()
-{
-}
-
-SLuaWpnParams* g_lua_wpn_params = NULL;
-
-void destroy_lua_wpn_params()
-{
-	if(g_lua_wpn_params)
-		xr_delete(g_lua_wpn_params);
-}
-
-// =====================================================================
 
 CUIWpnParams::CUIWpnParams()
 {
@@ -97,129 +60,46 @@ void CUIWpnParams::InitFromXml(CUIXml& xml_doc)
 	m_progressDamage.InitFromXml	( xml_doc, "wpn_params:progress_damage" );
 	m_progressHandling.InitFromXml	( xml_doc, "wpn_params:progress_handling" );
 	m_progressRPM.InitFromXml		( xml_doc, "wpn_params:progress_rpm" );
-
-	if(IsGameTypeSingle())
-	{
-		CUIXmlInit::InitStatic			(xml_doc, "wpn_params:static_ammo",			0, &m_stAmmo);
-		CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_count",		0, &m_textAmmoCount);
-		CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_count2",		0, &m_textAmmoCount2);
-		CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_types",		0, &m_textAmmoTypes);
-		CUIXmlInit::InitTextWnd			(xml_doc, "wpn_params:cap_ammo_used_type",	0, &m_textAmmoUsedType);
-		CUIXmlInit::InitStatic			(xml_doc, "wpn_params:static_ammo_type1",	0, &m_stAmmoType1);
-		CUIXmlInit::InitStatic			(xml_doc, "wpn_params:static_ammo_type2",	0, &m_stAmmoType2);
-	}
-
 }
 
 void CUIWpnParams::SetInfo( CInventoryItem* slot_wpn, CInventoryItem& cur_wpn )
 {
-	if ( !g_lua_wpn_params )
-	{
-		g_lua_wpn_params = xr_new<SLuaWpnParams>();
-	}
-	
-	LPCSTR cur_section  = cur_wpn.object().cNameSect().c_str();
-	string2048 str_upgrades;
-	str_upgrades[0] = 0;
-	cur_wpn.get_upgrades_str( str_upgrades );
+// by andy 	
+	//LPCSTR cur_section  = cur_wpn.object().cNameSect().c_str();
+	//string2048 str_upgrades;
+	//str_upgrades[0] = 0;
+	//cur_wpn.get_upgrades_str( str_upgrades );
 
-	float cur_rpm    = iFloor(g_lua_wpn_params->m_functorRPM( cur_section, str_upgrades )*53.0f)/53.0f;
-	float cur_accur  = iFloor(g_lua_wpn_params->m_functorAccuracy( cur_section, str_upgrades )*53.0f)/53.0f;
-	float cur_hand   = iFloor(g_lua_wpn_params->m_functorHandling( cur_section, str_upgrades )*53.0f)/53.0f;
-	float cur_damage = ( GameID() == eGameIDSingle ) ?
-		iFloor(g_lua_wpn_params->m_functorDamage( cur_section, str_upgrades )*53.0f)/53.0f
-		: iFloor(g_lua_wpn_params->m_functorDamageMP( cur_section, str_upgrades )*53.0f)/53.0f;
+	//float cur_rpm    = iFloor(g_lua_wpn_params->m_functorRPM( cur_section, str_upgrades )*53.0f)/53.0f;
+	//float cur_accur  = iFloor(g_lua_wpn_params->m_functorAccuracy( cur_section, str_upgrades )*53.0f)/53.0f;
+	//float cur_hand   = iFloor(g_lua_wpn_params->m_functorHandling( cur_section, str_upgrades )*53.0f)/53.0f;
+	//float cur_damage = ( GameID() == eGameIDSingle ) ?
+	//	iFloor(g_lua_wpn_params->m_functorDamage( cur_section, str_upgrades )*53.0f)/53.0f
+	//	: iFloor(g_lua_wpn_params->m_functorDamageMP( cur_section, str_upgrades )*53.0f)/53.0f;
 
-	float slot_rpm    = cur_rpm;
-	float slot_accur  = cur_accur;
-	float slot_hand   = cur_hand;
-	float slot_damage = cur_damage;
+	//float slot_rpm    = cur_rpm;
+	//float slot_accur  = cur_accur;
+	//float slot_hand   = cur_hand;
+	//float slot_damage = cur_damage;
 
-	if ( slot_wpn && (slot_wpn != &cur_wpn) )
-	{
-		LPCSTR slot_section  = slot_wpn->object().cNameSect().c_str();
-		str_upgrades[0] = 0;
-		slot_wpn->get_upgrades_str( str_upgrades );
+	//if ( slot_wpn && (slot_wpn != &cur_wpn) )
+	//{
+	//	LPCSTR slot_section  = slot_wpn->object().cNameSect().c_str();
+	//	str_upgrades[0] = 0;
+	//	slot_wpn->get_upgrades_str( str_upgrades );
 
-		slot_rpm    = iFloor(g_lua_wpn_params->m_functorRPM( slot_section, str_upgrades )*53.0f)/53.0f;
-		slot_accur  = iFloor(g_lua_wpn_params->m_functorAccuracy( slot_section, str_upgrades )*53.0f)/53.0f;
-		slot_hand   = iFloor(g_lua_wpn_params->m_functorHandling( slot_section, str_upgrades )*53.0f)/53.0f;
-		slot_damage = ( GameID() == eGameIDSingle ) ?
-			iFloor(g_lua_wpn_params->m_functorDamage( slot_section, str_upgrades )*53.0f)/53.0f
-			: iFloor(g_lua_wpn_params->m_functorDamageMP( slot_section, str_upgrades )*53.0f)/53.0f;
-	}
-	
-	m_progressAccuracy.SetTwoPos( cur_accur,  slot_accur );
-	m_progressDamage.SetTwoPos(   cur_damage, slot_damage );
-	m_progressHandling.SetTwoPos( cur_hand,   slot_hand );
-	m_progressRPM.SetTwoPos(      cur_rpm,    slot_rpm );
-
-	if(IsGameTypeSingle())
-	{
-		xr_vector<shared_str> ammo_types;
-
-		CWeapon* weapon = cur_wpn.cast_weapon();
-		if(!weapon)
-			return;
-
-		int ammo_count = weapon->GetAmmoMagSize();
-		int ammo_count2 = ammo_count;
-
-		if(slot_wpn)
-		{
-			CWeapon* slot_weapon = slot_wpn->cast_weapon();
-			if(slot_weapon)
-				ammo_count2 = slot_weapon->GetAmmoMagSize(); 
-		}
-
-		if(ammo_count==ammo_count2)
-			m_textAmmoCount2.SetTextColor(color_rgba(170,170,170,255));
-		else if(ammo_count<ammo_count2)
-			m_textAmmoCount2.SetTextColor(color_rgba(255,0,0,255));
-		else
-			m_textAmmoCount2.SetTextColor(color_rgba(0,255,0,255));
-
-		string128 str;
-		xr_sprintf(str, sizeof(str), "%d", ammo_count);
-		m_textAmmoCount2.SetText(str);
-
-		ammo_types = weapon->m_ammoTypes;
-		if(ammo_types.empty())
-			return;
-
-		xr_sprintf(str, sizeof(str), "%s", pSettings->r_string(ammo_types[0].c_str(), "inv_name_short"));
-		m_textAmmoUsedType.SetTextST(str);
-
-		m_stAmmoType1.SetShader(InventoryUtilities::GetEquipmentIconsShader());
-		Frect				tex_rect;
-		tex_rect.x1			= float(pSettings->r_u32(ammo_types[0].c_str(), "inv_grid_x") * INV_GRID_WIDTH);
-		tex_rect.y1			= float(pSettings->r_u32(ammo_types[0].c_str(), "inv_grid_y") * INV_GRID_HEIGHT);
-		tex_rect.x2			= float(pSettings->r_u32(ammo_types[0].c_str(), "inv_grid_width") * INV_GRID_WIDTH );
-		tex_rect.y2			= float(pSettings->r_u32(ammo_types[0].c_str(), "inv_grid_height") * INV_GRID_HEIGHT);
-		tex_rect.rb.add		(tex_rect.lt);
-		m_stAmmoType1.SetTextureRect(tex_rect);
-		m_stAmmoType1.TextureOn();
-		m_stAmmoType1.SetStretchTexture(true);
-		m_stAmmoType1.SetWndSize(Fvector2().set((tex_rect.x2-tex_rect.x1)*UI().get_current_kx(), tex_rect.y2-tex_rect.y1));
-
-		m_stAmmoType2.SetShader(InventoryUtilities::GetEquipmentIconsShader());
-		if(ammo_types.size()==1)
-		{
-			tex_rect.set(0,0,1,1);
-		}
-		else
-		{
-			tex_rect.x1			= float(pSettings->r_u32(ammo_types[1].c_str(), "inv_grid_x") * INV_GRID_WIDTH);
-			tex_rect.y1			= float(pSettings->r_u32(ammo_types[1].c_str(), "inv_grid_y") * INV_GRID_HEIGHT);
-			tex_rect.x2			= float(pSettings->r_u32(ammo_types[1].c_str(), "inv_grid_width") * INV_GRID_WIDTH );
-			tex_rect.y2			= float(pSettings->r_u32(ammo_types[1].c_str(), "inv_grid_height") * INV_GRID_HEIGHT);
-			tex_rect.rb.add		(tex_rect.lt);
-		}
-		m_stAmmoType2.SetTextureRect(tex_rect);
-		m_stAmmoType2.TextureOn();
-		m_stAmmoType2.SetStretchTexture(true);
-		m_stAmmoType2.SetWndSize(Fvector2().set((tex_rect.x2-tex_rect.x1)*UI().get_current_kx(), tex_rect.y2-tex_rect.y1));
-	}
+	//	slot_rpm    = iFloor(g_lua_wpn_params->m_functorRPM( slot_section, str_upgrades )*53.0f)/53.0f;
+	//	slot_accur  = iFloor(g_lua_wpn_params->m_functorAccuracy( slot_section, str_upgrades )*53.0f)/53.0f;
+	//	slot_hand   = iFloor(g_lua_wpn_params->m_functorHandling( slot_section, str_upgrades )*53.0f)/53.0f;
+	//	slot_damage = ( GameID() == eGameIDSingle ) ?
+	//		iFloor(g_lua_wpn_params->m_functorDamage( slot_section, str_upgrades )*53.0f)/53.0f
+	//		: iFloor(g_lua_wpn_params->m_functorDamageMP( slot_section, str_upgrades )*53.0f)/53.0f;
+	//}
+	//
+	//m_progressAccuracy.SetTwoPos( cur_accur,  slot_accur );
+	//m_progressDamage.SetTwoPos	( cur_damage, slot_damage );
+	//m_progressHandling.SetTwoPos( cur_hand,   slot_hand );
+	//m_progressRPM.SetTwoPos		( cur_rpm,    slot_rpm );
 }
 
 bool CUIWpnParams::Check(const shared_str& wpn_section)

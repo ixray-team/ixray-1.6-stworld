@@ -1,38 +1,16 @@
 #include "stdafx.h"
 #include "LevelGameDef.h"
-#include "ai_space.h"
 #include "ParticlesObject.h"
-#include "script_process.h"
-#include "script_engine.h"
-#include "script_engine_space.h"
 #include "level.h"
 #include "game_cl_base.h"
 #include "../xrEngine/x_ray.h"
 #include "../xrEngine/gamemtllib.h"
 #include "../xrphysics/PhysicsCommon.h"
 #include "level_sounds.h"
-#include "GamePersistent.h"
+#include "../xrEngine/Environment.h"
+
 
 ENGINE_API	bool g_dedicated_server;
-
-BOOL CLevel::Load_GameSpecific_Before()
-{
-	// AI space
-//	g_pGamePersistent->LoadTitle		("st_loading_ai_objects");
-	g_pGamePersistent->LoadTitle		();
-	string_path							fn_game;
-	
-	if (GamePersistent().GameType() == eGameIDSingle && !ai().get_alife() && FS.exist(fn_game,"$level$","level.ai") && !net_Hosts.empty())
-		ai().load						(net_SessionName());
-
-	if (!g_dedicated_server && !ai().get_alife() && ai().get_game_graph() && FS.exist(fn_game, "$level$", "level.game")) {
-		IReader							*stream = FS.r_open		(fn_game);
-		ai().patrol_path_storage_raw	(*stream);
-		FS.r_close						(stream);
-	}
-
-	return								(TRUE);
-}
 
 BOOL CLevel::Load_GameSpecific_After()
 {
@@ -70,7 +48,7 @@ BOOL CLevel::Load_GameSpecific_After()
 			OBJ->r							(&transform,sizeof(Fmatrix));transform.c.y+=0.01f;
 			
 						
-			if ((g_pGamePersistent->m_game_params.m_e_game_type & EGameIDs(gametype_usage)) || (ver == 0))
+			if ((g_pGamePersistent->m_e_game_type & EGameIDs(gametype_usage)) || (ver == 0))
 			{
 				pStaticParticles				= CParticlesObject::Create(ref_name,FALSE,false);
 				pStaticParticles->UpdateParent	(transform,zero_vel);
@@ -136,20 +114,9 @@ BOOL CLevel::Load_GameSpecific_After()
 			FS.r_close				(F);
 		}
 	}	
-
-	if (!g_dedicated_server) {
-		// loading scripts
-		ai().script_engine().remove_script_process(ScriptEngine::eScriptProcessorLevel);
-
-		if (pLevel->section_exist("level_scripts") && pLevel->line_exist("level_scripts","script"))
-			ai().script_engine().add_script_process(ScriptEngine::eScriptProcessorLevel,xr_new<CScriptProcess>("level",pLevel->r_string("level_scripts","script")));
-		else
-			ai().script_engine().add_script_process(ScriptEngine::eScriptProcessorLevel,xr_new<CScriptProcess>("level",""));
-	}
 		
-	BlockCheatLoad();
-
-	g_pGamePersistent->Environment().SetGameTime	(GetEnvironmentGameDayTimeSec(),game->GetEnvironmentGameTimeFactor());
+	if(!g_dedicated_server)
+		g_pGamePersistent->Environment().SetGameTime	(GetEnvironmentGameDayTimeSec(),game->GetEnvironmentGameTimeFactor());
 
 	return TRUE;
 }
@@ -239,9 +206,36 @@ void CLevel::Load_GameSpecific_CFORM	( CDB::TRI* tris, u32 count )
 	}
 }
 
-void CLevel::BlockCheatLoad()
+#include "../xrphysics/iphworld.h"
+#include "phcommander.h"
+//#include "game_cl_base.h"
+
+BOOL CLevel::LoadLobbyMenu( LPCSTR lobby_menu_name )
 {
-#ifndef	DEBUG
-	if( game && (GameID() != eGameIDSingle) ) phTimefactor=1.f;
-#endif
+	int level_id	= pApp->Level_ID(lobby_menu_name, "1.0", true);
+
+	CLASS_ID clsid			= game_GameState::getCLASS_ID("deathmatch",false);
+//	game					= xr_new<game_cl_Lobby>();
+	game					= xr_new<game_cl_GameState>();
+	game->Init				();
+	m_variables.m_game_config_started	= TRUE;
+
+	Load			( level_id );
+	net_Disconnected = FALSE;
+	Load_GameSpecific_After ();
+
+	create_physics_world	(!!psDeviceFlags.test(mtPhysics), &ObjectSpace, &Objects, &Device);
+
+	R_ASSERT				(physics_world());
+
+	m_ph_commander_physics_worldstep	= xr_new<CPHCommander>();
+//	physics_world()->set_update_callback( m_ph_commander_physics_worldstep );
+
+//	physics_world()->set_default_contact_shotmark( ContactShotMark );
+//	physics_world()->set_default_character_contact_shotmark( CharacterContactShotMark );
+
+//	physics_world()->set_step_time_callback( (PhysicsStepTimeCallback*) &PhisStepsCallback );
+
+
+	return TRUE;
 }

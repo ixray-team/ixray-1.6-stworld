@@ -56,7 +56,7 @@ void CUIStatsPlayerInfo::InitPlayerInfo(Fvector2 pos, Fvector2 size)
 
 void CUIStatsPlayerInfo::SetInfo(game_PlayerState* pInfo){
 	m_pPlayerInfo = pInfo;
-	if (Level().CurrentViewEntity() && Level().CurrentViewEntity()->ID() == pInfo->GameID)
+	if (Level().CurrentViewActor() && Level().CurrentViewActor()->ID() == pInfo->GameID)
 		m_pBackground->SetVisible(true);
 	else
         m_pBackground->SetVisible(false);

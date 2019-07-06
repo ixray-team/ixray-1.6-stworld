@@ -1,8 +1,8 @@
 #ifndef BEST_SCORES_HELPER_INCLUDED
 #define BEST_SCORES_HELPER_INCLUDED
 
-#include "profile_data_types.h"
 #include "reward_event_handler.h"
+#include "rewarding_state_events.h"
 
 namespace award_system
 {

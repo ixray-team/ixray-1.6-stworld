@@ -17,9 +17,6 @@ static DWORD ttapi_threads_count = 0;
 static DWORD ttapi_assigned_workers = 0;
 static LPTTAPI_WORKER_PARAMS ttapi_worker_params = NULL;
 
-static DWORD ttapi_dwFastIter = 0;
-static DWORD ttapi_dwSlowIter = 0;
-
 struct {
 	volatile LONG size;
 	DWORD dwPadding[15];
@@ -28,44 +25,41 @@ struct {
 DWORD WINAPI ttapiThreadProc( LPVOID lpParameter )
 {
 	LPTTAPI_WORKER_PARAMS pParams = ( LPTTAPI_WORKER_PARAMS ) lpParameter;
-	DWORD i , dwFastIter = ttapi_dwFastIter , dwSlowIter = ttapi_dwSlowIter;
+	DWORD i;
 
 	while( TRUE ) {		
 		// Wait
 
 		// Fast
-		for ( i = 0 ; i < dwFastIter ; ++i ) {
-			if ( pParams->vlFlag == 0 ) {
-				// Msg( "0x%8.8X Fast %u" , dwId , i );
+		for ( i = 0 ; i < 4000 ; ++i ) {
+			if ( ! _InterlockedCompareExchange( &pParams->vlFlag , 0 , 0 ) )
 				goto process;
-			}
 			__asm pause;
 		}
-
 		// Moderate
-		for ( i = 0 ; i < dwSlowIter ; ++i ) {
-			if ( pParams->vlFlag == 0 ) {
-				// Msg( "0x%8.8X Moderate %u" , dwId , i );
+		for ( i = 0 ; i < 1000000 ; ++i ) {
+			if ( ! _InterlockedCompareExchange( &pParams->vlFlag , 0 , 0 ) )
 				goto process;
-			}
 			SwitchToThread();
 		}
-
 		// Slow
-		while ( pParams->vlFlag ) {
-			Sleep( 100 );
-			//Msg( "Shit" );
+		for ( i = 0 ; i < 1000 ; ++i ) {
+			if ( ! _InterlockedCompareExchange( &pParams->vlFlag , 0 , 0 ) )
+				goto process;
+			Sleep( 1 );
 		}
+		// VerySlow
+		while ( _InterlockedCompareExchange( &pParams->vlFlag , 0 , 0 ) )
+			Sleep( 100 );
 
 		process:
-
-		pParams->vlFlag = 1;
 
 		if ( pParams->lpWorkerFunc )
 			pParams->lpWorkerFunc( pParams->lpvWorkerFuncParams );
 		else
 			break;
 
+		_InterlockedExchange( &pParams->vlFlag , 1 );
 		_InterlockedDecrement( &ttapi_queue_size.size );
 
 	} // while
@@ -104,49 +98,10 @@ DWORD ttapi_Init( _processor_info* ID )
 		return ttapi_workers_count;
 
 	// System Info
-	ttapi_workers_count = ID->n_cores;
-
-	SetPriorityClass( GetCurrentProcess() , REALTIME_PRIORITY_CLASS );
-
-	DWORD i , dwNumIter;
-	volatile DWORD dwDummy = 1;
-	LARGE_INTEGER liFrequency , liStart , liEnd;
-
-	QueryPerformanceFrequency( &liFrequency );
-
-	// Get fast spin-loop timings
-	dwNumIter = 100000000;
-
-	QueryPerformanceCounter( &liStart );
-	for ( i = 0 ; i < dwNumIter ; ++i ) {
-		if ( dwDummy == 0 )
-			goto process1;
-		__asm pause;
-	}
-	process1:
-	QueryPerformanceCounter( &liEnd );
-
-	// We want 1/25 (40ms) fast spin-loop
-	ttapi_dwFastIter = ( dwNumIter * liFrequency.QuadPart ) / ( ( liEnd.QuadPart - liStart.QuadPart ) * 25 );
-	//Msg( "fast spin-loop iterations : %u" , ttapi_dwFastIter );
-
-	// Get slow spin-loop timings
-	dwNumIter = 10000000;
-
-	QueryPerformanceCounter( &liStart );
-	for ( i = 0 ; i < dwNumIter ; ++i ) {
-		if ( dwDummy == 0 )
-			goto process2;
-		SwitchToThread();
-	}
-	process2:
-	QueryPerformanceCounter( &liEnd );
-
-	// We want 1/2 (500ms) slow spin-loop
-	ttapi_dwSlowIter = ( dwNumIter * liFrequency.QuadPart ) / ( ( liEnd.QuadPart - liStart.QuadPart ) * 2 );
-	//Msg( "slow spin-loop iterations : %u" , ttapi_dwSlowIter );
-
-	SetPriorityClass( GetCurrentProcess() , NORMAL_PRIORITY_CLASS );
+	SYSTEM_INFO SystemInfo;
+	GetSystemInfo( &SystemInfo );
+//	ttapi_workers_count = ID->n_cores;
+	ttapi_workers_count = SystemInfo.dwNumberOfProcessors;
 
 	// Check for override from command line
 	char szSearchFor[] = "-max-threads";
@@ -172,32 +127,20 @@ DWORD ttapi_Init( _processor_info* ID )
 
 	char szThreadName[64];
 	DWORD dwThreadId = 0;
-	DWORD dwAffinitiMask = ID->affinity_mask;
-	DWORD dwCurrentMask = 0x01;
 
-	// Setting affinity
-	while ( ! ( dwAffinitiMask & dwCurrentMask ) )
-		dwCurrentMask <<= 1;
-
-	SetThreadAffinityMask( GetCurrentThread() , dwCurrentMask );
-	//Msg("Master Thread Affinity Mask : 0x%8.8X" , dwCurrentMask );
+	// SetThreadIdealProcessor( GetCurrentThread() , 0 );
 
 	// Creating threads
 	for ( DWORD i = 0 ; i < ttapi_threads_count ; i++ ) {
 
 		// Initializing "enter" "critical section"
-		ttapi_worker_params[ i ].vlFlag = 1;
+		_InterlockedExchange( &ttapi_worker_params[ i ].vlFlag , 1 );
 
 		if ( ( ttapi_threads_handles[ i ] = CreateThread( NULL , 0 , &ttapiThreadProc , &ttapi_worker_params[ i ] , 0 , &dwThreadId ) ) == NULL )
 			return 0;
 
-		// Setting affinity
-		do
-			dwCurrentMask <<= 1;
-		while ( ! ( dwAffinitiMask & dwCurrentMask ) );
-			
-		SetThreadAffinityMask( ttapi_threads_handles[ i ] , dwCurrentMask );
-		//Msg("Helper Thread #%u Affinity Mask : 0x%8.8X" , i + 1 , dwCurrentMask );
+		// Setting preferred processor
+		// SetThreadIdealProcessor( ttapi_threads_handles[ i ] , i + 1 );
 
 		// Setting thread name
 		sprintf_s( szThreadName , "Helper Thread #%u" , i );
@@ -228,11 +171,10 @@ VOID ttapi_AddWorker( LPPTTAPI_WORKER_FUNC lpWorkerFunc , LPVOID lpvWorkerFuncPa
 VOID ttapi_RunAllWorkers()
 {	
 	DWORD ttapi_thread_workers = ( ttapi_assigned_workers - 1 );
-	//unsigned __int64 Start,Stop;
 
 	if ( ttapi_thread_workers ) {
 		// Setting queue size
-		ttapi_queue_size.size = ttapi_thread_workers;
+		_InterlockedExchange( &ttapi_queue_size.size , ttapi_thread_workers );
 
 		// Starting all workers except the last
 		for ( DWORD i = 0 ; i < ttapi_thread_workers ; ++i )
@@ -242,13 +184,8 @@ VOID ttapi_RunAllWorkers()
 		ttapi_worker_params[ ttapi_thread_workers ].lpWorkerFunc( ttapi_worker_params[ ttapi_thread_workers ].lpvWorkerFuncParams );
 
 		// Waiting task queue to become empty
-		//Start = __rdtsc();
-		while( ttapi_queue_size.size )
+		while( _InterlockedCompareExchange( &ttapi_queue_size.size , 0 , 0 ) )
 			__asm pause;
-		//Stop = __rdtsc();
-		//Msg( "Wait: %u ticks" , Stop - Start );
-
-
 	} else
 		// Running the only worker in current thread
 		ttapi_worker_params[ ttapi_thread_workers ].lpWorkerFunc( ttapi_worker_params[ ttapi_thread_workers ].lpvWorkerFuncParams );

@@ -88,7 +88,7 @@ static void cammera_shell_character_collide_callback( bool& do_collide, bool bo1
 	if( !oposite_data || !oposite_data->ph_object || oposite_data->ph_object->CastType()!=CPHObject::tpCharacter)
 		return;
 	
-	if(!oposite_data->ph_ref_object || !(oposite_data->ph_ref_object->IsStalker()) )
+	if(!oposite_data->ph_ref_object || !(false) )
 		return;
 
 	do_collide =  true;

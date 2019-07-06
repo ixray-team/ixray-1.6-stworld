@@ -7,7 +7,7 @@
 #include "level.h"
 #include "xrserver_objects_alife_monsters.h"
 #include "actor.h"
-#include "../xrEngine/XR_IOConsole.h"
+#include "../xrEngine/xr_ioc_cmd.h"
 #include "../xrEngine/igame_persistent.h"
 #include "date_time.h"
 #include "game_cl_base.h"
@@ -18,7 +18,7 @@
 #include "MPPlayersBag.h"
 #include "WeaponKnife.h"
 #include "game_cl_base_weapon_usage_statistic.h"
-#include "xrGameSpyServer.h"
+//#include "xrGameSpyServer.h"
 
 #include "game_sv_mp_vote_flags.h"
 #include "player_name_modifyer.h"
@@ -102,19 +102,19 @@ void	game_sv_mp::Update	()
 	//-------------------------------------------------------
 	UpdatePlayersMoney();
 
-	if(g_sv_mp_iDumpStatsPeriod)
-	{
-		int curr_minutes = iFloor(Device.fTimeGlobal/60.0f);
-		if(g_sv_mp_iDumpStats_last+g_sv_mp_iDumpStatsPeriod <= curr_minutes )
-		{
-			if(Phase()==GAME_PHASE_INPROGRESS)
-			{
-				DumpOnlineStatistic();
-				DumpRoundStatistics();
-				g_sv_mp_iDumpStats_last	= curr_minutes;
-			}
-		}
-	}
+	//if(g_sv_mp_iDumpStatsPeriod)
+	//{
+	//	int curr_minutes = iFloor(Device.fTimeGlobal/60.0f);
+	//	if(g_sv_mp_iDumpStats_last+g_sv_mp_iDumpStatsPeriod <= curr_minutes )
+	//	{
+	//		if(Phase()==GAME_PHASE_INPROGRESS)
+	//		{
+	//			DumpOnlineStatistic();
+	//			DumpRoundStatistics();
+	//			g_sv_mp_iDumpStats_last	= curr_minutes;
+	//		}
+	//	}
+	//}
 }
 
 void game_sv_mp::OnRoundStart()
@@ -124,7 +124,7 @@ void game_sv_mp::OnRoundStart()
 	if( g_pGameLevel && Level().game )
 	{
 		Game().m_WeaponUsageStatistic->Clear();
-		StartToDumpStatistics();
+		//StartToDumpStatistics();
 	}
 	
 	m_CorpseList.clear();
@@ -235,7 +235,7 @@ struct real_sender
 	}
 };
 
-void	game_sv_mp::KillPlayer				(ClientID id_who, u16 GameID)
+void game_sv_mp::KillPlayer(ClientID id_who, u16 GameID)
 {
 	CObject* pObject =  Level().Objects.net_Find(GameID);
 	if (!pObject || !smart_cast<CActor*>(pObject)) return;
@@ -253,14 +253,10 @@ void	game_sv_mp::KillPlayer				(ClientID id_who, u16 GameID)
 #endif // #ifdef DEBUG
 		return;
 	}
+
 	if (xrCData) 
-	{
-		//-------------------------------------------------------
 		OnPlayerKillPlayer(xrCData->ps, xrCData->ps, KT_HIT, SKT_NONE, NULL);
-		if (xrCData->ps)
-			xrCData->ps->m_bClearRun = false;
-	};
-	//-------------------------------------------------------
+
 	CActor* pActor = smart_cast <CActor*>(pObject);
 	if (pActor)
 	{
@@ -417,9 +413,9 @@ bool game_sv_mp::CheckPlayerMapName(ClientID const & clientID, NET_Packet & P)
 {
 	string256		temp_map_name;
 	P.r_stringZ_s	(temp_map_name);
-	R_ASSERT		(Level().name().c_str());
+	R_ASSERT		(Level().map_name().c_str());
 
-	if (xr_strcmp(Level().name().c_str(), temp_map_name))
+	if (xr_strcmp(Level().map_name().c_str(), temp_map_name))
 	{
 		Msg("! Player 0x%08x has incorrect map name", clientID, temp_map_name);
 		//ReconnectPlayer(clientID);
@@ -428,8 +424,6 @@ bool game_sv_mp::CheckPlayerMapName(ClientID const & clientID, NET_Packet & P)
 	return true;
 }
 
-LPCSTR GameTypeToString(EGameIDs gt, bool bShort);
-
 void game_sv_mp::ReconnectPlayer(ClientID const & clientID)
 {
 #ifdef DEBUG
@@ -437,9 +431,9 @@ void game_sv_mp::ReconnectPlayer(ClientID const & clientID)
 #endif // #ifdef DEBUG
 	NET_Packet			P;
 	P.w_begin			(M_CHANGE_LEVEL_GAME);
-	P.w_stringZ			(Level().name().c_str());
-	P.w_stringZ			(GameTypeToString(Type(),true));
-	m_server->SendTo(clientID, P, net_flags(TRUE, TRUE));
+	P.w_stringZ			(Level().map_name().c_str());
+	P.w_stringZ			(g_pGamePersistent->GameTypeStr());
+	m_server->SendTo	(clientID, P, net_flags(TRUE, TRUE));
 }
 
 bool g_bConsoleCommandsCreated = false;
@@ -459,7 +453,7 @@ void game_sv_mp::Create (shared_str &options)
 	LoadRanks();
 	//------------------------------------------------------------------
 	Set_RankUp_Allowed(false);
-	m_cdkey_ban_list.load();
+
 	if (strstr(Core.Params, SAVE_SCREENSHOTS_KEY))
 	{
 		g_sv_mp_save_proxy_screenshots = TRUE;
@@ -501,9 +495,8 @@ void	game_sv_mp::RespawnPlayer			(ClientID id_who, bool NoSpectator)
 	//------------------------------------------------------------
 
 	xrClientData* xrCData	=	m_server->ID_to_client(id_who);
-	if (!xrCData || !xrCData->owner) return;
-//	game_PlayerState*	ps	=	&(xrCData->ps);
-	CSE_Abstract* pOwner = xrCData->owner;
+	if (!xrCData || !xrCData->owner_) return;
+	CSE_Abstract* pOwner = xrCData->owner_;
 	CSE_ALifeCreatureActor	*pA	=	smart_cast<CSE_ALifeCreatureActor*>(pOwner);
 	CSE_Spectator			*pS =	smart_cast<CSE_Spectator*>(pOwner);
 
@@ -598,7 +591,7 @@ void	game_sv_mp::SpawnPlayer(ClientID id, LPCSTR N)
 	Msg		("* %s [%d] respawned as %s", get_name_id(id), E->ID, (0 == pA) ? "spectator" : "actor");
 	spawn_end				(E,id);
 
-	ps_who->SetGameID(CL->owner->ID);
+	ps_who->SetGameID(CL->owner_->ID);
 
 	signal_Syncronize();
 }
@@ -689,9 +682,9 @@ void	game_sv_mp::SetSkin					(CSE_Abstract* E, u16 Team, u16 ID)
 bool	game_sv_mp::GetPosAngleFromActor				(ClientID id, Fvector& Pos, Fvector &Angle)
 {
 	xrClientData* xrCData	=	m_server->ID_to_client(id);
-	if (!xrCData || !xrCData->owner) return false;
+	if (!xrCData || !xrCData->owner_) return false;
 	
-	CObject* pObject =  Level().Objects.net_Find(xrCData->owner->ID);
+	CObject* pObject =  Level().Objects.net_Find(xrCData->owner_->ID);
 	///	R_ASSERT2	((pObject && smart_cast<CActor*>(pObject)),"Dead Player is not Actor");
 
 	if (!pObject || !smart_cast<CActor*>(pObject)) return false;
@@ -931,7 +924,7 @@ bool game_sv_mp::OnNextMap				()
 
 	string1024				Command;
 	xr_sprintf				(Command, "sv_changelevel %s %s", R.map_name.c_str(), R.map_ver.c_str());
-	Console->Execute		(Command);
+	pConsoleCommands->Execute		(Command);
 	return true;
 };
 
@@ -951,7 +944,7 @@ void game_sv_mp::OnPrevMap				()
 
 	string1024	Command;
 	xr_sprintf(Command, "sv_changelevel %s %s", R.map_name.c_str(), R.map_ver.c_str());
-	Console->Execute(Command);
+	pConsoleCommands->Execute(Command);
 };
 
 struct _votecommands		{
@@ -970,22 +963,6 @@ _votecommands	votecommands[] = {
 	{ "changegametype",	"sv_changegametype",		flVoteGameType		},
 	{ NULL, 			NULL }
 };
-
-s32 game_sv_mp::ExcludeBanTimeFromVoteStr(char const * vote_string, char* new_vote_str, u32 new_vote_str_size)
-{
-	if (!vote_string || !xr_strlen(vote_string))
-		return 0;
-	
-	s32 ret_time = 0;
-	strncpy_s(new_vote_str, new_vote_str_size, vote_string, new_vote_str_size - 1);
-	new_vote_str[xr_strlen(vote_string)] = 0;
-	char * start_time_str = strrchr(new_vote_str, ' ');
-	if (!start_time_str || !xr_strlen(++start_time_str))
-		return 0;
-	ret_time = atoi(start_time_str);
-	*(start_time_str - 1) = 0;
-	return ret_time;	
-}
 
 struct SearcherClientByName
 {
@@ -1093,24 +1070,7 @@ void game_sv_mp::OnVoteStart				(LPCSTR VoteCommand, ClientID sender)
 			xr_strcpy(resVoteCommand, VoteCommand);
 		} else if (!stricmp(votecommands[i].name, "ban"))
 		{
-			string256 tmp_victim_name;
-			s32 ban_time = ExcludeBanTimeFromVoteStr(CommandParams, tmp_victim_name, sizeof(tmp_victim_name));
-			//if (ban_time)
-			//{
-			SearcherClientByName tmp_predicate(tmp_victim_name);
-			IClient*	tmp_client = m_server->FindClient(tmp_predicate);
-			if (tmp_client)
-			{
-				m_pVoteCommand.printf("sv_banplayer %u %d", tmp_client->ID.value(), ban_time);
-			} else
-			{
-				Msg("! ERROR: can't find player with name %s", tmp_victim_name);
-			}
-			//} else
-			//{
-			//	Msg("! ERROR: failed to extract ban time from vote string.");
-			//}
-			xr_strcpy(resVoteCommand, VoteCommand);
+
 		} else
 		{
 			m_pVoteCommand.printf("%s %s", votecommands[i].command, CommandParams);
@@ -1249,7 +1209,7 @@ void		game_sv_mp::UpdateVote				()
 
 	if (m_bVotingReal && m_pVoteCommand.size())
 	{
-		Console->Execute(m_pVoteCommand.c_str());
+		pConsoleCommands->Execute(m_pVoteCommand.c_str());
 	}
 };
 
@@ -1296,14 +1256,13 @@ void		game_sv_mp::OnPlayerEnteredGame		(ClientID id_who)
 	u_EventSend(P);
 };
 
-void	game_sv_mp::ClearPlayerItems		(game_PlayerState* ps)
+void game_sv_mp::ClearPlayerItems(game_PlayerState* ps)
 {
 	ps->pItemList.clear();
 	ps->LastBuyAcount = 0;
-//	ps->m_bClearRun = false;
 };
 
-void	game_sv_mp::SetPlayersDefItems		(game_PlayerState* ps)
+void game_sv_mp::SetPlayersDefItems(game_PlayerState* ps)
 {
 	ClearPlayerItems(ps);
 	if (ps->team<0) return;
@@ -1496,7 +1455,7 @@ void		game_sv_mp::OnPlayerSpeechMessage	(NET_Packet& P, ClientID sender)
 	game_PlayerState* ps = pClient->ps;
 	if (!ps) return;
 
-	if (pClient->owner)
+	if (pClient->owner_)
 	{
 		NET_Packet			NP;
 		GenerateGameMessage(NP);
@@ -1540,9 +1499,9 @@ void		game_sv_mp::OnPlayerSelectSpectator(NET_Packet& P, ClientID sender)
 	KillPlayer(sender, ps->GameID);
 	ps->setFlag(GAME_PLAYER_FLAG_SPECTATOR);
 	//-------------------------------------------
-	if (pClient->owner)
+	if (pClient->owner_)
 	{
-		CSE_ALifeCreatureActor	*pA	=	smart_cast<CSE_ALifeCreatureActor*>(pClient->owner);
+		CSE_ALifeCreatureActor	*pA	=	smart_cast<CSE_ALifeCreatureActor*>(pClient->owner_);
 		if (pA)
 		{
 			AllowDeadBodyRemove			(sender, ps->GameID);
@@ -1858,121 +1817,119 @@ void game_sv_mp::RejectGameItem(CSE_Abstract* entity)
 	Level().Send	(P,net_flags(TRUE,TRUE));
 }
 
-#include "string_table.h"
-void game_sv_mp::DumpOnlineStatistic()
-{
-	xrGameSpyServer* srv		= smart_cast<xrGameSpyServer*>(m_server);
-
-	string_path					fn;
-	FS.update_path				(fn,"$logs$","mp_stats\\");
-	xr_strcat					(fn, srv->HostName.c_str());
-	xr_strcat					(fn, "\\online_dump.ltx" );
-
-	string64					t_stamp;
-	timestamp					(t_stamp);
-
-	CInifile					ini(fn, FALSE, FALSE, TRUE);
-	shared_str					current_section = "global";
-	string256					str_buff;
-
-	ini.w_string				(current_section.c_str(), "dump_time", t_stamp);
-	
-	ini.w_u32					(current_section.c_str(), "players_total_cnt", m_server->GetClientsCount());
-
-	xr_sprintf					(str_buff,"\"%s\"",CStringTable().translate(Level().name().c_str()).c_str());
-	ini.w_string				(current_section.c_str(), "current_map_name", str_buff);
-
-	xr_sprintf					(str_buff,"%s",CStringTable().translate(type_name()).c_str() );
-	ini.w_string				(current_section.c_str(), "game_mode", str_buff);
-
-	MAP_ROTATION_LIST_it it		= m_pMapRotation_List.begin();
-	MAP_ROTATION_LIST_it it_e	= m_pMapRotation_List.end();
-	for(u32 idx=0;it!=it_e;++it,++idx)
-	{
-		string16					num_buf;
-		xr_sprintf					(num_buf,"%d",idx);
-		xr_sprintf					(str_buff,"\"%s\"", CStringTable().translate((*it).map_name.c_str()).c_str());
-		ini.w_string				("map_rotation", num_buf, str_buff);
-	}
-
-	struct player_stats_writer
-	{
-		game_sv_mp* m_owner;
-		xrServer* m_server;
-		u32 player_index;
-		CInifile* ini;
-		
-		void operator()(IClient* client)
-		{
-			xrClientData *l_pC			= static_cast<xrClientData*>(client);
-
-			if (!l_pC->ps)
-				return;
-		
-			if(m_server->GetServerClient()==l_pC && g_dedicated_server) 
-				return;
-			
-			if(!l_pC->net_Ready)
-				return;
-
-			string16					num_buf;
-			xr_sprintf					(num_buf,"player_%d",player_index);
-			++player_index;
-
-			m_owner->WritePlayerStats(*ini,num_buf,l_pC);
-		}
-	};
-	player_stats_writer tmp_functor;
-	tmp_functor.m_owner = this;
-	tmp_functor.m_server = m_server;
-	tmp_functor.ini = &ini;
-	tmp_functor.player_index = 0;
-	m_server->ForEachClientDo(tmp_functor);
-	WriteGameState				(ini, current_section.c_str(), false);
-}
-
-void game_sv_mp::WritePlayerStats(CInifile& ini, LPCSTR sect, xrClientData* pCl)
-{
-	ini.w_string(sect,"player_name",	pCl->ps->getName());
-	if (pCl->ps->m_account.is_online())
-	{
-		ini.w_u32(sect,"player_profile_id",	pCl->ps->m_account.profile_id());
-	}
-	ini.w_u32	(sect,"player_team",	pCl->ps->team);
-	ini.w_u32	(sect,"kills_rival",	pCl->ps->m_iRivalKills);
-	ini.w_u32	(sect,"kills_self",		pCl->ps->m_iSelfKills);
-	ini.w_u32	(sect,"team_kills",		pCl->ps->m_iTeamKills);
-	ini.w_u32	(sect,"deaths",			pCl->ps->m_iDeaths);
-
-	ini.w_string(sect,"player_ip",		pCl->m_cAddress.to_string().c_str());
-	ini.w_string(sect,"player_unique_digest",	pCl->m_cdkey_digest.c_str());
-	ini.w_u32	(sect,"kills_in_row",	pCl->ps->m_iKillsInRowMax);
-	ini.w_u32	(sect,"rank",			pCl->ps->rank);
-	ini.w_u32	(sect,"artefacts",		pCl->ps->af_count);
-	ini.w_u32	(sect,"ping",			pCl->ps->ping);
-	ini.w_u32	(sect,"money",			pCl->ps->money_for_round);
-	ini.w_u32	(sect,"online_time_sec",(Level().timeServer()-pCl->ps->m_online_time)/1000);
-
-	if(Game().m_WeaponUsageStatistic->CollectData())
-	{
-		Player_Statistic& plstats		= *(Game().m_WeaponUsageStatistic->FindPlayer(pCl->ps->getName()));
-		u32 hs		= plstats.m_dwSpecialKills[0];
-		u32 bks		= plstats.m_dwSpecialKills[1];
-		u32 knf		= plstats.m_dwSpecialKills[2];
-		u32 es		= plstats.m_dwSpecialKills[3];
-
-		ini.w_u32	(sect,"headshots_kills",	hs);
-		ini.w_u32	(sect,"backstab_kills",		bks);
-		ini.w_u32	(sect,"knife_kills",		knf);
-		ini.w_u32	(sect,"eye_kills",			es);
-	}
-}
-
-void game_sv_mp::WriteGameState(CInifile& ini, LPCSTR sect, bool bRoundResult)
-{
-	if(!bRoundResult)
-		ini.w_u32						(sect, "online_time_sec", Device.dwTimeGlobal/1000);
-}
+//#include "string_table.h"
+//void game_sv_mp::DumpOnlineStatistic()
+//{
+//	string_path					fn;
+//	FS.update_path				(fn,"$logs$","mp_stats\\");
+//	xr_strcat					(fn, Core.CompName);
+//	xr_strcat					(fn, "\\online_dump.ltx" );
+//
+//	string64					t_stamp;
+//	timestamp					(t_stamp);
+//
+//	CInifile					ini(fn, FALSE, FALSE, TRUE);
+//	shared_str					current_section = "global";
+//	string256					str_buff;
+//
+//	ini.w_string				(current_section.c_str(), "dump_time", t_stamp);
+//	
+//	ini.w_u32					(current_section.c_str(), "players_total_cnt", m_server->GetClientsCount());
+//
+//	xr_sprintf					(str_buff,"\"%s\"",CStringTable().translate(Level().name().c_str()).c_str());
+//	ini.w_string				(current_section.c_str(), "current_map_name", str_buff);
+//
+//	xr_sprintf					(str_buff,"%s",CStringTable().translate(type_name()).c_str() );
+//	ini.w_string				(current_section.c_str(), "game_mode", str_buff);
+//
+//	MAP_ROTATION_LIST_it it		= m_pMapRotation_List.begin();
+//	MAP_ROTATION_LIST_it it_e	= m_pMapRotation_List.end();
+//	for(u32 idx=0;it!=it_e;++it,++idx)
+//	{
+//		string16					num_buf;
+//		xr_sprintf					(num_buf,"%d",idx);
+//		xr_sprintf					(str_buff,"\"%s\"", CStringTable().translate((*it).map_name.c_str()).c_str());
+//		ini.w_string				("map_rotation", num_buf, str_buff);
+//	}
+//
+//	struct player_stats_writer
+//	{
+//		game_sv_mp* m_owner;
+//		xrServer* m_server;
+//		u32 player_index;
+//		CInifile* ini;
+//		
+//		void operator()(IClient* client)
+//		{
+//			xrClientData *l_pC			= static_cast<xrClientData*>(client);
+//
+//			if (!l_pC->ps)
+//				return;
+//		
+//			if(m_server->GetServerClient()==l_pC && g_dedicated_server) 
+//				return;
+//			
+//			if(!l_pC->net_Ready)
+//				return;
+//
+//			string16					num_buf;
+//			xr_sprintf					(num_buf,"player_%d",player_index);
+//			++player_index;
+//
+//			m_owner->WritePlayerStats(*ini,num_buf,l_pC);
+//		}
+//	};
+//	player_stats_writer tmp_functor;
+//	tmp_functor.m_owner = this;
+//	tmp_functor.m_server = m_server;
+//	tmp_functor.ini = &ini;
+//	tmp_functor.player_index = 0;
+//	m_server->ForEachClientDo(tmp_functor);
+//	WriteGameState				(ini, current_section.c_str(), false);
+//}
+//
+//void game_sv_mp::WritePlayerStats(CInifile& ini, LPCSTR sect, xrClientData* pCl)
+//{
+//	ini.w_string(sect,"player_name",	pCl->ps->getName());
+//	if (pCl->ps->m_player_account.is_online())
+//	{
+//		ini.w_u32(sect,"player_profile_id",	pCl->ps->m_player_account.profile_id());
+//	}
+//	ini.w_u32	(sect,"player_team",	pCl->ps->team);
+//	ini.w_u32	(sect,"kills_rival",	pCl->ps->m_iRivalKills);
+//	ini.w_u32	(sect,"kills_self",		pCl->ps->m_iSelfKills);
+//	ini.w_u32	(sect,"team_kills",		pCl->ps->m_iTeamKills);
+//	ini.w_u32	(sect,"deaths",			pCl->ps->m_iDeaths);
+//
+//	ini.w_string(sect,"player_ip",		pCl->m_cAddress.to_string().c_str());
+//	ini.w_string(sect,"player_unique_digest",	pCl->m_cdkey_digest.c_str());
+//	ini.w_u32	(sect,"kills_in_row",	pCl->ps->m_iKillsInRowMax);
+//	ini.w_u32	(sect,"rank",			pCl->ps->rank);
+//	ini.w_u32	(sect,"artefacts",		pCl->ps->af_count);
+//	ini.w_u32	(sect,"ping",			pCl->ps->ping);
+//	ini.w_u32	(sect,"money",			pCl->ps->money_for_round);
+//	ini.w_u32	(sect,"online_time_sec",(Level().timeServer()-pCl->ps->m_online_time)/1000);
+//
+//	if(Game().m_WeaponUsageStatistic->CollectData())
+//	{
+//		Player_Statistic& plstats		= *(Game().m_WeaponUsageStatistic->FindPlayer(pCl->ps->getName()));
+//		u32 hs		= plstats.m_dwSpecialKills[0];
+//		u32 bks		= plstats.m_dwSpecialKills[1];
+//		u32 knf		= plstats.m_dwSpecialKills[2];
+//		u32 es		= plstats.m_dwSpecialKills[3];
+//
+//		ini.w_u32	(sect,"headshots_kills",	hs);
+//		ini.w_u32	(sect,"backstab_kills",		bks);
+//		ini.w_u32	(sect,"knife_kills",		knf);
+//		ini.w_u32	(sect,"eye_kills",			es);
+//	}
+//}
+//
+//void game_sv_mp::WriteGameState(CInifile& ini, LPCSTR sect, bool bRoundResult)
+//{
+//	if(!bRoundResult)
+//		ini.w_u32						(sect, "online_time_sec", Device.dwTimeGlobal/1000);
+//}
 
 
 void game_sv_mp::async_statistics_collector::operator ()(IClient* client)
@@ -1999,138 +1956,138 @@ void game_sv_mp::async_statistics_collector::set_responded(ClientID clientID)
 		tmp_iter->second = true;
 	}
 }
-void game_sv_mp::AskAllToUpdateStatistics()
-{
-	NET_Packet P;
-	P.w_begin	(M_STATISTIC_UPDATE);
-	P.w_u32		(m_async_stats_request_time);
-	m_server->SendBroadcast(BroadcastCID,P,net_flags(TRUE,TRUE));
-}
+//void game_sv_mp::AskAllToUpdateStatistics()
+//{
+//	NET_Packet P;
+//	P.w_begin	(M_STATISTIC_UPDATE);
+//	P.w_u32		(m_async_stats_request_time);
+//	m_server->SendBroadcast(BroadcastCID,P,net_flags(TRUE,TRUE));
+//}
 
-void game_sv_mp::DumpRoundStatisticsAsync()
-{
-	if ( !g_sv_mp_iDumpStatsPeriod )
-		return;
+//void game_sv_mp::DumpRoundStatisticsAsync()
+//{
+//	if ( !g_sv_mp_iDumpStatsPeriod )
+//		return;
+//
+//	m_async_stats.async_responses.clear();
+//	m_server->ForEachClientDo(m_async_stats);
+//	m_async_stats_request_time = Device.dwTimeGlobal;
+//	AskAllToUpdateStatistics();
+//}
 
-	m_async_stats.async_responses.clear();
-	m_server->ForEachClientDo(m_async_stats);
-	m_async_stats_request_time = Device.dwTimeGlobal;
-	AskAllToUpdateStatistics();
-}
+//bool game_sv_mp::CheckStatisticsReady()
+//{
+//	if ( !g_sv_mp_iDumpStatsPeriod )
+//		return true;
+//	
+//	if (!m_async_stats_request_time)
+//		return true;
+//
+//	if (m_async_stats.all_ready() || 
+//		(m_async_stats_request_time + g_sv_dwMaxClientPing) < Device.dwTimeGlobal)
+//	{
+//		DumpRoundStatistics();
+//		FinishToDumpStatistics();
+//		m_async_stats_request_time = 0;
+//		return true;
+//	}
+//	return false;
+//}
 
-bool game_sv_mp::CheckStatisticsReady()
-{
-	if ( !g_sv_mp_iDumpStatsPeriod )
-		return true;
-	
-	if (!m_async_stats_request_time)
-		return true;
-
-	if (m_async_stats.all_ready() || 
-		(m_async_stats_request_time + g_sv_dwMaxClientPing) < Device.dwTimeGlobal)
-	{
-		DumpRoundStatistics();
-		FinishToDumpStatistics();
-		m_async_stats_request_time = 0;
-		return true;
-	}
-	return false;
-}
-
-void game_sv_mp::StartToDumpStatistics	()
-{
-	if ( !g_sv_mp_iDumpStatsPeriod ) return;
-
-	if (xr_strlen(round_statistics_dump_fn))
-	{
-		StopToDumpStatistics();
-	}
-	
-	xrGameSpyServer* srv		= smart_cast<xrGameSpyServer*>(m_server);
-	FS.update_path				(round_statistics_dump_fn,"$logs$","mp_stats\\");
-	string64					t_stamp;
-	timestamp					(t_stamp);
-	xr_strcat					(round_statistics_dump_fn, srv->HostName.c_str() );
-	xr_strcat					(round_statistics_dump_fn, "\\games\\dmp" );
-	xr_strcat					(round_statistics_dump_fn, t_stamp );
-	xr_strcat					(round_statistics_dump_fn, ".ltx" );
-}
-
-void game_sv_mp::StopToDumpStatistics	()
-{
-	if (xr_strlen(round_statistics_dump_fn))
-	{
-		remove(round_statistics_dump_fn);
-	}
-	FinishToDumpStatistics();
-}
-
-void game_sv_mp::FinishToDumpStatistics	()
-{
-	round_statistics_dump_fn[0] = 0;
-}
-
-void game_sv_mp::DumpRoundStatistics()
-{
-	if ( !g_sv_mp_iDumpStatsPeriod ) return;
-	if ( !xr_strlen(round_statistics_dump_fn) ) return;
-
-	CInifile					ini(round_statistics_dump_fn, FALSE, FALSE, TRUE);
-	shared_str					current_section = "global";
-	string256					str_buff;
-
-	ini.w_string				(current_section.c_str(),"start_time", m_round_start_time_str);
-	
-	string64					str_current_time;
-	timestamp					(str_current_time);
-	ini.w_string				(current_section.c_str(),"end_time", str_current_time);
-
-	xr_sprintf					(str_buff,"%s",CStringTable().translate(type_name()).c_str() );
-	ini.w_string				(current_section.c_str(), "game_mode", str_buff);
-
-	xr_sprintf					(str_buff,"\"%s\"",CStringTable().translate(Level().name().c_str()).c_str());
-	ini.w_string				(current_section.c_str(), "current_map_name", str_buff);
-
-	xr_sprintf					(str_buff,"\"%s\"",Level().name().c_str());
-	ini.w_string				(current_section.c_str(), "current_map_name_internal", str_buff);
-
-	struct player_stats_writer
-	{
-		game_sv_mp* m_owner;
-		xrServer* m_server;
-		u32 player_index;
-		CInifile* ini;
-		
-		void operator()(IClient* client)
-		{
-			xrClientData *l_pC			= static_cast<xrClientData*>(client);
-		
-			if(m_server->GetServerClient()==l_pC && g_dedicated_server) 
-				return;
-			if (!l_pC->m_cdkey_digest.size())
-				return;
-			if (!l_pC->ps)
-				return;
-			
-			string16					num_buf;
-			xr_sprintf					(num_buf,"player_%d",player_index);
-			++player_index;
-
-			m_owner->WritePlayerStats(*ini,num_buf,l_pC);
-		}
-	};
-	player_stats_writer tmp_functor;
-	tmp_functor.m_owner = this;
-	tmp_functor.m_server = m_server;
-	tmp_functor.ini = &ini;
-	tmp_functor.player_index = 0;
-	m_server->ForEachClientDo(tmp_functor);
-	
-	WriteGameState					(ini,current_section.c_str(), true);
-
-	Game().m_WeaponUsageStatistic->SaveDataLtx(ini);
-	//Game().m_WeaponUsageStatistic->Clear();
-}
+//void game_sv_mp::StartToDumpStatistics	()
+//{
+//	if ( !g_sv_mp_iDumpStatsPeriod ) return;
+//
+//	if (xr_strlen(round_statistics_dump_fn))
+//	{
+//		StopToDumpStatistics();
+//	}
+//	
+//	xrGameSpyServer* srv		= smart_cast<xrGameSpyServer*>(m_server);
+//	FS.update_path				(round_statistics_dump_fn,"$logs$","mp_stats\\");
+//	string64					t_stamp;
+//	timestamp					(t_stamp);
+//	xr_strcat					(round_statistics_dump_fn, srv->HostName.c_str() );
+//	xr_strcat					(round_statistics_dump_fn, "\\games\\dmp" );
+//	xr_strcat					(round_statistics_dump_fn, t_stamp );
+//	xr_strcat					(round_statistics_dump_fn, ".ltx" );
+//}
+//
+//void game_sv_mp::StopToDumpStatistics	()
+//{
+//	if (xr_strlen(round_statistics_dump_fn))
+//	{
+//		remove(round_statistics_dump_fn);
+//	}
+//	FinishToDumpStatistics();
+//}
+//
+//void game_sv_mp::FinishToDumpStatistics	()
+//{
+//	round_statistics_dump_fn[0] = 0;
+//}
+//
+//void game_sv_mp::DumpRoundStatistics()
+//{
+//	if ( !g_sv_mp_iDumpStatsPeriod ) return;
+//	if ( !xr_strlen(round_statistics_dump_fn) ) return;
+//
+//	CInifile					ini(round_statistics_dump_fn, FALSE, FALSE, TRUE);
+//	shared_str					current_section = "global";
+//	string256					str_buff;
+//
+//	ini.w_string				(current_section.c_str(),"start_time", m_round_start_time_str);
+//	
+//	string64					str_current_time;
+//	timestamp					(str_current_time);
+//	ini.w_string				(current_section.c_str(),"end_time", str_current_time);
+//
+//	xr_sprintf					(str_buff,"%s",CStringTable().translate(type_name()).c_str() );
+//	ini.w_string				(current_section.c_str(), "game_mode", str_buff);
+//
+//	xr_sprintf					(str_buff,"\"%s\"",CStringTable().translate(Level().name().c_str()).c_str());
+//	ini.w_string				(current_section.c_str(), "current_map_name", str_buff);
+//
+//	xr_sprintf					(str_buff,"\"%s\"",Level().name().c_str());
+//	ini.w_string				(current_section.c_str(), "current_map_name_internal", str_buff);
+//
+//	struct player_stats_writer
+//	{
+//		game_sv_mp* m_owner;
+//		xrServer* m_server;
+//		u32 player_index;
+//		CInifile* ini;
+//		
+//		void operator()(IClient* client)
+//		{
+//			xrClientData *l_pC			= static_cast<xrClientData*>(client);
+//		
+//			if(m_server->GetServerClient()==l_pC && g_dedicated_server) 
+//				return;
+//			if (!l_pC->m_cdkey_digest.size())
+//				return;
+//			if (!l_pC->ps)
+//				return;
+//			
+//			string16					num_buf;
+//			xr_sprintf					(num_buf,"player_%d",player_index);
+//			++player_index;
+//
+//			m_owner->WritePlayerStats(*ini,num_buf,l_pC);
+//		}
+//	};
+//	player_stats_writer tmp_functor;
+//	tmp_functor.m_owner = this;
+//	tmp_functor.m_server = m_server;
+//	tmp_functor.ini = &ini;
+//	tmp_functor.player_index = 0;
+//	m_server->ForEachClientDo(tmp_functor);
+//	
+//	WriteGameState					(ini,current_section.c_str(), true);
+//
+//	Game().m_WeaponUsageStatistic->SaveDataLtx(ini);
+//	//Game().m_WeaponUsageStatistic->Clear();
+//}
 
 void game_sv_mp::DestroyAllPlayerItems(ClientID id_who)	//except rukzak
 {
@@ -2189,50 +2146,6 @@ void game_sv_mp::SvSendChatMessage(LPCSTR str)
 	u_EventSend			(P);
 }
 
-bool game_sv_mp::IsPlayerBanned(char const * hexstr_digest, shared_str & by_who)
-{
-	if (!hexstr_digest || !xr_strlen(hexstr_digest))
-		return false;
-	return m_cdkey_ban_list.is_player_banned(hexstr_digest, by_who);
-}
-
-IClient* game_sv_mp::BanPlayer(ClientID const & client_id, s32 ban_time_sec, xrClientData* initiator)
-{
-	if (client_id == m_server->GetServerClient()->ID)
-	{
-		Msg("! ERROR: can't ban server client.");
-		return NULL;
-	}
-	xrClientData* client_to_ban = static_cast<xrClientData*>(
-		m_server->ID_to_client(client_id)
-	);
-	
-	if (!client_to_ban)
-		return NULL;
-	
-	if (client_to_ban->m_admin_rights.m_has_admin_rights)
-	{
-		Msg("! ERROR: Can't ban player with admin rights");
-		return NULL;
-	}
-	m_cdkey_ban_list.ban_player(client_to_ban, ban_time_sec, initiator);
-	return client_to_ban;
-}
-
-void game_sv_mp::BanPlayerDirectly(char const * client_hex_digest, s32 ban_time_sec, xrClientData* initiator)
-{
-	m_cdkey_ban_list.ban_player_ll(client_hex_digest, ban_time_sec, initiator);
-}
-
-void game_sv_mp::UnBanPlayer(size_t banned_player_index)
-{
-	m_cdkey_ban_list.unban_player_by_index(banned_player_index);
-}
-
-void game_sv_mp::PrintBanList(char const * filter = NULL)
-{
-	m_cdkey_ban_list.print_ban_list(filter);
-}
 
 void game_sv_mp::SetCanOpenBuyMenu(ClientID id)
 {
@@ -2242,7 +2155,7 @@ void game_sv_mp::SetCanOpenBuyMenu(ClientID id)
 	m_server->SendTo	(id, bm_ready, net_flags(TRUE, TRUE));
 }
 
-void	game_sv_mp::OnPlayerChangeName		(NET_Packet& P, ClientID sender)
+void game_sv_mp::OnPlayerChangeName(NET_Packet& P, ClientID sender)
 {
 	string1024 received_name = "";
 	P.r_stringZ_s		(received_name);
@@ -2255,30 +2168,17 @@ void	game_sv_mp::OnPlayerChangeName		(NET_Packet& P, ClientID sender)
 	game_PlayerState* ps = pClient->ps;
 	if (!ps) return;
 
-	xrGameSpyServer* sv = smart_cast<xrGameSpyServer*>( m_server );
-	if( sv && sv->IsPublicServer() )
-	{
-		Msg( "Player \"%s\" try to change name on \"%s\" at public server.", ps->getName(), NewName );
-
-		NET_Packet			P;
-		GenerateGameMessage (P);
-		P.w_u32				(GAME_EVENT_SERVER_STRING_MESSAGE);
-		P.w_stringZ			("Server is public. Can\'t change player name!");
-		m_server->SendTo	( sender, P );
-		return;
-	}
-
 	shared_str old_name = ps->getName();
 	pClient->name					= NewName;
-	ps->m_account.set_player_name	(NewName);
-	CheckPlayerName					(pClient);
+	ps->setName			(NewName);
+	CheckPlayerName		(pClient);
 	
-	if (pClient->owner)
+	if (pClient->owner_)
 	{
 		NET_Packet			P;
 		GenerateGameMessage(P);
 		P.w_u32(GAME_EVENT_PLAYER_NAME);
-		P.w_u16(pClient->owner->ID);
+		P.w_u16(pClient->owner_->ID);
 		P.w_s16(ps->team);
 		P.w_stringZ(old_name.c_str());
 		P.w_stringZ(ps->getName());
@@ -2286,7 +2186,7 @@ void	game_sv_mp::OnPlayerChangeName		(NET_Packet& P, ClientID sender)
 		real_sender tmp_functor(m_server, &P);
 		m_server->ForEachClientDoSender(tmp_functor);
 		//---------------------------------------------------
-		pClient->owner->set_name_replace(ps->getName());
+		pClient->owner_->set_name_replace(ps->getName());
 	};
 
 	Game().m_WeaponUsageStatistic->ChangePlayerName( old_name.c_str(), ps->getName() );

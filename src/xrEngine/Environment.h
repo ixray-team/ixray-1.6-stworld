@@ -126,13 +126,6 @@ public:
 	shared_str			sky_texture_env_name;
 	shared_str			clouds_texture_name	;
 
-	BENCH_SEC_SCRAMBLEMEMBER1
-
-	/*
-	ref_texture			sky_texture		;
-	ref_texture			sky_texture_env	;
-	ref_texture			clouds_texture	;
-	*/
 	FactoryPtr<IEnvDescriptorRender>	m_pDescriptor;
 
 	Fvector4			clouds_color	;
@@ -162,8 +155,6 @@ public:
 	float				m_fWaterIntensity;
 
 
-//	int					lens_flare_id;
-//	int					tb_id;
 	shared_str			lens_flare_id;
 	shared_str			tb_id;
     
@@ -190,11 +181,6 @@ public:
 
 class ENGINE_API		CEnvDescriptorMixer: public CEnvDescriptor{
 public:
-	/*
-	STextureList		sky_r_textures;		
-	STextureList		sky_r_textures_env;	
-	STextureList		clouds_r_textures;	
-	*/
 	FactoryPtr<IEnvDescriptorMixerRender>	m_pDescriptorMixer;
 	float				weight;				
 
@@ -255,7 +241,6 @@ public:
 	float					wind_blast_strength_stop_value;
 	Fquaternion				wind_blast_current;
 	// Environments
-	BENCH_SEC_SCRAMBLEMEMBER2
 	CEnvDescriptorMixer*	CurrentEnv;
 	CEnvDescriptor*			Current[2];
 

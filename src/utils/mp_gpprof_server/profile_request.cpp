@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "profile_request.h"
 #include <common/gsStringUtil.h>
 #include "profile_printer.h"
@@ -87,6 +88,7 @@ void fetch_profile_request::complete_success(gamespy_profile::profile_data const
 
 void fetch_profile_request::complete_failed	()
 {
+	m_out << crlf << "not found" << crlf;
 	FCGX_SetExitStatus(404, m_fcg_request->out);
 	FCGX_Finish_r(m_fcg_request.get());
 }

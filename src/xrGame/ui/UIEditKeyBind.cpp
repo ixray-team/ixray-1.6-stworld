@@ -2,8 +2,7 @@
 
 #include "UIEditKeyBind.h"
 #include "../xr_level_controller.h"
-#include "object_broker.h"
-#include "../../xrEngine/xr_ioconsole.h"
+#include "../../xrEngine/xr_ioc_cmd.h"
 
 CUIEditKeyBind::CUIEditKeyBind(bool bPrim)
 {
@@ -202,7 +201,7 @@ void CUIEditKeyBind::BindAction2Key()
 {
 	xr_string comm_unbind	= (m_bPrimary)?"unbind ":"unbind_sec ";
 	comm_unbind				+= m_action->action_name;
-	Console->Execute		(comm_unbind.c_str());
+	pConsoleCommands->Execute		(comm_unbind.c_str());
 
 	if (m_keyboard)
 	{
@@ -210,7 +209,7 @@ void CUIEditKeyBind::BindAction2Key()
 		comm_bind			+= m_action->action_name;
 		comm_bind			+= " ";
 		comm_bind			+= m_keyboard->key_name;
-		Console->Execute	(comm_bind.c_str());
+		pConsoleCommands->Execute	(comm_bind.c_str());
 	}	
 }
 

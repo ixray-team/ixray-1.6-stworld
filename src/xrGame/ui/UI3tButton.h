@@ -6,7 +6,6 @@ class CUI3tButton : public CUIButton
 {
 	typedef CUIButton	inherited;
 	friend class CUIXmlInit;
-//.	using CUIButton::SetTextColor;
 public:
 					CUI3tButton					();
 	virtual			~CUI3tButton				();
@@ -16,7 +15,6 @@ public:
 	virtual void 	InitTexture					(LPCSTR tex_name);
 	virtual void 	InitTexture					(LPCSTR tex_enabled, LPCSTR tex_disabled, LPCSTR tex_touched, LPCSTR tex_highlighted);
 
-//.			void 	SetTextColor				(u32 color);
 	virtual void 	SetTextureOffset			(float x, float y);	
 	virtual void 	SetWidth					(float width);
 	virtual void 	SetHeight					(float height);

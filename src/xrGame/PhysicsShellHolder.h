@@ -92,8 +92,6 @@ public:
 
 	virtual void			net_Destroy			();
 	virtual BOOL			net_Spawn			(CSE_Abstract*	DC);
-	virtual void			save				(NET_Packet &output_packet);
-	virtual void			load				(IReader &input_packet);
 			void			init				();
 
 	virtual void			OnChangeVisual		();
@@ -131,7 +129,6 @@ private://IPhysicsShellHolder
 	virtual	IPHCapture*				_BCL					PHCapture							()						;
 	virtual	bool					_BCL					IsInventoryItem						()						;
 	virtual	bool					_BCL					IsActor								()						;
-	virtual bool					_BCL					IsStalker							()						;
 	//virtual	void						SetWeaponHideState					( u16 State, bool bSet )=0;
 	virtual	void					_BCL					HideAllWeapons						( bool v )				;//(SetWeaponHideState(INV_STATE_BLOCK_ALL,true))
 	virtual	void					_BCL					MovementCollisionEnable				( bool enable )			;

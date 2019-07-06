@@ -1,4 +1,5 @@
 #pragma once
+#error do not include this header
 
 class CUIWindow;
 class CUIDialogWnd;
@@ -68,7 +69,6 @@ class CMainMenu :
 	Flags16			m_Flags;
 	string_path		m_screenshot_name;
 	u32				m_screenshotFrame;
-	void						ReadTextureInfo		();
 
 
 	xr_vector<CUIWindow*>				m_pp_draw_wnds;

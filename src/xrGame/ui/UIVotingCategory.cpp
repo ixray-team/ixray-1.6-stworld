@@ -105,7 +105,7 @@ bool CUIVotingCategory::OnKeyboardAction(int dik, EUIMessages keyboard_action)
 	return false;
 }
 
-#include "../../xrEngine/xr_ioconsole.h"
+#include "../../xrEngine/xr_ioc_cmd.h"
 
 void CUIVotingCategory::OnBtn(int i)
 {
@@ -117,11 +117,11 @@ void CUIVotingCategory::OnBtn(int i)
 	{
 		switch (i){
 		case 0:
-			Console->Execute("cl_votestart restart");
+			pConsoleCommands->Execute("cl_votestart restart");
 			HideDialog();
 			break;
 		case 1:
-			Console->Execute("cl_votestart restart_fast");
+			pConsoleCommands->Execute("cl_votestart restart_fast");
 			HideDialog();
 			break;
 		case 2:

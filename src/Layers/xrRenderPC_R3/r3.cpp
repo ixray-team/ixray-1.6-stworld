@@ -540,7 +540,7 @@ IRenderVisual*			CRender::model_CreateParticles	(LPCSTR name)
 	}
 }
 void					CRender::models_Prefetch		()					{ Models->Prefetch	();}
-void					CRender::models_Clear			(BOOL b_complete)	{ Models->ClearPool	(b_complete);}
+void					CRender::ClearPool				(BOOL b_complete)	{ Models->ClearPool	(b_complete);}
 
 ref_shader				CRender::getShader				(int id)			{ VERIFY(id<int(Shaders.size()));	return Shaders[id];	}
 IRender_Portal*			CRender::getPortal				(int id)			{ VERIFY(id<int(Portals.size()));	return Portals[id];	}

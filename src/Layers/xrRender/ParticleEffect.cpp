@@ -2,6 +2,7 @@
 #pragma hdrstop
 
 #include "ParticleEffect.h"
+#include "../../xrEngine/Environment.h"
 
 #ifndef _EDITOR
 #include <xmmintrin.h>
@@ -279,10 +280,6 @@ __forceinline void fsincos( const float angle , float &sine , float &cosine )
 
 IC void FillSprite	(FVF::LIT*& pv, const Fvector& T, const Fvector& R, const Fvector& pos, const Fvector2& lt, const Fvector2& rb, float r1, float r2, u32 clr, float sina , float cosa )
 {
-	#ifdef _GPA_ENABLED	
-		TAL_SCOPED_TASK_NAMED( "FillSprite()" );
-	#endif // _GPA_ENABLED
-
 	__m128 Vr, Vt, _T , _R , _pos , _zz , _sa , _ca , a , b , c , d;
 
 	_sa = _mm_set1_ps( sina );
@@ -339,10 +336,6 @@ IC void FillSprite	(FVF::LIT*& pv, const Fvector& T, const Fvector& R, const Fve
 
 IC void FillSprite	(FVF::LIT*& pv, const Fvector& pos, const Fvector& dir, const Fvector2& lt, const Fvector2& rb, float r1, float r2, u32 clr, float sina , float cosa )
 {
-	#ifdef _GPA_ENABLED	
-		TAL_SCOPED_TASK_NAMED( "FillSpriteTransform()" );
-	#endif // _GPA_ENABLED
-
 	const Fvector& T 	= dir;
 	Fvector R; 	
 
@@ -418,13 +411,6 @@ __forceinline void magnitude_sse( Fvector &vec , float &res )
 
 void ParticleRenderStream( LPVOID lpvParams )
 {
-	#ifdef _GPA_ENABLED	
-		TAL_SCOPED_TASK_NAMED( "ParticleRenderStream()" );
-
-		TAL_ID rtID = TAL_MakeID( 1 , Core.dwFrame , 0);	
-		TAL_AddRelationThis(TAL_RELATION_IS_CHILD_OF, rtID);
-	#endif // _GPA_ENABLED
-
 			float sina = 0.0f , cosa = 0.0f;
 			DWORD angle = 0xFFFFFFFF;
 
@@ -442,7 +428,7 @@ void ParticleRenderStream( LPVOID lpvParams )
 				lt.set			(0.f,0.f);
 				rb.set			(1.f,1.f);
 
-				 _mm_prefetch( (char*) &particles[i + 1] , _MM_HINT_NTA );
+				_mm_prefetch( (char*) &particles[i + 1] , _MM_HINT_NTA );
 
 				if ( angle != *((DWORD*)&m.rot.x) ) {
 					angle = *((DWORD*)&m.rot.x);
@@ -454,7 +440,7 @@ void ParticleRenderStream( LPVOID lpvParams )
 					}
 				}
 
-				 _mm_prefetch( 64 + (char*) &particles[i + 1] , _MM_HINT_NTA );
+				_mm_prefetch( 64 + (char*) &particles[i + 1] , _MM_HINT_NTA );
 
 				if (pPE.m_Def->m_Flags.is(CPEDef::dfFramed))
 					pPE.m_Def->m_Frame.CalculateTC(iFloor(float(m.frame)/255.f),lt,rb);
@@ -526,10 +512,6 @@ void ParticleRenderStream( LPVOID lpvParams )
 
 void CParticleEffect::Render(float )
 {
-	#ifdef _GPA_ENABLED	
-		TAL_SCOPED_TASK_NAMED( "CParticleEffect::Render()" );
-	#endif // _GPA_ENABLED
-
 	u32			dwOffset,dwCount;
 	// Get a pointer to the particles in gp memory
     PAPI::Particle* particles;
@@ -543,8 +525,8 @@ void CParticleEffect::Render(float )
 
 			u32 nWorkers = ttapi_GetWorkersCount();
 
-			if ( p_cnt < nWorkers * 20 )
-				nWorkers = 1;
+			if ( p_cnt < nWorkers )
+				nWorkers = p_cnt;
 
 			PRS_PARAMS* prsParams = (PRS_PARAMS*) _alloca( sizeof(PRS_PARAMS) * nWorkers );
 
@@ -553,9 +535,6 @@ void CParticleEffect::Render(float )
 			u32 nSlice = p_cnt / 128;
 
 			u32 nStep = ( ( p_cnt - nSlice ) / nWorkers );
-			//u32 nStep = ( p_cnt  / nWorkers );
-
-			//Msg( "Rnd: %u" , nStep );
 
 			for ( u32 i = 0 ; i < nWorkers ; ++i ) {
 				prsParams[i].pv = pv + i*nStep*4;

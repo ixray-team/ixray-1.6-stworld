@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "UIOptionsManager.h"
 #include "UIOptionsItem.h"
-#include "../../xrEngine/xr_ioconsole.h"
+#include "../../xrEngine/xr_ioc_cmd.h"
 
 CUIOptionsManager::CUIOptionsManager()
 :m_restart_flags(0)
@@ -98,10 +98,10 @@ void CUIOptionsManager::OptionsPostAccept()
 {
 
 	if (m_restart_flags&e_vid_restart)
-		Console->Execute("vid_restart");
+		pConsoleCommands->Execute("vid_restart");
 
 	if (m_restart_flags&e_snd_restart)
-		Console->Execute("snd_restart");
+		pConsoleCommands->Execute("snd_restart");
 
 	m_restart_flags	&= ~e_vid_restart;
 	m_restart_flags	&= ~e_snd_restart;

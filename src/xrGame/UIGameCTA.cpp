@@ -19,13 +19,9 @@
 #include "WeaponKnife.h"
 #include "xr_level_controller.h"
 
-#include "object_broker.h"
-//#include "clsid_game.h"
 #include "weaponknife.h"
 
 #include "ui/UISkinSelector.h"
-//.#include "ui/UIInventoryWnd.h"
-#include "ui/UIPdaWnd.h"
 #include "ui/UIMapDesc.h"
 #include "ui/UISpawnWnd.h"
 #include "ui/UIBuyWndBase.h"
@@ -215,8 +211,8 @@ bool CUIGameCTA::IsTeamSelectShown()
 }
 void CUIGameCTA::ShowTeamSelectMenu()
 {
-	if (Level().IsDemoPlay())
-		return;
+	//if (Level().IsDemoPlay())
+	//	return;
 	VERIFY(m_pUITeamSelectWnd);
 	if (!m_pUITeamSelectWnd->IsShown())
 	{
@@ -283,8 +279,8 @@ void CUIGameCTA::HideBuyMenu()
 
 void CUIGameCTA::ShowBuyMenu()
 {
-	if (Level().IsDemoPlay())
-		return;
+	//if (Level().IsDemoPlay())
+	//	return;
 	R_ASSERT2(m_pCurBuyMenu, "buy menu not initialized");
 	if (!m_pCurBuyMenu->IsShown())
 	{
@@ -513,9 +509,7 @@ void CUIGameCTA::BuyMenuItemInserter(PIItem const & item)
 	if (!pSettings->line_exist(m_costSection, item->object().cNameSect()))
 		return;
 
-	if (!item->CanTrade())
-		return;
-	
+
 	u8 addons = 0;
 	CWeapon* pWeapon = smart_cast<CWeapon*>(item);
 	if (pWeapon)
@@ -683,8 +677,8 @@ CUIGameCTA::BuyMenuItemPair	CUIGameCTA::GetBuyMenuItem(shared_str const & itemSe
 
 void CUIGameCTA::ShowSkinMenu(s8 currentSkin)
 {
-	if (Level().IsDemoPlay())
-		return;
+	//if (Level().IsDemoPlay())
+	//	return;
 	//VERIFY2(m_pCurSkinMenu, "skin menu not initialized");
 	if (!m_pCurSkinMenu)
 	{

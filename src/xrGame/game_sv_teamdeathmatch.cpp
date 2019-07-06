@@ -599,17 +599,17 @@ void	game_sv_TeamDeathmatch::AutoSwapTeams			()
 	teams_swaped = true;
 }
 
-void game_sv_TeamDeathmatch::WriteGameState(CInifile& ini, LPCSTR sect, bool bRoundResult)
-{
-	inherited::WriteGameState(ini, sect, bRoundResult);
-
-	for(u32 i=0; i<teams.size(); ++i )
-	{
-		string16		buf_name;
-		xr_sprintf		(buf_name,"team_%d_score",i);
-		ini.w_u32		(sect,buf_name, GetTeamScore(i));
-	}
-}
+//void game_sv_TeamDeathmatch::WriteGameState(CInifile& ini, LPCSTR sect, bool bRoundResult)
+//{
+//	inherited::WriteGameState(ini, sect, bRoundResult);
+//
+//	for(u32 i=0; i<teams.size(); ++i )
+//	{
+//		string16		buf_name;
+//		xr_sprintf		(buf_name,"team_%d_score",i);
+//		ini.w_u32		(sect,buf_name, GetTeamScore(i));
+//	}
+//}
 
 BOOL game_sv_TeamDeathmatch::OnTouchItem(CSE_ActorMP *actor, CSE_Abstract *item)
 {

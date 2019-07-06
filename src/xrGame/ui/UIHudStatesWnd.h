@@ -98,13 +98,12 @@ public:
 			float	get_main_sensor_value()	{ return m_radia_hit; }
 
 			void	DrawZoneIndicators	();
-			void	FakeUpdateIndicatorType(u8 t, float power);
-			void	EnableFakeIndicators(bool enable);
+			//void	FakeUpdateIndicatorType(u8 t, float power);
+			//void	EnableFakeIndicators(bool enable);
 protected:
 	static	ALife::EInfluenceType	get_indik_type( ALife::EHitType hit_type );
 
 			void	Load_section_type	( ALife::EInfluenceType type, LPCSTR section );
 			void	UpdateIndicatorType	( CActor* actor, ALife::EInfluenceType type );
-//			void	SwitchLA			( bool state, ALife::EInfluenceType type );
 
 }; // class CUIHudStatesWnd

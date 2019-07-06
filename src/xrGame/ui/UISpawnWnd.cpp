@@ -59,14 +59,10 @@ void CUISpawnWnd::Init()
 	CUIXmlInit::InitStatic(xml_doc,"team_selector:background",			0,	m_pBackground);
 	CUIXmlInit::InitStatic(xml_doc,"team_selector:image_frames_tl",		0,	m_pFrames[0]);
 	CUIXmlInit::InitStatic(xml_doc,"team_selector:image_frames_tr",		0,	m_pFrames[1]);
-//	CUIXmlInit::InitStatic(xml_doc,"team_selector:image_frames_bottom",	0,	m_pFrames[2]);
 	CUIXmlInit::InitScrollView(xml_doc,"team_selector:text_desc",			0,	m_pTextDesc);
 
 	CUIXmlInit::InitStatic(xml_doc,"team_selector:image_0",0,m_pImage1);
-	//m_pImage1->SetStretchTexture(true);	
 	CUIXmlInit::InitStatic(xml_doc,"team_selector:image_1",0,m_pImage2);
-	//m_pImage2->SetStretchTexture(true);
-	//InitTeamLogo();
 
 	CUIXmlInit::Init3tButton(xml_doc,"team_selector:btn_spectator",	0,m_pBtnSpectator);
 	CUIXmlInit::Init3tButton(xml_doc,"team_selector:btn_autoselect",0,m_pBtnAutoSelect);
@@ -89,7 +85,7 @@ void CUISpawnWnd::SendMessage(CUIWindow *pWnd, s16 msg, void *pData)
 		HideDialog							();
 		game_cl_mp * game = smart_cast<game_cl_mp*>(&Game());
 		VERIFY(game);
-		//game_cl_TeamDeathmatch * tdm = smart_cast<game_cl_TeamDeathmatch *>(&(Game()));
+
 		if (pWnd == m_pImage1)
 			game->OnTeamSelect(0);
 		else if (pWnd == m_pImage2)
@@ -104,8 +100,6 @@ void CUISpawnWnd::SendMessage(CUIWindow *pWnd, s16 msg, void *pData)
 
 	inherited::SendMessage(pWnd, msg, pData);
 }
-
-////////////////////////////////////////////////////////////////////////////////
 
 bool CUISpawnWnd::OnKeyboardAction(int dik, EUIMessages keyboard_action)
 {
@@ -132,7 +126,6 @@ bool CUISpawnWnd::OnKeyboardAction(int dik, EUIMessages keyboard_action)
 
 	game_cl_mp* game = smart_cast<game_cl_mp*>(&Game());
 	VERIFY(game);
-	//game_cl_TeamDeathmatch * dm = smart_cast<game_cl_TeamDeathmatch *>(&(Game()));
 	
 	if (DIK_1 == dik || DIK_2 == dik)
 	{

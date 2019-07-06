@@ -117,6 +117,7 @@ void CUICustomSpin::Update()
 	CUIWindow::Update();
 	if(!m_pBtnUp->CursorOverWindow())
 		m_pBtnUp->SetButtonState(CUIButton::BUTTON_NORMAL);
+
 	if(!m_pBtnDown->CursorOverWindow())
 		m_pBtnDown->SetButtonState(CUIButton::BUTTON_NORMAL);
     

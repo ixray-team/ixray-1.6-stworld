@@ -87,13 +87,13 @@ bool CUIChangeWeather::OnKeyboardAction(int dik, EUIMessages keyboard_action){
 	return false;
 }
 
-#include "../../xrEngine/xr_ioconsole.h"
+#include "../../xrEngine/xr_ioc_cmd.h"
 
 void CUIChangeWeather::OnBtn(int i)
 {
 	string1024				command;
 	xr_sprintf				(command, "cl_votestart changeweather %s %s", *m_data[i].m_weather_name, *m_data[i].m_weather_time);
-	Console->Execute		(command);
+	pConsoleCommands->Execute		(command);
 	HideDialog							();
 }
 
@@ -102,7 +102,6 @@ void CUIChangeWeather::OnBtnCancel()
 	HideDialog							();
 }
 
-#include "UIMapList.h"
 #include "../UIGameCustom.h"
 
 void CUIChangeWeather::ParseWeather()
@@ -114,13 +113,11 @@ void CUIChangeWeather::ParseWeather()
 	GAME_WEATHERS_CIT it_e		= game_weathers.end();
 	
 	for( ;it!=it_e; ++it)
-	{
 		AddWeather			( (*it).m_weather_name, (*it).m_start_time);
-	}
 };
 
-void CUIChangeWeather::AddWeather(const shared_str& weather, const shared_str& time){
-//	m_data[weather_counter].m_text->SetTextST	(weather.c_str());
+void CUIChangeWeather::AddWeather(const shared_str& weather, const shared_str& time)
+{
 	m_data[weather_counter].m_weather_name		= weather;
 	m_data[weather_counter].m_weather_time		= time;
 	weather_counter++;
@@ -150,6 +147,6 @@ void CUIChangeGameType::OnBtn(int i)
 {
 	string1024				command;
 	xr_sprintf				(command, "cl_votestart changegametype %s", m_data[i].m_weather_name.c_str());
-	Console->Execute		(command);
+	pConsoleCommands->Execute		(command);
 	HideDialog				();
 }

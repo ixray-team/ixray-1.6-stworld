@@ -2,7 +2,6 @@
 
 
 #include "UIStatic.h"
-#include "../../xrServerEntities/script_export_space.h"
 
 class CUI3tButton;
 class CUIEditBox;
@@ -65,5 +64,4 @@ protected:
 	CUIEditBox* m_UIEditURL;
 	 
 	E_MESSAGEBOX_STYLE m_eMessageBoxStyle;
-	DECLARE_SCRIPT_REGISTER_FUNCTION
 };

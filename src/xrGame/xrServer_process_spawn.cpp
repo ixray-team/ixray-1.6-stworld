@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "xrServer.h"
 #include "xrserver_objects.h"
+#include "../xrEngine/igame_persistent.h"
 
 #ifdef DEBUG
 #	include "xrserver_objects_alife_items.h"
@@ -8,10 +9,12 @@
 
 CSE_Abstract* xrServer::Process_spawn(NET_Packet& P, ClientID sender, BOOL bSpawnWithClientsMainEntityAsParent, CSE_Abstract* tpExistedEntity)
 {
+	u8 version		= P.r_u8();
 	// create server entity
 	xrClientData* CL	= ID_to_client	(sender);
 	CSE_Abstract*	E	= tpExistedEntity;
-	if (!E){
+	if (!E)
+	{
 		// read spawn information
 		string64			s_name;
 		P.r_stringZ			(s_name);
@@ -19,9 +22,7 @@ CSE_Abstract* xrServer::Process_spawn(NET_Packet& P, ClientID sender, BOOL bSpaw
 		E = entity_Create	(s_name); R_ASSERT3(E,"Can't create entity.",s_name);
 		E->Spawn_Read		(P);
 		if	(
-//.				!( (game->Type()==E->s_gameid) || (GAME_ANY==E->s_gameid) ) ||
-				
-				!E->m_gameType.MatchType((u16)game->Type())		||
+				!E->m_gameType.MatchType(g_pGamePersistent->GameType())		||
 				!E->match_configuration() || 
 				!game->OnPreCreate(E)
 			)
@@ -32,26 +33,15 @@ CSE_Abstract* xrServer::Process_spawn(NET_Packet& P, ClientID sender, BOOL bSpaw
 			F_entity_Destroy(E);
 			return			NULL;
 		}
-
-//		E->m_bALifeControl = false;
-	}
-	else {
-		VERIFY				(E->m_bALifeControl);
-//		E->owner			= CL;
-//		if (CL != NULL)
-//		{
-//			int x=0;
-//			x=x;
-//		};
-//		E->m_bALifeControl = true;
 	}
 
 	CSE_Abstract			*e_parent = 0;
-	if (E->ID_Parent != 0xffff) {
+	if (E->ID_Parent != 0xffff) 
+	{
 		e_parent			= ID_to_entity(E->ID_Parent);
-		if (!e_parent) {
+		if (!e_parent) 
+		{
 			R_ASSERT		(!tpExistedEntity);
-//			VERIFY3			(smart_cast<CSE_ALifeItemBolt*>(E) || smart_cast<CSE_ALifeItemGrenade*>(E),*E->s_name,E->name_replace());
 			F_entity_Destroy(E);
 			return			NULL;
 		}
@@ -60,17 +50,17 @@ CSE_Abstract* xrServer::Process_spawn(NET_Packet& P, ClientID sender, BOOL bSpaw
 	// check if we can assign entity to some client
 	if (0==CL)
 	{
-		CL	= SelectBestClientToMigrateTo	(E);
+		//CL	= SelectBestClientToMigrateTo	(E);
+		CL	= (xrClientData*)SV_Client;
 	}
 
 	// check for respawn-capability and create phantom as needed
-	if (E->RespawnTime && (0xffff==E->ID_Phantom))
+	if (E->RespawnTime)
 	{
 		// Create phantom
 		CSE_Abstract* Phantom	=	entity_Create	(*E->s_name); R_ASSERT(Phantom);
 		Phantom->Spawn_Read		(P);
 		Phantom->ID				=	PerformIDgen	(0xffff);
-		Phantom->ID_Phantom		=	Phantom->ID;						// Self-linked to avoid phantom-breeding
 		Phantom->owner			=	NULL;
 		entities.insert			(mk_pair(Phantom->ID,Phantom));
 
@@ -78,23 +68,24 @@ CSE_Abstract* xrServer::Process_spawn(NET_Packet& P, ClientID sender, BOOL bSpaw
 
 		// Spawn entity
 		E->ID					=	PerformIDgen(E->ID);
-		E->ID_Phantom			=	Phantom->ID;
 		E->owner				=	CL;
 		entities.insert			(mk_pair(E->ID,E));
-	} else {
+	} else 
+	{
 		if (E->s_flags.is(M_SPAWN_OBJECT_PHANTOM))
 		{
 			// Clone from Phantom
 			E->ID					=	PerformIDgen(0xffff);
-			E->owner				=	CL;//		= SelectBestClientToMigrateTo	(E);
+			E->owner				=	CL;
 			E->s_flags.set			(M_SPAWN_OBJECT_PHANTOM,FALSE);
 			entities.insert			(mk_pair(E->ID,E));
-		} else {
+		} else 
+		{
 			// Simple spawn
 			if (bSpawnWithClientsMainEntityAsParent)
 			{
 				R_ASSERT				(CL);
-				CSE_Abstract* P		= CL->owner;
+				CSE_Abstract* P		= CL->owner_;
 				R_ASSERT				(P);
 				E->ID_Parent			= P->ID;
 			}
@@ -107,8 +98,7 @@ CSE_Abstract* xrServer::Process_spawn(NET_Packet& P, ClientID sender, BOOL bSpaw
 	// PROCESS NAME; Name this entity
 	if (CL && (E->s_flags.is(M_SPAWN_OBJECT_ASPLAYER)))
 	{
-		CL->owner		= E;
-//		E->set_name_replace	(CL->Name);
+		CL->owner_		= E;
 	}
 
 	// PROCESS RP;	 3D position/orientation
@@ -116,10 +106,12 @@ CSE_Abstract* xrServer::Process_spawn(NET_Packet& P, ClientID sender, BOOL bSpaw
 	E->s_RP					= 0xFE;	// Use supplied
 
 	// Parent-Connect
-	if (!tpExistedEntity) {
+	if (!tpExistedEntity) 
+	{
 		game->OnCreate		(E->ID);
 		
-		if (0xffff != E->ID_Parent) {
+		if (0xffff != E->ID_Parent) 
+		{
 			R_ASSERT					(e_parent);
 			
 			game->OnTouch			(E->ID_Parent,E->ID);
@@ -143,7 +135,8 @@ CSE_Abstract* xrServer::Process_spawn(NET_Packet& P, ClientID sender, BOOL bSpaw
 		if (E->s_flags.is(M_SPAWN_UPDATE))
 			E->UPDATE_Write	(Packet);
 		SendBroadcast		(CL->ID,Packet,net_flags(TRUE,TRUE));
-	} else {
+	} else 
+	{
 		E->Spawn_Write		(Packet,FALSE	);
 		if (E->s_flags.is(M_SPAWN_UPDATE))
 			E->UPDATE_Write	(Packet);
@@ -155,13 +148,5 @@ CSE_Abstract* xrServer::Process_spawn(NET_Packet& P, ClientID sender, BOOL bSpaw
 		game->OnPostCreate(E->ID);
 	};
 
-	// log
-	//Msg		("- SERVER: Spawning '%s'(%d,%d,%d) as #%d, on '%s'", E->s_name_replace, E->g_team(), E->g_squad(), E->g_group(), E->ID, CL?CL->Name:"*SERVER*");
 	return E;
 }
-
-/*
-void spawn_WithPhantom
-void spawn_FromPhantom
-void spawn_Simple
-*/

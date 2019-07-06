@@ -11,19 +11,13 @@
 #include "../EntityCondition.h"
 #include "../CustomOutfit.h"
 #include "../ActorHelmet.h"
-#include "../PDA.h"
-#include "../xrServerEntities/character_info.h"
 #include "../inventory.h"
-#include "../UIGameSP.h"
 #include "../weaponmagazined.h"
 #include "../missile.h"
 #include "../Grenade.h"
 #include "../xrServerEntities/xrServer_objects_ALife.h"
-#include "../alife_simulator.h"
-#include "../alife_object_registry.h"
 #include "../game_cl_base.h"
 #include "../level.h"
-#include "../seniority_hierarchy_holder.h"
 
 #include "../date_time.h"
 #include "../xrServerEntities/xrServer_Objects_ALife_Monsters.h"
@@ -34,9 +28,6 @@
 #include "UIMotionIcon.h"
 
 #include "UIXmlInit.h"
-#include "UIPdaMsgListItem.h"
-#include "UIPdaWnd.h"
-#include "../alife_registry_wrappers.h"
 
 #include "../string_table.h"
 
@@ -47,7 +38,6 @@
 
 #include "UIScrollView.h"
 #include "map_hint.h"
-#include "../game_news.h"
 
 #include "static_cast_checked.hpp"
 #include "game_cl_capture_the_artefact.h"
@@ -77,7 +67,10 @@ const u32	g_clWhite					= 0xffffffff;
 #define				MAININGAME_XML				"maingame.xml"
 
 CUIMainIngameWnd::CUIMainIngameWnd()
-:/*m_pGrenade(NULL),m_pItem(NULL),*/m_pPickUpItem(NULL),m_pMPChatWnd(NULL),UIArtefactIcon(NULL),m_pMPLogWnd(NULL)
+:m_pPickUpItem	( NULL ),
+m_pMPChatWnd	( NULL ),
+UIArtefactIcon	( NULL ),
+m_pMPLogWnd		( NULL )
 {
 	UIZoneMap					= xr_new<CUIZoneMap>();
 }
@@ -87,9 +80,7 @@ extern CUIProgressShape* g_MissileForceShape;
 
 CUIMainIngameWnd::~CUIMainIngameWnd()
 {
-	DestroyFlashingIcons		();
 	xr_delete					(UIZoneMap);
-	HUD_SOUND_ITEM::DestroySound(m_contactSnd);
 	xr_delete					(g_MissileForceShape);
 	xr_delete					(UIWeaponJammedIcon);
 	xr_delete					(UIInvincibleIcon);
@@ -106,20 +97,6 @@ void CUIMainIngameWnd::Init()
 
 	Enable(false);
 
-//	AttachChild					(&UIStaticHealth);	xml_init.InitStatic			(uiXml, "static_health", 0, &UIStaticHealth);
-//	AttachChild					(&UIStaticArmor);	xml_init.InitStatic			(uiXml, "static_armor", 0, &UIStaticArmor);
-//	AttachChild					(&UIWeaponBack);
-//	xml_init.InitStatic			(uiXml, "static_weapon", 0, &UIWeaponBack);
-
-/*	UIWeaponBack.AttachChild	(&UIWeaponSignAmmo);
-	xml_init.InitStatic			(uiXml, "static_ammo", 0, &UIWeaponSignAmmo);
-	UIWeaponSignAmmo.SetEllipsis	(CUIStatic::eepEnd, 2);
-
-	UIWeaponBack.AttachChild	(&UIWeaponIcon);
-	xml_init.InitStatic			(uiXml, "static_wpn_icon", 0, &UIWeaponIcon);
-	UIWeaponIcon.SetShader		(GetEquipmentIconsShader());
-	UIWeaponIcon_rect			= UIWeaponIcon.GetWndRect();
-*/	//---------------------------------------------------------
 	UIPickUpItemIcon			= UIHelper::CreateStatic		(uiXml, "pick_up_item", this);
 	UIPickUpItemIcon->SetShader	(GetEquipmentIconsShader());
 
@@ -165,25 +142,9 @@ void CUIMainIngameWnd::Init()
 	m_ind_boost_health		->Show(false);
 	m_ind_boost_power		->Show(false);
 	m_ind_boost_rad			->Show(false);
-	
-	// Загружаем иконки 
-/*	if ( IsGameTypeSingle() )
-	{
-		xml_init.InitStatic		(uiXml, "starvation_static", 0, &UIStarvationIcon);
-		UIStarvationIcon.Show	(false);
 
-//		xml_init.InitStatic		(uiXml, "psy_health_static", 0, &UIPsyHealthIcon);
-//		UIPsyHealthIcon.Show	(false);
-	}
-*/
 	UIWeaponJammedIcon			= UIHelper::CreateStatic(uiXml, "weapon_jammed_static", NULL);
 	UIWeaponJammedIcon->Show	(false);
-
-//	xml_init.InitStatic			(uiXml, "radiation_static", 0, &UIRadiaitionIcon);
-//	UIRadiaitionIcon.Show		(false);
-
-//	xml_init.InitStatic			(uiXml, "wound_static", 0, &UIWoundIcon);
-//	UIWoundIcon.Show			(false);
 
 	UIInvincibleIcon			= UIHelper::CreateStatic(uiXml, "invincible_static", NULL);
 	UIInvincibleIcon->Show		(false);
@@ -228,10 +189,6 @@ void CUIMainIngameWnd::Init()
 	}
 
 
-	// Flashing icons initialize
-	uiXml.SetLocalRoot						(uiXml.NavigateToNode("flashing_icons"));
-	InitFlashingIcons						(&uiXml);
-
 	uiXml.SetLocalRoot						(uiXml.GetRoot());
 	
 	UIMotionIcon							= xr_new<CUIMotionIcon>(); UIMotionIcon->SetAutoDelete(true);
@@ -260,14 +217,12 @@ void CUIMainIngameWnd::Init()
 	m_QuickSlotText2				= UIHelper::CreateTextWnd(uiXml, "quick_slot1_text", this);
 	m_QuickSlotText3				= UIHelper::CreateTextWnd(uiXml, "quick_slot2_text", this);
 	m_QuickSlotText4				= UIHelper::CreateTextWnd(uiXml, "quick_slot3_text", this);
-
-	HUD_SOUND_ITEM::LoadSound				("maingame_ui", "snd_new_contact", m_contactSnd, SOUND_TYPE_IDLE);
 }
 
 float UIStaticDiskIO_start_time = 0.0f;
 void CUIMainIngameWnd::Draw()
 {
-	CActor* pActor		= smart_cast<CActor*>(Level().CurrentViewEntity());
+	CActor* pActor		= smart_cast<CActor*>(Level().CurrentViewActor());
 
 	// show IO icon
 	bool IOActive	= (FS.dwOpenCounter>0);
@@ -281,16 +236,14 @@ void CUIMainIngameWnd::Draw()
 	}
 	FS.dwOpenCounter = 0;
 
-	if(!IsGameTypeSingle())
-	{
-		float		luminocity = smart_cast<CGameObject*>(Level().CurrentEntity())->ROS()->get_luminocity();
-		float		power = log(luminocity > .001f ? luminocity : .001f)*(1.f/*luminocity_factor*/);
-		luminocity	= exp(power);
+	float		luminocity = smart_cast<CGameObject*>(Level().CurrentActor())->ROS()->get_luminocity();
+	float		power = log(luminocity > .001f ? luminocity : .001f)*(1.f/*luminocity_factor*/);
+	luminocity	= exp(power);
 
-		static float cur_lum = luminocity;
-		cur_lum = luminocity*0.01f + cur_lum*0.99f;
-		UIMotionIcon->SetLuminosity((s16)iFloor(cur_lum*100.0f));
-	}
+	static float cur_lum = luminocity;
+	cur_lum = luminocity*0.01f + cur_lum*0.99f;
+	UIMotionIcon->SetLuminosity((s16)iFloor(cur_lum*100.0f));
+
 	if ( !pActor || !pActor->g_Alive() ) return;
 
 	UIMotionIcon->SetNoise((s16)(0xffff&iFloor(pActor->m_snd_noise*100)));
@@ -318,7 +271,7 @@ void CUIMainIngameWnd::SetMPChatLog(CUIWindow* pChat, CUIWindow* pLog){
 void CUIMainIngameWnd::Update()
 {
 	CUIWindow::Update();
-	CActor* pActor = smart_cast<CActor*>(Level().CurrentViewEntity());
+	CActor* pActor = smart_cast<CActor*>(Level().CurrentViewActor());
 
 	if ( m_pMPChatWnd )
 		m_pMPChatWnd->Update();
@@ -331,19 +284,16 @@ void CUIMainIngameWnd::Update()
 
 	UIZoneMap->Update();
 	
-//	UIHealthBar.SetProgressPos	(m_pActor->GetfHealth()*100.0f);
-//	UIMotionIcon->SetPower		(m_pActor->conditions().GetPower()*100.0f);
-	
 	UpdatePickUpItem			();
 
 	if( Device.dwFrame % 10 )
 		return;
 
 	game_PlayerState* lookat_player = Game().local_player;
-	if (Level().IsDemoPlayStarted())
-	{
-		lookat_player = Game().lookat_player();
-	}
+	//if (Level().IsDemoPlayStarted())
+	//{
+	//	lookat_player = Game().lookat_player();
+	//}
 	bool b_God = ( GodMode() || ( !lookat_player ) )? true : lookat_player->testFlag(GAME_PLAYER_FLAG_INVINCIBLE);
 	if ( b_God )
 	{
@@ -355,8 +305,6 @@ void CUIMainIngameWnd::Update()
 	}
 	
 	UpdateMainIndicators();
-	if (IsGameTypeSingle())
-		return;
 
 	// ewiArtefact
 	if ( GameID() == eGameIDArtefactHunt )
@@ -399,7 +347,7 @@ void CUIMainIngameWnd::Update()
 
 void CUIMainIngameWnd::RenderQuickInfos()
 {
-	CActor* pActor		= smart_cast<CActor*>(Level().CurrentViewEntity());
+	CActor* pActor		= smart_cast<CActor*>(Level().CurrentViewActor());
 	if (!pActor)
 		return;
 
@@ -419,14 +367,6 @@ void CUIMainIngameWnd::RenderQuickInfos()
 		UIStaticQuickHelp->ResetColorAnimation	();
 		pObject	= pActor->ObjectWeLookingAt	();
 	}
-}
-
-void CUIMainIngameWnd::ReceiveNews(GAME_NEWS_DATA* news)
-{
-	VERIFY(news->texture_name.size());
-
-	CurrentGameUI()->m_pMessagesWnd->AddIconedPdaMessage(news);
-	CurrentGameUI()->UpdatePda();
 }
 
 void CUIMainIngameWnd::SetWarningIconColorUI(CUIStatic* s, const u32 cl)
@@ -461,28 +401,16 @@ void CUIMainIngameWnd::SetWarningIconColor(EWarningIcons icon, const u32 cl)
 	{
 	case ewiAll:
 		bMagicFlag = false;
+
 	case ewiWeaponJammed:
 		SetWarningIconColorUI	(UIWeaponJammedIcon, cl);
 		if (bMagicFlag) break;
 
-/*	case ewiRadiation:
-		SetWarningIconColorUI	(&UIRadiaitionIcon, cl);
-		if (bMagicFlag) break;
-	case ewiWound:
-		SetWarningIconColorUI	(&UIWoundIcon, cl);
-		if (bMagicFlag) break;
-
-	case ewiStarvation:
-		SetWarningIconColorUI	(&UIStarvationIcon, cl);
-		if (bMagicFlag) break;	
-	case ewiPsyHealth:
-		SetWarningIconColorUI	(&UIPsyHealthIcon, cl);
-		if (bMagicFlag) break;
-*/
 	case ewiInvincible:
 		SetWarningIconColorUI	(UIInvincibleIcon, cl);
 		if (bMagicFlag) break;
 		break;
+
 	case ewiArtefact:
 		SetWarningIconColorUI	(UIArtefactIcon, cl);
 		break;
@@ -497,74 +425,6 @@ void CUIMainIngameWnd::TurnOffWarningIcon(EWarningIcons icon)
 	SetWarningIconColor(icon, 0x00ffffff);
 }
 
-void CUIMainIngameWnd::SetFlashIconState_(EFlashingIcons type, bool enable)
-{
-	// Включаем анимацию требуемой иконки
-	FlashingIcons_it icon = m_FlashingIcons.find(type);
-	R_ASSERT2(icon != m_FlashingIcons.end(), "Flashing icon with this type not existed");
-	icon->second->Show(enable);
-}
-
-void CUIMainIngameWnd::InitFlashingIcons(CUIXml* node)
-{
-	const char * const flashingIconNodeName = "flashing_icon";
-	int staticsCount = node->GetNodesNum("", 0, flashingIconNodeName);
-
-	CUIXmlInit xml_init;
-	CUIStatic *pIcon = NULL;
-	// Пробегаемся по всем нодам и инициализируем из них статики
-	for (int i = 0; i < staticsCount; ++i)
-	{
-		pIcon = xr_new<CUIStatic>();
-		xml_init.InitStatic(*node, flashingIconNodeName, i, pIcon);
-		shared_str iconType = node->ReadAttrib(flashingIconNodeName, i, "type", "none");
-
-		// Теперь запоминаем иконку и ее тип
-		EFlashingIcons type = efiPdaTask;
-
-		if		(iconType == "pda")		type = efiPdaTask;
-		else if (iconType == "mail")	type = efiMail;
-		else	R_ASSERT(!"Unknown type of mainingame flashing icon");
-
-		R_ASSERT2(m_FlashingIcons.find(type) == m_FlashingIcons.end(), "Flashing icon with this type already exists");
-
-		CUIStatic* &val	= m_FlashingIcons[type];
-		val			= pIcon;
-
-		AttachChild(pIcon);
-		pIcon->Show(false);
-	}
-}
-
-void CUIMainIngameWnd::DestroyFlashingIcons()
-{
-	for (FlashingIcons_it it = m_FlashingIcons.begin(); it != m_FlashingIcons.end(); ++it)
-	{
-		DetachChild(it->second);
-		xr_delete(it->second);
-	}
-
-	m_FlashingIcons.clear();
-}
-
-void CUIMainIngameWnd::UpdateFlashingIcons()
-{
-	for (FlashingIcons_it it = m_FlashingIcons.begin(); it != m_FlashingIcons.end(); ++it)
-	{
-		it->second->Update();
-	}
-}
-
-void CUIMainIngameWnd::AnimateContacts(bool b_snd)
-{
-	UIZoneMap->Counter_ResetClrAnimation();
-
-	if(b_snd)
-		HUD_SOUND_ITEM::PlaySound	(m_contactSnd, Fvector().set(0,0,0), 0, true );
-
-}
-
-
 void CUIMainIngameWnd::SetPickUpItem	(CInventoryItem* PickUpItem)
 {
 	m_pPickUpItem = PickUpItem;
@@ -572,7 +432,7 @@ void CUIMainIngameWnd::SetPickUpItem	(CInventoryItem* PickUpItem)
 
 void CUIMainIngameWnd::UpdatePickUpItem	()
 {
-	if (!m_pPickUpItem || !Level().CurrentViewEntity() || !smart_cast<CActor*>(Level().CurrentViewEntity())) 
+	if (!m_pPickUpItem || !Level().CurrentViewActor() || !smart_cast<CActor*>(Level().CurrentViewActor())) 
 	{
 		UIPickUpItemIcon->Show(false);
 		return;
@@ -658,13 +518,11 @@ void CUIMainIngameWnd::UpdateZoneMap()
 
 void CUIMainIngameWnd::UpdateMainIndicators()
 {
-	CActor* pActor = smart_cast<CActor*>(Level().CurrentViewEntity());
+	CActor* pActor = smart_cast<CActor*>(Level().CurrentViewActor());
 	if(!pActor)
 		return;
 
 	UpdateQuickSlots();
-	if (IsGameTypeSingle())
-		CurrentGameUI()->PdaMenu().UpdateRankingWnd();
 
 	u8 flags = 0;
 	flags |= LA_CYCLIC;
@@ -796,20 +654,6 @@ void CUIMainIngameWnd::UpdateMainIndicators()
 			}
 		}
 	}
-// Overweight icon
-	float cur_weight = pActor->inventory().TotalWeight();
-	float max_weight = pActor->MaxWalkWeight();
-	m_ind_overweight->Show(false);
-	if(cur_weight>=max_weight-10.0f && IsGameTypeSingle())
-	{
-		m_ind_overweight->Show(true);
-		if(cur_weight>max_weight)
-			m_ind_overweight->InitTexture("ui_inGame2_circle_Overweight_red");
-		//else if(cur_weight>max_weight-10.0f)
-		//	m_ind_overweight->InitTexture("ui_inGame2_circle_Overweight_yellow");
-		else
-			m_ind_overweight->InitTexture("ui_inGame2_circle_Overweight_yellow");
-	}
 }
 
 void CUIMainIngameWnd::UpdateQuickSlots()
@@ -840,7 +684,7 @@ void CUIMainIngameWnd::UpdateQuickSlots()
 	m_QuickSlotText4->SetTextST(tmp);
 
 
-	CActor* pActor = smart_cast<CActor*>(Level().CurrentViewEntity());
+	CActor* pActor = smart_cast<CActor*>(Level().CurrentViewActor());
 	if(!pActor)
 		return;
 
@@ -894,7 +738,7 @@ void CUIMainIngameWnd::UpdateQuickSlots()
 
 void CUIMainIngameWnd::DrawMainIndicatorsForInventory()
 {
-	CActor* pActor = smart_cast<CActor*>(Level().CurrentViewEntity());
+	CActor* pActor = smart_cast<CActor*>(Level().CurrentViewActor());
 	if(!pActor)
 		return;
 

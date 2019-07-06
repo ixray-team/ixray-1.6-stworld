@@ -11,31 +11,28 @@
 #include "CameraManager.h"
 #include "xr_object.h"
 #include "feel_sound.h"
-
-#include "securom_api.h"
+#include "Environment.h"
 
 ENGINE_API	IGame_Level*	g_pGameLevel	= NULL;
 extern	BOOL g_bLoaded;
 
-IGame_Level::IGame_Level	()
+IGame_Level::IGame_Level( )
+:m_pCameras(NULL)
 {
+#ifndef DEDICATED_SERVER	
 	m_pCameras					= xr_new<CCameraManager>(true);
+#endif
 	g_pGameLevel				= this;
 	pLevel						= NULL;
 	bReady						= false;
-	pCurrentEntity				= NULL;
-	pCurrentViewEntity			= NULL;
+	pCurrentActor				= NULL;
+	pCurrentViewActor			= NULL;
 	Device.DumpResourcesMemoryUsage();
 }
 
-//#include "resourcemanager.h"
-
 IGame_Level::~IGame_Level	()
 {
-	if(strstr(Core.Params,"-nes_texture_storing") )
-		//Device.Resources->StoreNecessaryTextures();
-		Device.m_pRender->ResourcesStoreNecessaryTextures();
-	xr_delete					( pLevel		);
+	xr_delete					( pLevel );
 
 	// Render-level unload
 	Render->level_Unload		();
@@ -43,8 +40,11 @@ IGame_Level::~IGame_Level	()
 	// Unregister
 	Device.seqRender.Remove		(this);
 	Device.seqFrame.Remove		(this);
+
+#ifndef DEDICATED_SERVER
 	CCameraManager::ResetPP		();
-///////////////////////////////////////////
+#endif //#ifndef DEDICATED_SERVER
+
 	Sound->set_geometry_occ		(NULL);
 	Sound->set_handler			(NULL);
 	Device.DumpResourcesMemoryUsage();
@@ -57,19 +57,21 @@ IGame_Level::~IGame_Level	()
 
 }
 
-void IGame_Level::net_Stop			()
+void IGame_Level::net_Stop( )
 {
 	for (int i=0; i<6; i++)
 		Objects.Update			(false);
 	// Destroy all objects
 	Objects.Unload				( );
+
+#ifndef DEDICATED_SERVER
 	IR_Release					( );
+#endif
 
 	bReady						= false;	
 }
 
 //-------------------------------------------------------------------------------------------
-//extern CStatTimer				tscreate;
 void __stdcall _sound_event		(ref_sound_data_ptr S, float range)
 {
 	if ( g_pGameLevel && S && S->feedback )	g_pGameLevel->SoundEvent_Register	(S,range);
@@ -79,10 +81,8 @@ static void __stdcall	build_callback	(Fvector* V, int Vcnt, CDB::TRI* T, int Tcn
 	g_pGameLevel->Load_GameSpecific_CFORM( T, Tcnt );
 }
 
-BOOL IGame_Level::Load			(u32 dwNum) 
+BOOL IGame_Level::Load(u32 dwNum) 
 {
-	SECUROM_MARKER_PERFORMANCE_ON(10)
-
 	// Initialize level data
 	pApp->Level_Set				( dwNum );
 	string_path					temp;
@@ -91,7 +91,6 @@ BOOL IGame_Level::Load			(u32 dwNum)
 	pLevel						= xr_new<CInifile>	( temp );
 	
 	// Open
-//	g_pGamePersistent->LoadTitle	("st_opening_stream");
 	g_pGamePersistent->LoadTitle	();
 	IReader* LL_Stream			= FS.r_open	("$level$","level");
 	IReader	&fs					= *LL_Stream;
@@ -102,63 +101,52 @@ BOOL IGame_Level::Load			(u32 dwNum)
 	R_ASSERT2					(XRCL_PRODUCTION_VERSION==H.XRLC_version,"Incompatible level version.");
 
 	// CForms
-//	g_pGamePersistent->LoadTitle	("st_loading_cform");
-	g_pGamePersistent->LoadTitle	();
+	g_pGamePersistent->LoadTitle();
 	ObjectSpace.Load			( build_callback );
-	//Sound->set_geometry_occ		( &Static );
+
+#ifndef DEDICATED_SERVER
 	Sound->set_geometry_occ		(ObjectSpace.GetStaticModel	());
 	Sound->set_handler			( _sound_event );
+#endif //#ifndef DEDICATED_SERVER
 
 	pApp->LoadSwitch			();
 
 
-	// HUD + Environment
+#ifndef DEDICATED_SERVER
 	if(!g_hud)
 		g_hud					= (CCustomHUD*)NEW_INSTANCE	(CLSID_HUDMANAGER);
+#endif //#ifndef DEDICATED_SERVER
 
-	// Render-level Load
 	Render->level_Load			(LL_Stream);
-	// tscreate.FrameEnd			();
-	// Msg						("* S-CREATE: %f ms, %d times",tscreate.result,tscreate.count);
 
-	// Objects
+#ifndef DEDICATED_SERVER
 	g_pGamePersistent->Environment().mods_load	();
-	R_ASSERT					(Load_GameSpecific_Before());
+#endif //#ifndef DEDICATED_SERVER
+
+	g_pGamePersistent->LoadTitle();
+
 	Objects.Load				();
-//. ANDY	R_ASSERT					(Load_GameSpecific_After ());
 
 	// Done
 	FS.r_close					( LL_Stream );
 	bReady						= true;
-	if (!g_dedicated_server)	IR_Capture();
+
 #ifndef DEDICATED_SERVER
+	IR_Capture();
 	Device.seqRender.Add		(this);
 #endif
 
 	Device.seqFrame.Add			(this);
 
-	SECUROM_MARKER_PERFORMANCE_OFF(10)
-
 	return TRUE;	
 }
 
-#ifndef _EDITOR
-#include "../xrCPU_Pipe/ttapi.h"
-#endif
-
 int		psNET_DedicatedSleep	= 5;
-void	IGame_Level::OnRender		( ) 
+
+void IGame_Level::OnRender( ) 
 {
 #ifndef DEDICATED_SERVER
 //	if (_abs(Device.fTimeDelta)<EPS_S) return;
-
-	#ifdef _GPA_ENABLED	
-		TAL_ID rtID = TAL_MakeID( 1 , Core.dwFrame , 0);	
-		TAL_CreateID( rtID );
-		TAL_BeginNamedVirtualTaskWithID( "GameRenderFrame" , rtID );
-		TAL_Parami( "Frame#" , Device.dwFrame );
-		TAL_EndVirtualTask();
-	#endif // _GPA_ENABLED
 
 	// Level render, only when no client output required
 	if (!g_dedicated_server)	{
@@ -167,25 +155,17 @@ void	IGame_Level::OnRender		( )
 	} else {
 		Sleep						(psNET_DedicatedSleep);
 	}
-
-	#ifdef _GPA_ENABLED	
-		TAL_RetireID( rtID );
-	#endif // _GPA_ENABLED
-
-	// Font
-//	pApp->pFontSystem->SetSizeI(0.023f);
-//	pApp->pFontSystem->OnRender	();
 #endif
 }
 
-void	IGame_Level::OnFrame		( ) 
+void IGame_Level::OnFrame( ) 
 {
-	// Log				("- level:on-frame: ",u32(Device.dwFrame));
-//	if (_abs(Device.fTimeDelta)<EPS_S) return;
 
 	// Update all objects
 	VERIFY						(bReady);
 	Objects.Update				(false);
+
+#ifndef DEDICATED_SERVER
 	g_hud->OnFrame				();
 
 	// Ambience
@@ -201,52 +181,31 @@ void	IGame_Level::OnFrame		( )
 			Sounds_Random[id].set_range		(10,200);
 		}
 	}
+#endif //#ifndef DEDICATED_SERVER
 }
 // ==================================================================================================
 
-void CServerInfo::AddItem( LPCSTR name_, LPCSTR value_, u32 color_ )
-{
-	shared_str s_name( name_ );
-	AddItem( s_name, value_, color_ );
-}
-
-void CServerInfo::AddItem( shared_str& name_, LPCSTR value_, u32 color_ )
-{
-	SItem_ServerInfo it;
-	//	shared_str s_name = CStringTable().translate( name_ );
-
-	//	xr_strcpy( it.name, s_name.c_str() );
-	xr_strcpy( it.name, name_.c_str() );
-	xr_strcat( it.name, " = " );
-	xr_strcat( it.name, value_ );
-	it.color = color_;
-
-	if ( data.size() < max_item )
-	{
-		data.push_back( it );
-	}
-}
 
 void IGame_Level::SetEntity( CObject* O  )
 {
-	if (pCurrentEntity)
-		pCurrentEntity->On_LostEntity();
+	if (pCurrentActor)
+		pCurrentActor->On_LostEntity();
 	
 	if (O)
 		O->On_SetEntity();
 
-	pCurrentEntity=pCurrentViewEntity=O;
+	pCurrentActor=pCurrentViewActor=O;
 }
 
 void IGame_Level::SetViewEntity( CObject* O  )
 {
-	if (pCurrentViewEntity)
-		pCurrentViewEntity->On_LostEntity();
+	if (pCurrentViewActor)
+		pCurrentViewActor->On_LostEntity();
 
 	if (O)
 		O->On_SetEntity();
 
-	pCurrentViewEntity=O;
+	pCurrentViewActor=O;
 }
 
 void	IGame_Level::SoundEvent_Register	( ref_sound_data_ptr S, float range )

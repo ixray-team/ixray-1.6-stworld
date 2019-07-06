@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include <dinput.h>
-#include "../xrEngine/xr_ioconsole.h"
+#include "../xrEngine/xr_ioc_cmd.h"
 #include "../xrEngine/xr_input.h"
 #include "../xrEngine/xr_ioc_cmd.h"
 #include "xr_level_controller.h"
@@ -67,10 +67,8 @@ _action  actions[]		= {
 	{ "buy_menu",			kBUY					,_mp},		
 	{ "skin_menu",			kSKIN					,_mp},		
 	{ "team_menu",			kTEAM					,_mp},		
-	{ "active_jobs",		kACTIVE_JOBS			,_sp},		
 																
 	{ "vote_begin",			kVOTE_BEGIN				,_mp},		
-	{ "show_admin_menu",	kSHOW_ADMIN_MENU		,_mp},		
 	{ "vote",				kVOTE					,_mp},		
 	{ "vote_yes",			kVOTEYES				,_mp},		
 	{ "vote_no",			kVOTENO					,_mp},		
@@ -86,10 +84,6 @@ _action  actions[]		= {
 	{ "quick_use_3",		kQUICK_USE_3			,_both},
 	{ "quick_use_4",		kQUICK_USE_4			,_both},
 
-	{ "quick_save",			kQUICK_SAVE				,_sp},		
-	{ "quick_load",			kQUICK_LOAD				,_sp},		
-//	{ "alife_command",		kALIFE_CMD				,_sp},		
-	
 																
 	{ NULL, 				kLASTACTION				,_both}		
 };															
@@ -378,6 +372,8 @@ void GetActionAllBinding		(LPCSTR _action, char* dst_buff, int dst_buff_sz)
 ConsoleBindCmds	bindConsoleCmds;
 BOOL bRemapped = FALSE;
 
+ENGINE_API bool g_dedicated_server;
+
 class CCC_Bind : public IConsole_Command
 {
 	int m_work_idx;
@@ -385,6 +381,9 @@ public:
 	CCC_Bind(LPCSTR N, int idx) : IConsole_Command(N),m_work_idx(idx) {};
 	virtual void Execute(LPCSTR args) 
 	{
+		if(g_dedicated_server)
+			return;
+
 		string256							action;
 		string256							key;
 		*action								= 0;
@@ -518,7 +517,7 @@ public:
 		string_path				cmd;
 		FS.update_path			(_cfg,"$game_config$","default_controls.ltx");
 		strconcat				(sizeof(cmd),cmd,"cfg_load", " ", _cfg);
-		Console->Execute		(cmd);
+		pConsoleCommands->Execute		(cmd);
 	}
 };
 
@@ -607,7 +606,7 @@ bool ConsoleBindCmds::execute(int dik)
 	if(it==m_bindConsoleCmds.end())
 		return false;
 
-	Console->Execute(it->second.cmd.c_str());
+	pConsoleCommands->Execute(it->second.cmd.c_str());
 	return true;
 }
 

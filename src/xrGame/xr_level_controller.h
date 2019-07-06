@@ -61,7 +61,6 @@ enum	EGameActions
 	kACTIVE_JOBS,
 						
 	kVOTE_BEGIN,
-	kSHOW_ADMIN_MENU,
 	kVOTE,
 	kVOTEYES,
 	kVOTENO,

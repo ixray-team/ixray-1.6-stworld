@@ -8,8 +8,6 @@
 #include "ui/TeamInfo.h"
 #include <dinput.h>
 
-#include "object_broker.h"
-
 #include "UITeamPanels.h"
 #include "ui/UIMoneyIndicator.h"
 #include "ui/UIRankIndicator.h"

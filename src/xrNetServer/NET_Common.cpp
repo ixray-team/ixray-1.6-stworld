@@ -1,7 +1,5 @@
-
-    #include "stdafx.h"
-        
-    #include "NET_Common.h"
+#include "stdafx.h"
+#include "NET_Common.h"
 
 /*#ifdef DEBUG
 void PrintParsedPacket(const char* message, u16 message_type, const void* packet_data, u32 packet_size)
@@ -62,14 +60,9 @@ XRNETSERVER_API int     psNET_GuaranteedPacketMode  = NET_GUARANTEEDPACKET_DEFAU
 //------------------------------------------------------------------------------
 
 MultipacketSender::MultipacketSender()
-{
-}
+{}
 
-
-//------------------------------------------------------------------------------
-
-void
-MultipacketSender::SendPacket( const void* packet_data, u32 packet_sz, u32 flags, u32 timeout )
+void MultipacketSender::SendPacket( const void* packet_data, u32 packet_sz, u32 flags )
 {
     _buf_cs.Enter();
 
@@ -99,24 +92,21 @@ MultipacketSender::SendPacket( const void* packet_data, u32 packet_sz, u32 flags
         ||  (flags & DPNSEND_IMMEDIATELLY)
       )
     {
-        _FlushSendBuffer( timeout, buf );
+        _FlushSendBuffer( 0/*timeout*/, buf );
     }
 
     buf->buffer.w_u16( (u16)packet_sz );
     buf->buffer.w( packet_data, packet_sz );
         
     if( flags & DPNSEND_IMMEDIATELLY )
-        _FlushSendBuffer( timeout, buf );
+        _FlushSendBuffer( 0/*timeout*/, buf );
     
     buf->last_flags = flags;
     _buf_cs.Leave();
 }
 
 
-//------------------------------------------------------------------------------
-
-void            
-MultipacketSender::FlushSendBuffer( u32 timeout )
+void MultipacketSender::FlushSendBuffer( u32 timeout )
 {
     _buf_cs.Enter();
     
@@ -126,11 +116,7 @@ MultipacketSender::FlushSendBuffer( u32 timeout )
     _buf_cs.Leave();
 }
 
-
-//------------------------------------------------------------------------------
-
-void            
-MultipacketSender::_FlushSendBuffer( u32 timeout, Buffer* buf )
+void MultipacketSender::_FlushSendBuffer( u32 timeout, Buffer* buf )
 {
     // expected to be called between '_buf_cs' enter/leave
 
@@ -183,16 +169,12 @@ MultipacketSender::_FlushSendBuffer( u32 timeout, Buffer* buf )
 
         // do send
         
-        _SendTo_LL( packet_data, comp_sz+sizeof(MultipacketHeader), buf->last_flags, timeout );
+        _SendTo_LL( packet_data, comp_sz+sizeof(MultipacketHeader), buf->last_flags );
         buf->buffer.B.count = 0;        
     } // if buffer not empty
 }
 
-
-//------------------------------------------------------------------------------
-
-void            
-MultipacketReciever::RecievePacket( const void* packet_data, u32 packet_sz, u32 param )
+void MultipacketReciever::RecievePacket( const void* packet_data, u32 packet_sz, u32 param )
 {
     MultipacketHeader*  header = (MultipacketHeader*)packet_data;
     u8                  data[MaxMultipacketSize];
@@ -259,3 +241,26 @@ void XRNETSERVER_API DumpNetCompressorStats(bool brief)
 	Compressor.DumpStats(brief);
 }
 
+void ip_address::set(LPCSTR src_string)
+{
+	u32		buff[4];
+	int cnt = sscanf(src_string, "%d.%d.%d.%d", &buff[0], &buff[1], &buff[2], &buff[3]);
+	if(cnt==4)
+	{
+		m_data.a1	= u8(buff[0]&0xff);
+		m_data.a2	= u8(buff[1]&0xff);
+		m_data.a3	= u8(buff[2]&0xff);
+		m_data.a4	= u8(buff[3]&0xff);
+	}else
+	{
+		Msg			("! Bad ipAddress format [%s]",src_string);
+		m_data.data		= 0;
+	}
+}
+
+xr_string ip_address::to_string() const
+{
+	string128	res;
+	xr_sprintf	(res,sizeof(res),"%d.%d.%d.%d", m_data.a1, m_data.a2, m_data.a3, m_data.a4);
+	return		res;
+}

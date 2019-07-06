@@ -6,12 +6,10 @@
 class CHUDTarget;
 class CUIGameCustom;
 
-class CHUDManager :
-	public CCustomHUD
+class CHUDManager :public CCustomHUD
 {
 	friend class CUI;
 private:
-//.	CUI*					pUI;
 	CUIGameCustom*			pUIGame;
 	CHitMarker				HitMarker;
 	CHUDTarget*				m_pHUDTarget;
@@ -27,7 +25,6 @@ public:
 
 	virtual		void		RenderUI			();
 
-//.				CUI*		GetUI				(){return pUI;}
 		CUIGameCustom*		GetGameUI			(){return pUIGame;}
 
 				void		HitMarked			(int idx, float power, const Fvector& dir);
@@ -57,7 +54,6 @@ public:
 	virtual	void			RenderActiveItemUI	();
 	virtual	bool			RenderActiveItemUIQuery();
 
-	//Lain: added
 				void		SetRenderable       (bool renderable) { psHUD_Flags.set(HUD_DRAW_RT2,renderable); }
 };
 

@@ -77,9 +77,9 @@ protected:
 		etiStoredCursorState= (1<<6),
 		eti_last			= 7,
 	};
-	xr_vector<shared_str>	m_start_lua_functions;
-	xr_vector<shared_str>	m_stop_lua_functions;
-	luabind::functor<void>	m_onframe_functor;
+	//xr_vector<shared_str>	m_start_lua_functions;
+	//xr_vector<shared_str>	m_stop_lua_functions;
+	//luabind::functor<void>	m_onframe_functor;
 
 	Flags32					m_flags;
 	CUISequencer*			m_owner;

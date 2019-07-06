@@ -301,11 +301,6 @@ bool CClimableObject::BeforeLadder(CPHCharacter *actor,float tolerance/*=0.f*/)c
 	return d.dotproduct(n)<-(width+actor->FootRadius()/2.f+tolerance);
 }
 
-BOOL CClimableObject::UsedAI_Locations()
-{
-	return FALSE;
-}
-
 
 void CClimableObject::ObjectContactCallback(bool&	do_colide,bool bo1,dContact& c,SGameMtl * /*material_1*/,SGameMtl * /*material_2*/)
 {

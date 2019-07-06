@@ -15,12 +15,8 @@
 #include "xrServer_updates_compressor.h"
 #include "xrClientsPool.h"
 
-#ifdef DEBUG
-//. #define SLOW_VERIFY_ENTITIES
-#endif
-
-
 class CSE_Abstract;
+class CServerInfo;
 
 const u32	NET_Latency		= 50;		// time in (ms)
 
@@ -30,7 +26,7 @@ typedef xr_hash_map<u16, CSE_Abstract*>	xrS_entities;
 class xrClientData	: public IClient
 {
 public:
-	CSE_Abstract*			owner;
+	CSE_Abstract*			owner_;
 	BOOL					net_Ready;
 	BOOL					net_Accepted;
 	
@@ -47,7 +43,6 @@ public:
 		u32						m_dwLoginTime;
 	}m_admin_rights;
 
-	shared_str					m_cdkey_digest;
 	secure_messaging::key_t		m_secret_key;
 	s32							m_last_key_sync_request_seed;
 
@@ -63,14 +58,8 @@ struct	svs_respawn
 	u32		timestamp;
 	u16		phantom;
 };
-IC bool operator < (const svs_respawn& A, const svs_respawn& B)	{ return A.timestamp<B.timestamp; }
 
-struct CheaterToKick
-{
-	shared_str	reason;
-	ClientID	cheater_id;
-};
-typedef xr_vector<CheaterToKick> cheaters_t;
+IC bool operator < (const svs_respawn& A, const svs_respawn& B)	{ return A.timestamp<B.timestamp; }
 
 namespace file_transfer
 {
@@ -86,7 +75,6 @@ private:
 	xrS_entities				entities;
 	xr_multiset<svs_respawn>	q_respawn;
 	xr_vector<u16>				conn_spawned_ids;
-	cheaters_t					m_cheaters;
 	
 	file_transfer::server_site*	m_file_transfers;
 	clientdata_proxy*			m_screenshot_proxies[MAX_PLAYERS_COUNT*2];
@@ -103,17 +91,6 @@ private:
 	u32							m_last_updates_size;
 	u32							m_last_update_time;
 	
-	
-	void						SendServerInfoToClient		(ClientID const & new_client);
-	server_info_uploader&		GetServerInfoUploader		();
-
-	void						LoadServerInfo				();
-	
-	typedef xr_vector<server_info_uploader*>	info_uploaders_t;
-
-	info_uploaders_t			m_info_uploaders;
-	IReader*					m_server_logo;
-	IReader*					m_server_rules;
 
 	struct DelayedPacket
 	{
@@ -160,7 +137,6 @@ public:
 	void					Export_game_type		(IClient* CL);
 	void					Perform_game_export		();
 	BOOL					PerformRP				(CSE_Abstract* E);
-	void					PerformMigration		(CSE_Abstract* E, xrClientData* from, xrClientData* to);
 	
 	IC void					clear_ids				()
 	{
@@ -182,34 +158,26 @@ public:
 
 	CSE_Abstract*			Process_spawn			(NET_Packet& P, ClientID sender, BOOL bSpawnWithClientsMainEntityAsParent=FALSE, CSE_Abstract* tpExistedEntity=0);
 	void					Process_update			(NET_Packet& P, ClientID sender);
-	void					Process_save			(NET_Packet& P, ClientID sender);
 	void					Process_event			(NET_Packet& P, ClientID sender);
 	void					Process_event_ownership	(NET_Packet& P, ClientID sender, u32 time, u16 ID, BOOL bForced = FALSE);
 	bool					Process_event_reject	(NET_Packet& P, const ClientID sender, const u32 time, const u16 id_parent, const u16 id_entity, bool send_message = true);
 	void					Process_event_destroy	(NET_Packet& P, ClientID sender, u32 time, u16 ID, NET_Packet* pEPack);
 	void					Process_event_activate	(NET_Packet& P, const ClientID sender, const u32 time, const u16 id_parent, const u16 id_entity, bool send_message = true);
 	
-	xrClientData*			SelectBestClientToMigrateTo		(CSE_Abstract* E, BOOL bForceAnother=FALSE);
-	void					SendConnectResult		(IClient* CL, u8 res, u8 res1, char* ResultStr);
+	void					SendConnectResult		(IClient* CL, u8 res, u8 res1, LPCSTR ResultStr);
 	void	__stdcall		SendConfigFinished		(ClientID const & clientId);
-	void					SendProfileCreationError(IClient* CL, char const * reason);
+	void					SendProfileCreationError(IClient* CL, LPCSTR reason);
 	void					AttachNewClient			(IClient* CL);
-	virtual void			OnBuildVersionRespond				(IClient* CL, NET_Packet& P);
+	void					OnBuildVersionRespond	(IClient* CL, NET_Packet& P);
 protected:
 	xrClientsPool			m_disconnected_clients;
 	bool					CheckAdminRights		(const shared_str& user, const shared_str& pass, string512& reason);
 	virtual IClient*		new_client				( SClientConnectData* cl_data );
 	
-	virtual bool			Check_ServerAccess( IClient* CL, string512& reason )	{ return true; }
-
-	virtual bool			NeedToCheckClient_GameSpy_CDKey		(IClient* CL)	{ return false; }
-	virtual void			Check_GameSpy_CDKey_Success			(IClient* CL);
-			void			RequestClientDigest					(IClient* CL);
-			void			ProcessClientDigest					(xrClientData* xrCL, NET_Packet* P);
-			void			KickCheaters						();
+			bool			NeedToCheckClient_GameSpy_CDKey		(IClient* CL)	{ return false; }
 	
-	virtual bool			NeedToCheckClient_BuildVersion		(IClient* CL);
-	virtual void			Check_BuildVersion_Success			(IClient* CL);
+			bool			NeedToCheckClient_BuildVersion		(IClient* CL);
+			void			Check_BuildVersion_Success			(IClient* CL);
 
 	void					SendConnectionData		(IClient* CL);
 	void					OnChatMessage			(NET_Packet* P, xrClientData* CL);
@@ -232,14 +200,13 @@ public:
 	virtual void			OnCL_Connected		(IClient* CL);
 	virtual void			OnCL_Disconnected	(IClient* CL);
 	virtual bool			OnCL_QueryHost		();
-	virtual void			SendTo_LL			(ClientID ID, void* data, u32 size, u32 dwFlags=DPNSEND_GUARANTEED, u32 dwTimeout=0);
-			void			SecureSendTo		(xrClientData* xrCL, NET_Packet& P, u32 dwFlags=DPNSEND_GUARANTEED, u32 dwTimeout=0);
-	virtual	void			SendBroadcast		(ClientID exclude, NET_Packet& P, u32 dwFlags=DPNSEND_GUARANTEED);
+	virtual void			SendTo_LL			(ClientID ID, const void* data, u32 size, u32 dwFlags=DPNSEND_GUARANTEED );
+			void			SecureSendTo		(xrClientData* xrCL, NET_Packet& P, u32 dwFlags=DPNSEND_GUARANTEED );
+	virtual	void			SendBroadcast		(ClientID exclude, NET_Packet& P, u32 dwFlags=DPNSEND_GUARANTEED );
 			void			GetPooledState			(xrClientData* xrCL);
 			void			ClearDisconnectedPool	() { m_disconnected_clients.Clear(); };
 
 	virtual IClient*		client_Create		();								// create client info
-	virtual void			client_Replicate	();								// replicate current state to client
 	virtual IClient*		client_Find_Get		(ClientID ID);					// Find earlier disconnected client
 	virtual void			client_Destroy		(IClient* C);					// destroy client info
 
@@ -260,25 +227,17 @@ public:
 	void					SLS_Default			();
 	void					SLS_Clear			();
 	void					SLS_Save			(IWriter&	fs);
-	void					SLS_Load			(IReader&	fs);	
-			shared_str		level_name			(const shared_str &server_options) const;
-			shared_str		level_version		(const shared_str &server_options) const;
-	static	LPCSTR			get_map_download_url(LPCSTR level_name, LPCSTR level_version);
+			shared_str		level_name			( shared_str const& server_options) const;
+			shared_str		level_version		( shared_str const& server_options) const;
+	static	LPCSTR			get_map_download_url( LPCSTR level_name, LPCSTR level_version);
 
-	void					create_direct_client();
-	BOOL					IsDedicated			() const	{return m_bDedicated;};
-
-	virtual void			Assign_ServerType	( string512& res ) {};
-	virtual bool			HasPassword			()	{ return false; }
-	virtual bool			HasProtected		()	{ return false; }
-			void			AddCheater			(shared_str const & reason, ClientID const & cheaterID);
-			void			MakeScreenshot		(ClientID const & admin_id, ClientID const & cheater_id);
-			void			MakeConfigDump		(ClientID const & admin_id, ClientID const & cheater_id);
+			void			MakeScreenshot		(ClientID const& admin_id, ClientID const& cheater_id);
+			void			MakeConfigDump		(ClientID const& admin_id, ClientID const& cheater_id);
 
 	virtual void			GetServerInfo		( CServerInfo* si );
-			void			SendPlayersInfo		(ClientID const & to_client);
+			void			SendPlayersInfo		( ClientID const& to_client );
 public:
-	xr_string				ent_name_safe		(u16 eid);
+
 #ifdef DEBUG
 			bool			verify_entities		() const;
 			void			verify_entity		(const CSE_Abstract *entity) const;

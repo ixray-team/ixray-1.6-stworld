@@ -275,6 +275,7 @@
 				RuntimeLibrary="2"
 				BufferSecurityCheck="true"
 				FloatingPointModel="2"
+				TreatWChar_tAsBuiltInType="false"
 				ForceConformanceInForLoopScope="false"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="stdafx.h"
@@ -304,7 +305,7 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\..\sdk\libraries;..\..\..\..\libraries"
-				IgnoreDefaultLibraryNames="libcmt.lib"
+				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				GenerateMapFile="false"
 				MapFileName=""
@@ -406,10 +407,6 @@
 			</File>
 			<File
 				RelativePath=".\nvdxt_options.h"
-				>
-			</File>
-			<File
-				RelativePath=".\nvDXTlibMTDLL.lib"
 				>
 			</File>
 			<File

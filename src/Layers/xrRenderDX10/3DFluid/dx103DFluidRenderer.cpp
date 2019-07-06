@@ -6,6 +6,7 @@
 #include "../dx10BufferUtils.h"
 #include "../../xrRender/dxRenderDeviceRender.h"
 
+#include "../../../xrEngine/Environment.h"
 #include "dx103DFluidData.h"
 
 struct VsInput

@@ -8,7 +8,7 @@
 #include "../level.h"
 #include "../game_cl_base.h"
 #include "../game_cl_teamdeathmatch.h"
-#include "../../xrEngine/xr_ioconsole.h"
+#include "../../xrEngine/xr_ioc_cmd.h"
 
 CUIVote::CUIVote()
 {
@@ -110,13 +110,13 @@ void CUIVote::SendMessage(CUIWindow* pWnd, s16 msg, void* pData)
 
 void CUIVote::OnBtnYes()
 {
-    Console->Execute("cl_voteyes");
+    pConsoleCommands->Execute("cl_voteyes");
 	HideDialog							();
 }
 
 void CUIVote::OnBtnNo()
 {
-    Console->Execute("cl_voteno");
+    pConsoleCommands->Execute("cl_voteno");
 	HideDialog							();
 }
 

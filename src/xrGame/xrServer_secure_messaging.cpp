@@ -23,7 +23,7 @@ void xrServer::PerformSecretKeysSyncAck(xrClientData* xrCL, NET_Packet & P)
 	secure_messaging::generate_key(xrCL->m_last_key_sync_request_seed, xrCL->m_secret_key);
 }
 
-void xrServer::SecureSendTo(xrClientData* xrCL, NET_Packet& P, u32 dwFlags, u32 dwTimeout)
+void xrServer::SecureSendTo(xrClientData* xrCL, NET_Packet& P, u32 dwFlags/*, u32 dwTimeout*/)
 {
 	VERIFY				(xrCL);
 	
@@ -36,7 +36,7 @@ void xrServer::SecureSendTo(xrClientData* xrCL, NET_Packet& P, u32 dwFlags, u32 
 		enc_packet.B.count - sizeof(u16),
 		xrCL->m_secret_key);
 	enc_packet.w_u32	(checksum);
-	SendTo				(xrCL->ID, enc_packet, dwFlags, dwTimeout);
+	SendTo				(xrCL->ID, enc_packet, dwFlags/*, dwTimeout*/);
 }
 
 void xrServer::OnSecureMessage(NET_Packet & P, xrClientData* xrClSender)

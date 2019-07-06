@@ -4,16 +4,16 @@
 #ifndef XR_IOCONSOLE_H_INCLUDED
 #define XR_IOCONSOLE_H_INCLUDED
 
-#include "../Include/xrRender/FactoryPtr.h"
-#include "../Include/xrRender/UIShader.h"
+#include "xrServerInfo.h"
 
-//refs
-class ENGINE_API CGameFont;
 class ENGINE_API IConsole_Command;
+
+#define ioc_prompt ">>> "
+#define ch_cursor "_"
 
 namespace text_editor
 {
-class line_editor;
+class line_editor_base;
 class line_edit_control;
 };
 
@@ -53,23 +53,11 @@ struct TipString
 	}
 };
 
+
 class ENGINE_API CConsole :
-	public pureRender,
-	public pureFrame,
-	public pureScreenResolutionChanged
+	public pureFrame
 {
 public:
-	struct str_pred : public std::binary_function<char*, char*, bool>
-	{	
-		IC bool operator()(const char* x, const char* y) const
-		{
-			return (xr_strcmp( x, y ) < 0);
-		}
-	};
-	typedef  xr_map<LPCSTR,IConsole_Command*,str_pred>	vecCMD;
-	typedef  vecCMD::iterator							vecCMD_IT;
-	typedef  vecCMD::const_iterator						vecCMD_CIT;
-	typedef  fastdelegate::FastDelegate0<void>			Callback;
 	typedef  xr_vector<shared_str>						vecHistory;
 	typedef  xr_vector<shared_str>						vecTips;
 	typedef  xr_vector<TipString>						vecTipsEx;
@@ -80,20 +68,14 @@ public:
 protected:
 	int				scroll_delta;
 
-	CGameFont*		pFont;
-	CGameFont*		pFont2;
-	
-	FactoryPtr<IUIShader>*		m_hShader_back;
 
 	POINT			m_mouse_pos;
 	bool			m_disable_tips;
 
-private:
 	vecHistory		m_cmd_history;
 	u32				m_cmd_history_max;
 	int				m_cmd_history_idx;
 	shared_str		m_last_cmd;
-	BENCH_SEC_SCRAMBLEMEMBER1
 
 	vecTips			m_temp_tips;
 	vecTipsEx		m_tips;
@@ -103,44 +85,28 @@ private:
 	int				m_start_tip;
 	u32				m_prev_length_str;
 
+	u32				m_last_time;
+	CServerInfo		m_server_info;
+
 public:
-					CConsole			();
-	virtual			~CConsole			();
-	virtual	void	Initialize			();
-	virtual void	Destroy				();
+						CConsole				( );
+	virtual				~CConsole				( );
+	virtual	void		Initialize				( );
+	virtual void		Destroy					( );
 
-	virtual void		OnRender			();
-	virtual void _BCL	OnFrame				();
-	virtual void	OnScreenResolutionChanged();
-	string64		ConfigFile;
-	bool			bVisible;
-	vecCMD			Commands;
+	virtual void _BCL	OnFrame					( );
+	bool				bVisible;
 
-	void			AddCommand			( IConsole_Command* cc );
-	void			RemoveCommand		( IConsole_Command* cc );
+	virtual void		Show				( );
+	virtual void		Hide				( );
 
-	void			Show				();
-	void			Hide				();
+	void				ExecuteString		( LPCSTR cmd, bool record_cmd );
+	virtual void xr_stdcall Execute_cmd		( );
+	void				SelectCommand		( );
 
-	void			Execute				( LPCSTR cmd );
-	void			ExecuteScript		( LPCSTR str );
-	void			ExecuteCommand		( LPCSTR cmd, bool record_cmd = true );
-	void			SelectCommand		();
-
-	bool			GetBool				( LPCSTR cmd ) const;
-	float			GetFloat			( LPCSTR cmd, float& min, float& max) const;
-	int				GetInteger			( LPCSTR cmd, int& min, int& max) const;
-	LPCSTR			GetString			( LPCSTR cmd ) const;
-	LPCSTR			GetToken			( LPCSTR cmd ) const;
-	xr_token*		GetXRToken			( LPCSTR cmd ) const;
-	Fvector			GetFVector			( LPCSTR cmd ) const;
-	Fvector*		GetFVectorPtr		( LPCSTR cmd ) const;
-	IConsole_Command* GetCommand		( LPCSTR cmd ) const;
 protected:
-	text_editor::line_editor*			m_editor;
+	text_editor::line_editor_base*			m_editor;
 	text_editor::line_edit_control&		ec();
-
-	BENCH_SEC_SCRAMBLEMEMBER2
 
 	enum Console_mark // (int)=char
 	{
@@ -163,9 +129,6 @@ protected:
 	bool	is_mark				( Console_mark type );
 	u32		get_mark_color		( Console_mark type );
 
-	void	DrawBackgrounds		( bool bGame );
-	void	DrawRect			( Frect const& r, u32 color );
-	void	OutFont				( LPCSTR text, float& pos_y );
 	void	Register_callbacks	();
 	
 protected:
@@ -186,12 +149,9 @@ protected:
 	void xr_stdcall PageUp_tips	();
 	void xr_stdcall PageDown_tips();
 
-	void xr_stdcall Execute_cmd	();
 	void xr_stdcall Show_cmd	();
 	void xr_stdcall Hide_cmd	();
 	void xr_stdcall Hide_cmd_esc();
-
-	void xr_stdcall GamePause	();
 
 protected:
 	void	add_cmd_history		( shared_str const& str );
@@ -205,15 +165,15 @@ protected:
 	void	check_prev_selected_tip();
 	void	reset_selected_tip	();
 
-	IConsole_Command* find_next_cmd( LPCSTR in_str, shared_str& out_str );
-	bool	add_next_cmds		( LPCSTR in_str, vecTipsEx& out_v );
-	bool	add_internal_cmds	( LPCSTR in_str, vecTipsEx& out_v );
+	IConsole_Command* find_next_cmd	( LPCSTR in_str, shared_str& out_str );
+	bool	add_next_cmds			( LPCSTR in_str, vecTipsEx& out_v );
+	bool	add_internal_cmds		( LPCSTR in_str, vecTipsEx& out_v );
 	
-	void	update_tips			();
-	void	select_for_filter	( LPCSTR filter_str, vecTips& in_v, vecTipsEx& out_v );
-
+	void	update_tips				( );
+	void	select_for_filter		( LPCSTR filter_str, vecTips& in_v, vecTipsEx& out_v );
 }; // class CConsole
 
-ENGINE_API extern CConsole* Console;
+
+ENGINE_API extern CConsole* pConsole;
 
 #endif // XR_IOCONSOLE_H_INCLUDED

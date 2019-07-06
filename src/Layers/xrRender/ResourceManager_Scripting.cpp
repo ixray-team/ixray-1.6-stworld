@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include <lua/library_linkage.h>
+#include	"../../xrEngine/ai_script_space.h"
 
 #include	"../../xrEngine/Render.h"
 #include	"ResourceManager.h"
@@ -193,10 +193,10 @@ void	CResourceManager::LS_Load			()
 		luabind::set_error_callback		(LuaError);
 #endif
 
-	function		(LSVM, "log",	LuaLog);
-
 	module			(LSVM)
 	[
+		def( "log", LuaLog ),
+
 		class_<adopt_sampler>("_sampler")
 			.def(								constructor<const adopt_sampler&>())
 			.def("texture",						&adopt_sampler::_texture		,return_reference_to(_1))
@@ -392,8 +392,8 @@ ShaderElement*		CBlender_Compile::_lua_Compile	(LPCSTR namesp, LPCSTR name)
 	LPCSTR				t_1		= (L_textures.size() > 1)	? *L_textures[1] : "null";
 	LPCSTR				t_d		= detail_texture			? detail_texture : "null" ;
 	lua_State*			LSVM	= dxRenderDeviceRender::Instance().Resources->LSVM;
-	object				shader	= get_globals(LSVM)[namesp];
-	functor<void>		element	= object_cast<functor<void> >(shader[name]);
+	object				shader	= globals(LSVM)[namesp];
+	luabind::object		element	= shader[name];
 	adopt_compiler		ac		= adopt_compiler(this);
 	element						(ac,t_0,t_1,t_d);
 	r_End				();

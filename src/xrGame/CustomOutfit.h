@@ -36,7 +36,6 @@ protected:
 	shared_str				m_full_icon_name;
 	SBoneProtections*		m_boneProtection;	
 protected:
-	u32						m_ef_equipment_type;
 	u32						m_artefact_count;
 
 public:
@@ -55,7 +54,6 @@ public:
 
 	bool					bIsHelmetAvaliable;
 
-	virtual u32				ef_equipment_type		() const;
 	virtual	BOOL			BonePassBullet			(int boneID);
 	const shared_str&		GetFullIconName			() const	{ return m_full_icon_name; }
 	u32						get_artefact_count		() const	{ return m_artefact_count; }

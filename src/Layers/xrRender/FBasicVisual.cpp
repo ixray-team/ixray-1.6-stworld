@@ -60,6 +60,11 @@ void dxRender_Visual::Load		(const char* N, IReader *data, u32 )
 		FATAL				("Invalid visual");
 	}
 
+#ifndef _EDITOR
+	if(g_dedicated_server)
+		return;
+#endif //#ifndef _EDITOR
+
 	// Shader
 	if (data->find_chunk(OGF_TEXTURE)) {
 		string256		fnT,fnS;

@@ -36,8 +36,4 @@ public:
 	virtual void		on_renderable_Render();
 	virtual void		OnMoveToRuck		(const SInvItemPlace& prev);
 
-	virtual bool			use_parent_ai_locations	() const
-	{
-		return				CInventoryItemObject::use_parent_ai_locations	() && (Device.dwFrame != dwXF_Frame);
-	}
 };

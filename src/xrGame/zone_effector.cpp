@@ -31,7 +31,7 @@ void CZoneEffector::Load(LPCSTR section)
 
 void CZoneEffector::Activate()
 {
-	m_pActor = smart_cast<CActor*>(Level().CurrentEntity());
+	m_pActor = smart_cast<CActor*>(Level().CurrentActor());
 	if(!m_pActor) return;
 	m_pp_effector						= xr_new<CPostprocessAnimatorLerp>();
 	m_pp_effector->SetType				(EEffectorPPType( u32(u64(this) & u32(-1)) ));
@@ -56,7 +56,7 @@ void CZoneEffector::Update(float dist, float r, ALife::EHitType hit_type)
 	float min_r = r * r_min_perc;
 	float max_r = r * r_max_perc;
 
-	bool camera_on_actor = (Level().CurrentEntity() && smart_cast<CActor*>(Level().CurrentEntity()));
+	bool camera_on_actor = (Level().CurrentActor() && smart_cast<CActor*>(Level().CurrentActor()));
 	
 	if (m_pp_effector) {
 		if ((dist > max_r) || !camera_on_actor || (m_pActor&&!m_pActor->g_Alive()))	Stop();

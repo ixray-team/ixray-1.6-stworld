@@ -7,13 +7,6 @@
 #include "../xrphysics/physicsexternalcommon.h"
 #include "../xrphysics/mathutils.h"
 #include "../xrphysics/movementboxdynamicactivate.h"
-namespace ALife {
-	enum EHitType;
-};
-
-namespace DetailPathManager {
-	struct STravelPathPoint;
-};
 
 class CPHAICharacter;
 class CPHSimpleCharacter;
@@ -28,6 +21,10 @@ class CPHCapture;
 class IPHCapture;
 class CPHCharacter;
 class IPhysicsElement;
+
+namespace ALife {
+	enum EHitType;
+} // namespace ALife
 
 
 
@@ -217,45 +214,9 @@ public:
 	bool				IsCharacterEnabled		();
 	void				DisableCharacter		();
 	void				Calculate				(Fvector& vAccel,const Fvector& camDir, float ang_speed, float jump, float dt, bool bLight);
-	void				Calculate				(const xr_vector<DetailPathManager::STravelPathPoint>& path, //in path
-												float speed,						 //in speed
-												u32& travel_point,					 //in- travel start, out - current trev point
-												float& precesition					 //in- tolerance, out - precesition
-												);
 	void				AddControlVel			(const Fvector& vel);
 	void				SetVelocityLimit		(float val);
 	float				VelocityLimit			();
-	void				PathNearestPoint		(const xr_vector<DetailPathManager::STravelPathPoint>	&path,		//in path
-												 const Fvector					&new_position,  //in position
-												 int							&index,			//out nearest
-												 bool							&type          //out type
-												);	//return nearest point
-	void				PathNearestPointFindUp(const xr_vector<DetailPathManager::STravelPathPoint>		&path,			//in path
-											   const Fvector					&new_position,  //in position
-											   int								&index,			//out nearest
-											   float							radius,			//in exit radius
-											   bool								&near_line      //out type
-											   );
-	void				PathNearestPointFindDown(const xr_vector<DetailPathManager::STravelPathPoint>	&path,			//in path
-												 const Fvector					&new_position,  //in position
-												 int							&index,			//out nearest
-												 float							radius,			//in exit radius
-												 bool							&near_line      //out type
-												 );
-
-	void				PathDIrPoint			(const xr_vector<DetailPathManager::STravelPathPoint>				&path,		//in path
-															 int							index,			//in index
-															 float							distance,	//in distance
-															 float							precesition,//in precesition
-															 Fvector						&dir        //out dir
-															 );
-	void				PathDIrLine				(const xr_vector<DetailPathManager::STravelPathPoint>	&path,		//in path
-												int								index,		//in point
-												float							distance,	//in distance
-												float							precesition,//in precesition
-												Fvector							&dir        //out dir
-												);
-	void				CorrectPathDir			(const Fvector &real_path_dir,const xr_vector<DetailPathManager::STravelPathPoint> & path,int index,Fvector &corrected_path_dir);
 
 	//	void				Move					(Fvector& Dest, Fvector& Motion, BOOL bDynamic=FALSE){};
 	void				SetApplyGravity			(BOOL flag)																;
@@ -265,7 +226,7 @@ public:
 	float				GetFrictionFactor		();
 	void				MulFrictionFactor		(float f);
 	void				ApplyImpulse			(const Fvector& dir,const float P)										;
-	void				ApplyHit				(const Fvector& dir,const float P,ALife::EHitType hit_type)				;
+	void				ApplyHit				(const Fvector& dir,const float P, ALife::EHitType hit_type)				;
 	void				SetJumpUpVelocity		(float velocity)														;
 	void				EnableCharacter			()																		;
 	void				SetOjectContactCallback (ObjectContactCallbackFun* callback)									;
@@ -287,9 +248,6 @@ public:
 private:
 	void				actor_calculate			(Fvector& vAccel,const Fvector& camDir, float ang_speed, float jump, float dt, bool bLight);
 	void				UpdateCollisionDamage	( );
-	bool				MakeJumpPath			(xr_vector<DetailPathManager::STravelPathPoint> & out_path, 
-												 u32 & travel_point,
-												 Fvector & dist_to_enemy);
 };
 
 #endif

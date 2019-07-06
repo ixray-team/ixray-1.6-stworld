@@ -277,52 +277,6 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 		}//(mstate_real&mcAnyMove)
 	}//peOnGround || peAtWall
 
-	if(IsGameTypeSingle() && cam_eff_factor>EPS)
-	{
-	LPCSTR state_anm				= NULL;
-
-	if(mstate_real&mcSprint && !(mstate_old&mcSprint) )
-		state_anm					= "sprint";
-	else
-	if(mstate_real&mcLStrafe && !(mstate_old&mcLStrafe) )
-		state_anm					= "strafe_left";
-	else
-	if(mstate_real&mcRStrafe && !(mstate_old&mcRStrafe) )
-		state_anm					= "strafe_right";
-	else
-	if(mstate_real&mcFwd && !(mstate_old&mcFwd) )
-		state_anm					= "move_fwd";
-	else
-	if(mstate_real&mcBack && !(mstate_old&mcBack) )
-		state_anm					= "move_back";
-
-		if(state_anm)
-		{ //play moving cam effect
-			CActor*	control_entity		= static_cast_checked<CActor*>(Level().CurrentControlEntity());
-			R_ASSERT2					(control_entity, "current control entity is NULL");
-			CEffectorCam* ec			= control_entity->Cameras().GetCamEffector(eCEActorMoving);
-			if(NULL==ec)
-			{
-				string_path			eff_name;
-				xr_sprintf			(eff_name, sizeof(eff_name), "%s.anm", state_anm);
-				string_path			ce_path;
-				string_path			anm_name;
-				strconcat			(sizeof(anm_name), anm_name, "camera_effects\\actor_move\\", eff_name);
-				if (FS.exist( ce_path, "$game_anims$", anm_name))
-				{
-					CAnimatorCamLerpEffectorConst* e		= xr_new<CAnimatorCamLerpEffectorConst>();
-					float max_scale				= 70.0f;
-					float factor				= cam_eff_factor/max_scale;
-					e->SetFactor				(factor);
-					e->SetType					(eCEActorMoving);
-					e->SetHudAffect				(false);
-					e->SetCyclic				(false);
-					e->Start					(anm_name);
-					control_entity->Cameras().AddCamEffector(e);
-				}
-			}
-		}
-	}
 	//transform local dir to world dir
 	Fmatrix				mOrient;
 	mOrient.rotateY		(-r_model_yaw);
@@ -581,10 +535,7 @@ bool CActor::CanMove()
 	
 	}
 
-	if(IsTalking())
-		return false;
-	else
-		return true;
+	return true;
 }
 
 void CActor::StopAnyMove()
@@ -592,7 +543,7 @@ void CActor::StopAnyMove()
 	mstate_wishful	&=		~mcAnyMove;
 	mstate_real		&=		~mcAnyMove;
 
-	if (this == Level().CurrentViewEntity())
+	if (this == Level().CurrentViewActor())
 	{
 		g_player_hud->OnMovementChanged((EMoveCommand)0);
 	}

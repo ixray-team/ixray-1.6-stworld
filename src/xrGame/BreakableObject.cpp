@@ -106,11 +106,6 @@ void CBreakableObject::net_Import(NET_Packet& P)
 	VERIFY					(Remote());
 }
 
-BOOL CBreakableObject::UsedAI_Locations()
-{
-	return					(FALSE);
-}
-
 
 
 void CBreakableObject::CreateUnbroken()

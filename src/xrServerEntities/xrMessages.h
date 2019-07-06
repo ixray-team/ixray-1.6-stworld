@@ -14,13 +14,9 @@ enum {
 	M_SV_CONFIG_GAME,
 	M_SV_CONFIG_FINISHED,
 
-	M_MIGRATE_DEACTIVATE,		// TO:   Changing server, just deactivate
-	M_MIGRATE_ACTIVATE,			// TO:   Changing server, full state
-
 	M_CHAT,						// DUAL:
 
 	M_EVENT,					// Game Event
-	M_CL_INPUT,					// Client Input Data
 	//----------- for E3 -----------------------------
 	M_CL_UPDATE,
 	M_UPDATE_OBJECTS,
@@ -28,18 +24,12 @@ enum {
 	M_CLIENTREADY,				// Client has finished to load level and are ready to play
 	
 	M_CHANGE_LEVEL,				// changing level
-	M_LOAD_GAME,
-	M_RELOAD_GAME,
-	M_SAVE_GAME,
-	M_SAVE_PACKET,
 
 	M_SWITCH_DISTANCE,
 	M_GAMEMESSAGE,					// Game Message
 	M_EVENT_PACK,					// Pack of M_EVENT
 
 	//-----------------------------------------------------
-	M_GAMESPY_CDKEY_VALIDATION_CHALLENGE,
-	M_GAMESPY_CDKEY_VALIDATION_CHALLENGE_RESPOND,
 	M_CLIENT_CONNECT_RESULT,
 	M_CLIENT_REQUEST_CONNECTION_DATA,
 
@@ -54,8 +44,8 @@ enum {
 	M_CL_AUTH,
 	M_BULLET_CHECK_RESPOND,
 	//-----------------------------------------------------
-	M_STATISTIC_UPDATE,
-	M_STATISTIC_UPDATE_RESPOND,
+//	M_STATISTIC_UPDATE,
+//	M_STATISTIC_UPDATE_RESPOND,
 	//-----------------------------------------------------
 	M_PLAYER_FIRE,
 	//-----------------------------------------------------
@@ -63,13 +53,12 @@ enum {
 	M_MOVE_ARTEFACTS,
 	M_MOVE_PLAYERS_RESPOND,
 	//-----------------------------------------------------
-	M_CHANGE_SELF_NAME,
 	M_REMOTE_CONTROL_AUTH,
 	M_REMOTE_CONTROL_CMD,
 	M_BATTLEYE,
 
 	M_SV_MAP_NAME,				//request and responce
-	M_SV_DIGEST,				//request and responce
+//	M_SV_DIGEST,				//request and responce
 
 	M_FILE_TRANSFER,
 	M_MAKE_SCREENSHOT,
@@ -92,17 +81,10 @@ enum {
 	GE_ASSIGN_KILLER,			//
 	GE_DESTROY,					// authorative client request for entity-destroy
 	GE_DESTROY_REJECT,			// GE_DESTROY + GE_OWNERSHIP_REJECT
-	GE_TELEPORT_OBJECT,
 
-	GE_ADD_RESTRICTION,
 	GE_REMOVE_RESTRICTION,
 	GE_REMOVE_ALL_RESTRICTIONS,
 
-	GE_BUY,
-
-
-	GE_INFO_TRANSFER,			//transfer _new_ info on PDA
-	
 	GE_TRADE_SELL,
 	GE_TRADE_BUY,
 
@@ -154,7 +136,6 @@ enum {
 	//-------------------------------------
 	GE_KILL_SOMEONE,
 
-	GE_FREEZE_OBJECT,
 	GE_LAUNCH_ROCKET,
 	
 	GEG_PLAYER_USE_BOOSTER,

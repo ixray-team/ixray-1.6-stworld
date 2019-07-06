@@ -10,9 +10,6 @@
 
 IC	CProfilePortion::CProfilePortion	(LPCSTR timer_id)
 {
-	if (!psAI_Flags.test(aiStats))
-		return;
-
 	if (!psDeviceFlags.test(rsStatistic))
 		return;
 
@@ -22,9 +19,6 @@ IC	CProfilePortion::CProfilePortion	(LPCSTR timer_id)
 
 IC	CProfilePortion::~CProfilePortion	()
 {
-	if (!psAI_Flags.test(aiStats))
-		return;
-
 	if (!psDeviceFlags.test(rsStatistic))
 		return;
 

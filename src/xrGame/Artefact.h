@@ -3,8 +3,6 @@
 #include "hud_item_object.h"
 #include "hit_immunity.h"
 #include "../xrphysics/PHUpdateObject.h"
-#include "script_export_space.h"
-#include "patrol_path.h"
 
 class SArtefactActivation;
 struct SArtefactDetectorsSupport;
@@ -61,7 +59,6 @@ public:
 	IC u8							GetAfRank						() const		{return m_af_rank;}
 	IC bool							CanBeActivated					()				{return m_bCanSpawnZone;};
 	void							ActivateArtefact				();
-	void							FollowByPath					(LPCSTR path_name, int start_idx, Fvector magic_force);
 	bool							CanBeInvisible					();
 	void							SwitchVisibility				(bool);
 
@@ -113,8 +110,6 @@ public:
 		o_fastmode			= FALSE	;
 		//processing_deactivate		();
 	}
-
-	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 
 struct SArtefactDetectorsSupport
@@ -124,19 +119,11 @@ struct SArtefactDetectorsSupport
 
 	Fvector							m_path_moving_force;
 	u32								m_switchVisTime;
-	const CPatrolPath*				m_currPatrolPath;
-	const CPatrolPath::CVertex*		m_currPatrolVertex;
 	Fvector							m_destPoint;
 
 			SArtefactDetectorsSupport		(CArtefact* A);
 			~SArtefactDetectorsSupport		();
 	void	SetVisible						(bool);
-	void	FollowByPath					(LPCSTR path_name, int start_idx, Fvector force);
 	void	UpdateOnFrame					();
 	void	Blink							();
 };
-
-add_to_type_list(CArtefact)
-#undef script_type_list
-#define script_type_list save_type_list(CArtefact)
-

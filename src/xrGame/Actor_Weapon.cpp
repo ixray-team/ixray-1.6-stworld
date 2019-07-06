@@ -122,7 +122,6 @@ static	u16 BestWeaponSlots [] = {
 void CActor::SelectBestWeapon	(CObject* O)
 {
 	if (!O) return;
-	if ( IsGameTypeSingle() ) return;
 	//if (Level().CurrentControlEntity() != this) return;
 	//if (OnClient()) return;
 	//-------------------------------------------------

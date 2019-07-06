@@ -17,7 +17,15 @@ void _VertexStream::Create	()
 	//dxRenderDeviceRender::Instance().Resources->Evict		();
 	DEV->Evict();
 
-	mSize					= rsDVB_Size*1024;
+#ifndef _EDITOR
+	if(g_dedicated_server)
+		mSize					= 16;
+	else
+#endif //#ifndef _EDITOR
+        {
+		mSize					= rsDVB_Size*1024;
+        }
+
 #if defined(USE_DX10) || defined(USE_DX11)
 	D3D_BUFFER_DESC bufferDesc;
 	bufferDesc.ByteWidth        = mSize;

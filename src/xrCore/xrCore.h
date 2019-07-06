@@ -6,27 +6,11 @@
 #	define MASTER_GOLD
 #endif // DEBUG
 
-//#define BENCHMARK_BUILD
-
-#ifdef	BENCHMARK_BUILD
-#	define	BENCH_SEC_CALLCONV			__stdcall
-#	define	BENCH_SEC_SCRAMBLEVTBL1		virtual int GetFlags()	{ return 1;}
-#	define	BENCH_SEC_SCRAMBLEVTBL2		virtual void* GetData()	{ return 0;}
-#	define	BENCH_SEC_SCRAMBLEVTBL3		virtual void* GetCache(){ return 0;}
-#	define	BENCH_SEC_SIGN				, void *pBenchScrampleVoid = 0
-#	define	BENCH_SEC_SCRAMBLEMEMBER1	float	m_fSrambleMember1;
-#	define	BENCH_SEC_SCRAMBLEMEMBER2	float	m_fSrambleMember2;
-#else	//	BENCHMARK_BUILD
-#	define	BENCH_SEC_CALLCONV
-#	define	BENCH_SEC_SCRAMBLEVTBL1
-#	define	BENCH_SEC_SCRAMBLEVTBL2
-#	define	BENCH_SEC_SCRAMBLEVTBL3
-#	define	BENCH_SEC_SIGN
-#	define	BENCH_SEC_SCRAMBLEMEMBER1
-#	define	BENCH_SEC_SCRAMBLEMEMBER2
-#endif	//	BENCHMARK_BUILD
 
 #pragma warning(disable:4996)
+
+#define BOOST_DISABLE_ASSERTS
+#define _STLP_HAS_NO_EXCEPTIONS
 
 #if (defined(_DEBUG) || defined(MIXED) || defined(DEBUG)) && !defined(FORCE_NO_EXCEPTIONS)
 	// "debug" or "mixed"
@@ -300,7 +284,6 @@ public:
 	string64	UserName;
 	string64	CompName;
 	string512	Params;
-	DWORD		dwFrame;
 
 public:
 	void		_initialize	(LPCSTR ApplicationName, LogCallback cb=0, BOOL init_fs=TRUE, LPCSTR fs_fname=0);

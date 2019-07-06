@@ -11,7 +11,7 @@
 #include "../level.h"
 #include "../game_cl_base.h"
 #include "../game_cl_teamdeathmatch.h"
-#include "../../xrEngine/xr_ioconsole.h"
+#include "../../xrEngine/xr_ioc_cmd.h"
 
 CUIKickPlayer::CUIKickPlayer()
 {
@@ -127,7 +127,7 @@ void CUIKickPlayer::OnBtnOk()
 					xr_sprintf(command, "cl_votestart ban %s %d", item->GetText(), m_spin_ban_sec->Value());
 				}break;
 		}
-		Console->Execute			(command);
+		pConsoleCommands->Execute			(command);
 		HideDialog					();
 	}
 	else

@@ -33,7 +33,7 @@ public:
 
 	void					selectResolution		(u32 &dwWidth, u32 &dwHeight, BOOL bWindowed);
 	D3DFORMAT				selectDepthStencil		(D3DFORMAT);
-	u32						selectPresentInterval	();
+	u32						getSelectedPresentationInterval			() { return m_present_sync_mode;}
 	u32						selectGPU				();
 	u32						selectRefresh			(u32 dwWidth, u32 dwHeight, D3DFORMAT fmt);
 	void					updateWindowProps		(HWND hw);
@@ -84,6 +84,7 @@ public:
 	D3D_FEATURE_LEVEL		FeatureLevel;
 #else
 private:
+
 	HINSTANCE 				hD3D;
 
 public:
@@ -111,8 +112,11 @@ public:
 	virtual	void	OnAppActivate();
 	virtual void	OnAppDeactivate();
 #endif	//	USE_DX10
+private:
+	u32				selectPresentInterval	();
 
 private:
+	u32						m_present_sync_mode;
 	bool					m_move_window;
 };
 

@@ -13,7 +13,7 @@
 #	pragma comment(lib,	"xrCoreB.lib"		)
 #	pragma comment(lib,	"EToolsB.lib"		)
 #	pragma comment(lib,	"OpenAL32B.lib"		)
-#	pragma comment(lib,	"dsoundb.lib" 		)
+//#	pragma comment(lib,	"dsoundb.lib" 		)
 //#	pragma comment(lib,	"xrapi.lib" 		)
 #else
 #	pragma comment(lib,	"eax.lib"			)

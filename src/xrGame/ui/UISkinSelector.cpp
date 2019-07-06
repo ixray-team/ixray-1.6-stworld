@@ -11,8 +11,6 @@
 #include "../xr_level_controller.h"
 #include "../level.h"
 
-#include "object_broker.h"
-
 CUISkinSelectorWnd::CUISkinSelectorWnd(const char* strSectionName, s16 team)
 {	
 	m_team			= team;

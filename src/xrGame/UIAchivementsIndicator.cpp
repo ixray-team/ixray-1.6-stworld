@@ -4,7 +4,6 @@
 #include "ui/UIGameLog.h"
 #include "ui/xrUIXmlParser.h"
 #include "ui/UIPdaMsgListItem.h"
-#include "profile_data_types.h"
 
 CUIAchivementIndicator::CUIAchivementIndicator()
 {

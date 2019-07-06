@@ -3,9 +3,7 @@
 #include "weapon.h"
 #include "mercuryball.h"
 #include "inventory.h"
-#include "character_info.h"
 #include "xr_level_controller.h"
-#include "UsableScriptObject.h"
 #include "customzone.h"
 #include "../xrEngine/gamemtllib.h"
 #include "ui/UIMainIngameWnd.h"
@@ -71,7 +69,7 @@ ICF static BOOL info_trace_callback(collide::rq_result& result, LPVOID params)
 	BOOL& bOverlaped	= *(BOOL*)params;
 	if(result.O)
 	{
-		if (Level().CurrentEntity()==result.O)
+		if (Level().CurrentActor()==result.O)
 		{ //ignore self-actor
 			return			TRUE;
 		}else
@@ -117,38 +115,13 @@ BOOL CActor::CanPickItem(const CFrustum& frustum, const Fvector& from, CObject* 
 
 void CActor::PickupModeUpdate()
 {
-	if(!m_bPickupMode)				return; // kUSE key pressed
-	if(!IsGameTypeSingle())			return;
-
-	//подбирание объекта
-	if(	m_pObjectWeLookingAt									&& 
-		m_pObjectWeLookingAt->cast_inventory_item()				&& 
-		m_pObjectWeLookingAt->cast_inventory_item()->Useful()	&&
-		m_pUsableObject											&& 
-		!m_pUsableObject->nonscript_usable()					&&
-		!Level().m_feel_deny.is_object_denied(m_pObjectWeLookingAt) )
-	{
-		m_pUsableObject->use(this);
-		Game().SendPickUpEvent(ID(), m_pObjectWeLookingAt->ID());
-	}
-
-	feel_touch_update	(Position(), m_fPickupInfoRadius);
-	
-	CFrustum frustum;
-	frustum.CreateFromMatrix(Device.mFullTransform, FRUSTUM_P_LRTB|FRUSTUM_P_FAR);
-
-	for(xr_vector<CObject*>::iterator it = feel_touch.begin(); it != feel_touch.end(); it++)
-	{
-		if (CanPickItem(frustum, Device.vCameraPosition, *it)) 
-			PickupInfoDraw(*it);
-	}
 }
 
 #include "../xrEngine/CameraBase.h"
 BOOL	g_b_COD_PickUpMode = TRUE;
 void	CActor::PickupModeUpdate_COD	()
 {
-	if (Level().CurrentViewEntity() != this || !g_b_COD_PickUpMode) return;
+	if (Level().CurrentViewActor() != this || !g_b_COD_PickUpMode) return;
 		
 	if (!g_Alive() || eacFirstEye != cam_active) 
 	{
@@ -219,9 +192,9 @@ void	CActor::PickupModeUpdate_COD	()
 
 	if (pNearestItem && m_bPickupMode)
 	{
-		CUsableScriptObject*	pUsableObject = smart_cast<CUsableScriptObject*>(pNearestItem);
-		if(pUsableObject && (!m_pUsableObject))
-			pUsableObject->use(this);
+		//CUsableScriptObject*	pUsableObject = smart_cast<CUsableScriptObject*>(pNearestItem);
+		//if(pUsableObject && (!m_pUsableObject))
+		//	pUsableObject->use(this);
 
 		//подбирание объекта
 		Game().SendPickUpEvent(ID(), pNearestItem->object().ID());
@@ -232,7 +205,6 @@ void	CActor::Check_for_AutoPickUp()
 {
 	// mp only
 	if (!psActorFlags.test(AF_AUTOPICKUP))		return;
-	if (IsGameTypeSingle())						return;
 	if (Level().CurrentControlEntity() != this) return;
 	if (!g_Alive())								return;
 
@@ -311,40 +283,4 @@ void CActor::feel_sound_new(CObject* who, int type, CSound_UserDataPtr user_data
 
 void CActor::Feel_Grenade_Update( float rad )
 {
-	if ( !IsGameTypeSingle() )
-	{
-		return;
-	}
-	// Find all nearest objects
-	Fvector pos_actor;
-	Center( pos_actor );
-
-	q_nearest.clear_not_free();
-	g_pGameLevel->ObjectSpace.GetNearest( q_nearest, pos_actor, rad, NULL );
-
-	xr_vector<CObject*>::iterator	it_b = q_nearest.begin();
-	xr_vector<CObject*>::iterator	it_e = q_nearest.end();
-
-	// select only grenade
-	for ( ; it_b != it_e; ++it_b )
-	{
-		if ( (*it_b)->getDestroy() ) continue;					// Don't touch candidates for destroy
-
-		CGrenade* grn = smart_cast<CGrenade*>( *it_b );
-		if( !grn || grn->Initiator() == ID() || grn->Useful() )
-		{
-			continue;
-		}
-		if ( grn->time_from_begin_throw() < m_fFeelGrenadeTime )
-		{
-			continue;
-		}
-		if ( HUD().AddGrenade_ForMark( grn ) )
-		{
-			//.	Msg("__ __ Add new grenade! id = %d ", grn->ID() );
-		}
-	}// for it
-
-	HUD().Update_GrenadeView( pos_actor );
 }
-

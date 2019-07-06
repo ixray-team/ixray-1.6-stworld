@@ -30,8 +30,6 @@ CObjectSpace::CObjectSpace	( ):
 #ifdef DEBUG
 	if( RenderFactory )	
 		m_pRender = CNEW(FactoryPtr<IObjectSpaceRender>)() ;
-
-	//sh_debug.create				("debug\\wireframe","$null");
 #endif
 	m_BoundingVolume.invalidate	();
 }

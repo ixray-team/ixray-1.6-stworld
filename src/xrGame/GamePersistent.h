@@ -28,19 +28,9 @@ class CGamePersistent:
 	bool				m_bPickableDOF;
 
 	CUISequencer*		m_intro;
-	EVENT				eQuickLoad;
 	Fvector				m_dof		[4];	// 0-dest 1-current 2-from 3-original
 
 	fastdelegate::FastDelegate0<> m_intro_event;
-
-	void xr_stdcall		start_logo_intro		();
-	void xr_stdcall		update_logo_intro		();
-
-	void xr_stdcall		game_loaded				();
-	void xr_stdcall		update_game_loaded		();
-
-	void xr_stdcall		start_game_intro		();
-	void xr_stdcall		update_game_intro		();
 
 #ifdef DEBUG
 	u32					m_frame_counter;
@@ -52,14 +42,11 @@ class CGamePersistent:
 
 public:
 	ui_core*			m_pUI_core;
-	IReader*			pDemoFile;
 	u32					uTime2Change;
-	EVENT				eDemoStart;
 
 						CGamePersistent			();
 	virtual				~CGamePersistent		();
 
-	virtual void		Start					(LPCSTR op);
 	virtual void		Disconnect				();
 
 	virtual	void		OnAppActivate			();
@@ -68,12 +55,9 @@ public:
 	virtual void		OnAppStart				();
 	virtual void		OnAppEnd				();
 	virtual	void		OnGameStart				();
-	virtual void		OnGameEnd				();
 
 	virtual void	_BCL	OnFrame					();
 	virtual void			OnEvent					(EVENT E, u64 P1, u64 P2);
-
-	virtual void		UpdateGameType			();
 
 	virtual void		RegisterModel			(IRenderVisual* V);
 	virtual	float		MtlTransparent			(u32 mtl_idx);

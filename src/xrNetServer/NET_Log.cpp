@@ -15,7 +15,6 @@ string64 PacketName[] = {
 	"M_CHAT",						// DUAL:
 
 	"M_EVENT",					// Game Event
-	"M_CL_INPUT",					// Client Input Data
 	//----------- for E3 -----------------------------
 	"M_CL_UPDATE",
 	"M_UPDATE_OBJECTS",
@@ -23,10 +22,6 @@ string64 PacketName[] = {
 	"M_CLIENTREADY",				// Client has finished to load level and are ready to play
 
 	"M_CHANGE_LEVEL",				// changing level
-	"M_LOAD_GAME",
-	"M_RELOAD_GAME",
-	"M_SAVE_GAME",
-	"M_SAVE_PACKET",
 
 	"M_SWITCH_DISTANCE",
 	"M_GAMEMESSAGE",					// Game Message
@@ -71,7 +66,6 @@ INetLog::INetLog(LPCSTR sFileName, u32 dwStartTime)
 	m_pLogFile = NULL;
 	m_pLogFile = fopen(sFileName, "wb");
 	m_dwStartTime = 0;//dwStartTime;
-
 }
 
 INetLog::~INetLog() 
@@ -81,7 +75,7 @@ INetLog::~INetLog()
 	m_pLogFile = NULL;
 }
 
-void	INetLog::FlushLog()
+void INetLog::FlushLog()
 {
 	if (m_pLogFile)
 	{
@@ -98,7 +92,7 @@ void	INetLog::FlushLog()
 	m_aLogPackets.clear();
 }
 
-void		INetLog::LogPacket(u32 Time, NET_Packet* pPacket, bool IsIn)
+void INetLog::LogPacket(u32 Time, NET_Packet const* pPacket, bool IsIn)
 {
 	if (!pPacket) return;
 
@@ -117,7 +111,7 @@ void		INetLog::LogPacket(u32 Time, NET_Packet* pPacket, bool IsIn)
 	m_cs.Leave();
 };
 
-void		INetLog::LogData(u32 Time, void* data, u32 size, bool IsIn)
+void INetLog::LogData(u32 Time, const void* data, u32 size, bool IsIn)
 {
 	if (!data) return;
 

@@ -4,7 +4,6 @@
 #include "game_base_kill_type.h"
 #include "game_base_menu_events.h"
 #include "actor_mp_server.h"
-#include "cdkey_ban_list.h"
 
 class		CItemMgr;
 class		xrClientData;
@@ -65,8 +64,7 @@ protected:
 
 	u8			m_u8SpectatorModes		;
 
-	cdkey_ban_list	m_cdkey_ban_list;
-	
+
 protected:
 
 	virtual		void				SendPlayerKilledMessage	(u16 KilledID, KILL_TYPE KillType, u16 KillerID, u16 WeaponID, SPECIAL_KILL_TYPE SpecialKill);
@@ -163,19 +161,19 @@ public:
 	virtual		u8					GetSpectatorModes		() {return m_u8SpectatorModes;};
 	virtual		u32					GetNumTeams				() {return 0;};
 
-	virtual		void				DumpOnlineStatistic		();
+//	virtual		void				DumpOnlineStatistic		();
 				void				DestroyGameItem(CSE_Abstract* entity);
 				void				RejectGameItem(CSE_Abstract* entity);
 				
-				void				DumpRoundStatisticsAsync();
-				bool				CheckStatisticsReady();
-				void				DumpRoundStatistics		();
+//				void				DumpRoundStatisticsAsync();
+//				bool				CheckStatisticsReady();
+//				void				DumpRoundStatistics		();
 				
-				void				StartToDumpStatistics	();		//creates file name for statistics..
+//				void				StartToDumpStatistics	();		//creates file name for statistics..
 				string_path			round_statistics_dump_fn;
-				void				FinishToDumpStatistics	();
-				void				StopToDumpStatistics	();		//removes file
-				void				AskAllToUpdateStatistics();
+//				void				FinishToDumpStatistics	();
+//				void				StopToDumpStatistics	();		//removes file
+//				void				AskAllToUpdateStatistics();
 
 				struct async_statistics_collector
 				{
@@ -189,22 +187,16 @@ public:
 				u32									m_async_stats_request_time;
 
 				void				SvSendChatMessage		(LPCSTR str);
-				bool				IsPlayerBanned			(char const * hexstr_digest, shared_str & by_who);
-				IClient*			BanPlayer				(ClientID const & client_id, s32 ban_time_sec, xrClientData* initiator);
-				void				BanPlayerDirectly		(char const * client_hex_digest, s32 ban_time_sec, xrClientData* initiator);
-				void				UnBanPlayer				(size_t banned_player_index);
-				void				PrintBanList			(char const * filter);
 protected:
-	virtual		void				WriteGameState			(CInifile& ini, LPCSTR sect, bool bRoundResult);
+//	virtual		void				WriteGameState			(CInifile& ini, LPCSTR sect, bool bRoundResult);
 				bool				CheckPlayerMapName		(ClientID const & clientID, NET_Packet & P);
 				void				ReconnectPlayer			(ClientID const & clientID);
 	
 	virtual		void				OnPlayerOpenBuyMenu		(xrClientData const * pclient) {};			//this method invokes only if player dead
 	virtual		void				OnPlayerCloseBuyMenu	(xrClientData const * pclient) {};			//if client state buyMenuPlayerReadyToSpawn respawn player
 				
-				s32					ExcludeBanTimeFromVoteStr	(char const * vote_string, char* new_vote_str, u32 new_vote_str_size);
 public:
-	virtual		void				WritePlayerStats		(CInifile& ini, LPCSTR sect, xrClientData* pCl);
+//	virtual		void				WritePlayerStats		(CInifile& ini, LPCSTR sect, xrClientData* pCl);
 	virtual		void				Player_AddExperience	(game_PlayerState* ps, float Exp);
 	virtual		void				Player_ExperienceFin	(game_PlayerState* ps);
 	virtual		void				Player_AddMoney			(game_PlayerState* ps, s32 MoneyAmount);

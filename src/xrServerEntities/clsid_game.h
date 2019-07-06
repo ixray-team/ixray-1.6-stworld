@@ -1,7 +1,7 @@
 #pragma once
 
 #define CLSID_OBJECT_ACTOR			MK_CLSID('O','_','A','C','T','O','R',' ')
-#define CLSID_OBJECT_HLAMP			MK_CLSID('O','_','H','L','A','M','P',' ')
+#define CLSID_OBJECT_HLAMP			MK_CLSID('S','O','_','H','L','A','M','P')
 #define CLSID_ENTITY				MK_CLSID('E','N','T','I','T','Y',' ',' ')
 #define CLSID_SPECTATOR				MK_CLSID('S','P','E','C','T',' ',' ',' ')
 #define CLSID_OBJECT_PROJECTOR		MK_CLSID('O','_','S','E','A','R','C','H')
@@ -137,12 +137,12 @@
 
 // Zones 
 #define CLSID_ZONE					MK_CLSID('Z','_','Z','O','N','E',' ',' ')
-#define CLSID_Z_MBALD				MK_CLSID('Z','_','M','B','A','L','D',' ')
-#define CLSID_Z_MINCER				MK_CLSID('Z','_','M','I','N','C','E','R')
+#define CLSID_Z_MBALD				MK_CLSID('Z','S','_','M','B','A','L','D')
+#define CLSID_Z_MINCER				MK_CLSID('Z','S','_','M','I','N','C','E')
 #define CLSID_Z_ACIDF 				MK_CLSID('Z','_','A','C','I','D','F',' ')
-#define CLSID_Z_GALANT				MK_CLSID('Z','_','G','A','L','A','N','T')
-#define CLSID_Z_RADIO				MK_CLSID('Z','_','R','A','D','I','O',' ')
-#define CLSID_Z_BFUZZ				MK_CLSID('Z','_','B','F','U','Z','Z',' ')
+#define CLSID_Z_GALANT				MK_CLSID('Z','S','_','G','A','L','A','N')
+#define CLSID_Z_RADIO				MK_CLSID('Z','S','_','R','A','D','I','O')
+#define CLSID_Z_BFUZZ				MK_CLSID('Z','S','_','B','F','U','Z','Z')
 #define CLSID_Z_RUSTYH				MK_CLSID('Z','_','R','U','S','T','Y','H')
 #define CLSID_Z_AMEBA				MK_CLSID('Z','_','A','M','E','B','A',' ')
 #define CLSID_Z_NOGRAVITY			MK_CLSID('Z','_','N','O','G','R','A','V')

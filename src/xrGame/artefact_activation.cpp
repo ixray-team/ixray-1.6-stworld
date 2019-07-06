@@ -17,10 +17,8 @@
 
 #include "inventory.h"
 #include "level.h"
-#include "ai_object_location.h"
 #include "xrServer_Objects_ALife_Monsters.h"
 #include "../xrphysics/iphworld.h"
-#include "restriction_space.h"
 #include "../xrEngine/IGame_Persistent.h"
 
 SArtefactActivation::SArtefactActivation(CArtefact* af,u32 owner_id)
@@ -182,7 +180,7 @@ void SArtefactActivation::SpawnAnomaly()
 		m_af->Center(pos);
 		CSE_Abstract		*object = Level().spawn_item(	zone_sect,
 															pos,
-															(g_dedicated_server)?u32(-1):m_af->ai_location().level_vertex_id(),
+															u32(-1),
 															0xffff,
 															true
 		);
@@ -195,7 +193,6 @@ void SArtefactActivation::SpawnAnomaly()
 		AlifeZone->assign_shapes	(&_shape,1);
 //		AlifeZone->m_maxPower		= zone_power;
 		AlifeZone->m_owner_id		= m_owner_id;
-		AlifeZone->m_space_restrictor_type	= RestrictionSpace::eRestrictorTypeNone;
 
 		NET_Packet					P;
 		object->Spawn_Write			(P,TRUE);

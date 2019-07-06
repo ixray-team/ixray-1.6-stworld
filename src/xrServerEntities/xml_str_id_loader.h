@@ -1,11 +1,7 @@
 #pragma once
 
-#ifdef XRGAME_EXPORTS
-#	include "ui/xrUIXmlParser.h"
-#else // XRGAME_EXPORTS
-#	include "xrUIXmlParser.h"
-#	include "object_broker.h"
-#endif // XRGAME_EXPORTS
+#include "ui/xrUIXmlParser.h"
+#include "object_broker.h"
 
 
 //T_ID    - уникальный текстовый идентификатор (аттрибут id в XML файле)

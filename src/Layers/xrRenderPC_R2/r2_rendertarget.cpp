@@ -11,6 +11,7 @@
 #include "blender_bloom_build.h"
 #include "blender_luminance.h"
 #include "blender_ssao.h"
+#include "../../xrEngine/Environment.h"
 
 #include "../xrRender/dxRenderDeviceRender.h"
 

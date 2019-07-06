@@ -2,7 +2,6 @@
 #define REWARD_EVENT_GENERATOR_INCLUDED
 
 #include "game_cl_base_weapon_usage_statistic.h"
-#include "profile_data_types.h"
 #include <boost/noncopyable.hpp>
 
 class atlas_submit_queue;

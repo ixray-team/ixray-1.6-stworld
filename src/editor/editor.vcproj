@@ -205,7 +205,7 @@
 			MinFrameworkVersion="131072"
 		/>
 		<AssemblyReference
-			RelativePath="..\..\SDK\binaries\DockPanelSkin.dll"
+			RelativePath="..\..\sdk\binaries\DockPanelSkin.dll"
 			AssemblyName="DockPanelSkin, Version=1.0.0.0, processorArchitecture=MSIL"
 			MinFrameworkVersion="131072"
 		/>
@@ -215,7 +215,7 @@
 			MinFrameworkVersion="0"
 		/>
 		<AssemblyReference
-			RelativePath="..\..\SDK\binaries\WeifenLuo.WinFormsUI.Docking.dll"
+			RelativePath="..\..\sdk\binaries\WeifenLuo.WinFormsUI.Docking.dll"
 			AssemblyName="WeifenLuo.WinFormsUI.Docking, Version=1.0.0.0, processorArchitecture=MSIL"
 			MinFrameworkVersion="131072"
 		/>
@@ -233,7 +233,7 @@
 			MinFrameworkVersion="131072"
 		/>
 		<AssemblyReference
-			RelativePath="..\..\SDK\binaries\Flobbster.Windows.Forms.PropertyGrid.dll"
+			RelativePath="..\..\sdk\binaries\Flobbster.Windows.Forms.PropertyGrid.dll"
 			AssemblyName="Flobbster.Windows.Forms.PropertyGrid, Version=0.0.0.0, processorArchitecture=MSIL"
 			MinFrameworkVersion="131072"
 		/>

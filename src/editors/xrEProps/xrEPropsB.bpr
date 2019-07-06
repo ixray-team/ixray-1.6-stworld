@@ -3,23 +3,23 @@
 <PROJECT>
   <MACROS>
     <VERSION value="BCB.06.00"/>
-    <PROJECT value="$(OUTPUT_BINARIES_DIR)\xrEPropsB.dll"/>
-    <OBJFILES value="x:\intermediate_ed\eprops\stdafx.obj 
-      x:\intermediate_ed\eprops\PropertiesListTypes.obj 
-      x:\intermediate_ed\eprops\ItemList.obj 
-      x:\intermediate_ed\eprops\ItemListHelper.obj 
-      x:\intermediate_ed\eprops\ItemListTypes.obj 
-      x:\intermediate_ed\eprops\PropertiesList.obj 
-      x:\intermediate_ed\eprops\PropertiesListHelper.obj 
-      x:\intermediate_ed\eprops\FolderLib.obj 
-      x:\intermediate_ed\eprops\ColorPicker.obj 
-      x:\intermediate_ed\eprops\NumericVector.obj 
-      x:\intermediate_ed\eprops\ShaderFunction.obj 
-      x:\intermediate_ed\eprops\TextForm.obj 
-      x:\intermediate_ed\eprops\xrEProps.obj 
-      x:\intermediate_ed\eprops\ChoseForm.obj 
-      x:\intermediate_ed\eprops\ItemDialog.obj 
-      x:\intermediate_ed\eprops\GameTypeForm.obj"/>
+    <PROJECT value="e:\stalker_online\binaries\xrEPropsB.dll"/>
+    <OBJFILES value="..\..\..\..\intermediate_ed\eprops\stdafx.obj 
+      ..\..\..\..\intermediate_ed\eprops\PropertiesListTypes.obj 
+      ..\..\..\..\intermediate_ed\eprops\ItemList.obj 
+      ..\..\..\..\intermediate_ed\eprops\ItemListHelper.obj 
+      ..\..\..\..\intermediate_ed\eprops\ItemListTypes.obj 
+      ..\..\..\..\intermediate_ed\eprops\PropertiesList.obj 
+      ..\..\..\..\intermediate_ed\eprops\PropertiesListHelper.obj 
+      ..\..\..\..\intermediate_ed\eprops\FolderLib.obj 
+      ..\..\..\..\intermediate_ed\eprops\ColorPicker.obj 
+      ..\..\..\..\intermediate_ed\eprops\NumericVector.obj 
+      ..\..\..\..\intermediate_ed\eprops\ShaderFunction.obj 
+      ..\..\..\..\intermediate_ed\eprops\TextForm.obj 
+      ..\..\..\..\intermediate_ed\eprops\xrEProps.obj 
+      ..\..\..\..\intermediate_ed\eprops\ChoseForm.obj 
+      ..\..\..\..\intermediate_ed\eprops\ItemDialog.obj 
+      ..\..\..\..\intermediate_ed\eprops\GameTypeForm.obj"/>
     <RESFILES value="xrEPropsB.res resource.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -42,22 +42,22 @@
     <SYSDEFINES value="NO_STRICT;_RTLDLL;USEPACKAGES"/>
     <MAINSOURCE value="xrEPropsB.bpf"/>
     <INCLUDEPATH value="$(BCB)\include;$(BCB)\include\vcl;$(BCB)\Include\Mfc;$(CORE_DIR);$(COMPONENTS)\alexmx;$(COMPONENTS)\elpack\code\source"/>
-    <LIBPATH value="..\..\..\sdk\components\alexmx;..\..\..\sdk\components\elpack\code;&quot;z:\Program Files (x86)\Borland\CBuilder6\Projects&quot;;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;$(COMPONENTS)\alexmx;$(COMPONENTS)\elpack\code;$(OUT_LIB_DIR)"/>
+    <LIBPATH value="..\..\..\sdk\components\alexmx;..\..\..\sdk\components\elpack\code;&quot;z:\Program Files (x86)\Borland\CBuilder6\Projects&quot;;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;$(OUTPUT_LIBRARIES_DIR)"/>
     <WARNINGS value="-w-par -w-8027 -w-8026"/>
     <OTHERFILES value=""/>
   </MACROS>
   <OPTIONS>
-    <IDLCFLAGS value="-src_suffix cpp -D_EDITOR -DXR_EPROPS_EXPORTS -D_DEBUG -I$(BCB)\include 
-      -I$(BCB)\include\vcl -I$(BCB)\Include\Mfc -I$(CORE_DIR) 
-      -I$(COMPONENTS)\alexmx -I$(COMPONENTS)\elpack\code\source -boa"/>
+    <IDLCFLAGS value="-I$(BCB)\include -I$(BCB)\include\vcl -I$(BCB)\Include\Mfc -I$(CORE_DIR) 
+      -I$(COMPONENTS)\alexmx -I$(COMPONENTS)\elpack\code\source -src_suffix cpp 
+      -D_EDITOR -DXR_EPROPS_EXPORTS -D_DEBUG -boa"/>
     <CFLAG1 value="-WD -Od -H=pch.csm -Hc -Q -Vms -Vx -Ve -xf -xp -VF -ff -X- -r- -ps -a4 -6 
       -b- -k -y -v -vi- -tWD -tWM -c"/>
-    <PFLAGS value="-N2x:\intermediate_ed\eprops -N0x:\intermediate_ed\eprops -$Y+ -$W -$O- 
-      -$A8 -v -JPHNE -M"/>
+    <PFLAGS value="-N2e:\stalker_online\intermediate_ed\eprops 
+      -N0e:\stalker_online\intermediate_ed\eprops -$Y+ -$W -$O- -$A8 -v -JPHNE -M"/>
     <RFLAGS value=""/>
     <AFLAGS value="/mu /w2 /zi"/>
-    <LFLAGS value="-lx:\stalker_addon\libraries -Ix:\intermediate_ed\eprops -D&quot;&quot; -aa -Tpd -x 
-      -Gi -v"/>
+    <LFLAGS value="-le:\stalker_online\libraries -Ie:\stalker_online\intermediate_ed\eprops 
+      -D&quot;&quot; -aa -Tpd -x -Gi -v"/>
     <OTHERFILES value=""/>
   </OPTIONS>
   <LINKER>
@@ -135,22 +135,24 @@ Item10=R:\SDK\DirectX9.0\include;$(BCB)\include;$(BCB)\include\vcl;P:\MagicFM_Bo
 Item11=R:\SDK\DirectX9.0\include;$(BCB)\include;$(BCB)\include\vcl;P:\MagicFM_Borland\Sdk\Include;R:\Borland\Components6\AlexMX;R:\Borland\Components6\ElPack\Code\Source;R:\VS7.NET\Vc7\atlmfc\include;R:\Borland\CBuilder6\Include\Mfc
 
 [HistoryLists\hlLibraryPath]
-Count=15
-Item0=z:\Program Files (x86)\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;$(COMPONENTS)\alexmx;$(COMPONENTS)\elpack\code;$(OUT_LIB_DIR)
-Item1=z:\Program Files (x86)\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;$(COMPONENTS)\alexmx;$(COMPONENTS)\elpack\code;$(OUT_LIB_DIR);z:\Program Files (x86)\Borland\CBuilder6\Projects\Lib
-Item2=E:\Program Files\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;$(COMPONENTS)\alexmx;$(COMPONENTS)\elpack\code;$(OUT_LIB_DIR)
-Item3=E:\Program Files\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;$(COMPONENTS)\alexmx;$(COMPONENTS)\elpack\code
-Item4=E:\Program Files\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;$(COMPONENTS)\alexmx
-Item5=E:\Program Files\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;x:\stalker_addon\libraries;$(COMPONENTS)\alexmx;X:\stalker_addon\sources\sdk\components\ElPack\Code;x:\libraries
-Item6=E:\Program Files\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;x:\stalker_addon\libraries;$(COMPONENTS)\alexmx;X:\stalker_addon\sources\sdk\components\ElPack\Code
-Item7=E:\Program Files\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;x:\stalker_addon\libraries;$(COMPONENTS)\alexmx
-Item8=$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;x:\stalker_addon\libraries;$(COMPONENTS)\alexmx
-Item9=I:\Projects\editors\components\ElPack\Code;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;x:\libraries;$(COMPONENTS)\alexmx
-Item10=$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;x:\libraries;$(COMPONENTS)\alexmx
-Item11=$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;x:\;x:\libraries
-Item12=C:\Rad\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;R:\Borland\Components6\AlexMX;R:\Borland\Components6\ElPack\Code;R:\Borland\CBuilder6\Lib\Psdk;x:\
-Item13=$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;R:\Borland\Components6\AlexMX;R:\Borland\Components6\ElPack\Code;R:\Borland\CBuilder6\Lib\Psdk;x:\
-Item14=c:\rad\borland\CBuilder5\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;R:\Borland\Components6\AlexMX;R:\Borland\Components6\ElPack\Code;R:\Borland\CBuilder6\Lib\Psdk;..\Editors\lib\dx;..\Editors\lib;x:\
+Count=17
+Item0=..\..\..\sdk\components\alexmx;..\..\..\sdk\components\elpack\code;z:\Program Files (x86)\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;$(COMPONENTS)\alexmx;$(COMPONENTS)\elpack\code;$(OUTPUT_LIBRARIES_DIR)
+Item1=..\..\..\sdk\components\alexmx;..\..\..\sdk\components\elpack\code;z:\Program Files (x86)\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;$(COMPONENTS)\alexmx;$(COMPONENTS)\elpack\code;$(OUT_LIB_DIR)
+Item2=z:\Program Files (x86)\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;$(COMPONENTS)\alexmx;$(COMPONENTS)\elpack\code;$(OUT_LIB_DIR)
+Item3=z:\Program Files (x86)\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;$(COMPONENTS)\alexmx;$(COMPONENTS)\elpack\code;$(OUT_LIB_DIR);z:\Program Files (x86)\Borland\CBuilder6\Projects\Lib
+Item4=E:\Program Files\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;$(COMPONENTS)\alexmx;$(COMPONENTS)\elpack\code;$(OUT_LIB_DIR)
+Item5=E:\Program Files\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;$(COMPONENTS)\alexmx;$(COMPONENTS)\elpack\code
+Item6=E:\Program Files\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;$(COMPONENTS)\alexmx
+Item7=E:\Program Files\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;x:\stalker_addon\libraries;$(COMPONENTS)\alexmx;X:\stalker_addon\sources\sdk\components\ElPack\Code;x:\libraries
+Item8=E:\Program Files\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;x:\stalker_addon\libraries;$(COMPONENTS)\alexmx;X:\stalker_addon\sources\sdk\components\ElPack\Code
+Item9=E:\Program Files\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;x:\stalker_addon\libraries;$(COMPONENTS)\alexmx
+Item10=$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;x:\stalker_addon\libraries;$(COMPONENTS)\alexmx
+Item11=I:\Projects\editors\components\ElPack\Code;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;x:\libraries;$(COMPONENTS)\alexmx
+Item12=$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;x:\libraries;$(COMPONENTS)\alexmx
+Item13=$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;$(BCB)\Lib\Psdk;x:\;x:\libraries
+Item14=C:\Rad\Borland\CBuilder6\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;R:\Borland\Components6\AlexMX;R:\Borland\Components6\ElPack\Code;R:\Borland\CBuilder6\Lib\Psdk;x:\
+Item15=$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;R:\Borland\Components6\AlexMX;R:\Borland\Components6\ElPack\Code;R:\Borland\CBuilder6\Lib\Psdk;x:\
+Item16=c:\rad\borland\CBuilder5\Projects;$(BCB)\lib;$(BCB)\lib\obj;$(BCB)\Projects\Lib;R:\Borland\Components6\AlexMX;R:\Borland\Components6\ElPack\Code;R:\Borland\CBuilder6\Lib\Psdk;..\Editors\lib\dx;..\Editors\lib;x:\
 
 [HistoryLists\hlDebugSourcePath]
 Count=1
@@ -165,27 +167,30 @@ Item3=_EDITOR;_EPROPSB;_DEBUG
 Item4=_DEBUG
 
 [HistoryLists\hlIntOutputDir]
-Count=3
-Item0=x:\intermediate_ed\eprops
-Item1=$(OUTPUT_INTERMEDIATE_DIR)\eprops
-Item2=intermediate
+Count=4
+Item0=e:\stalker_online\intermediate_ed\eprops
+Item1=x:\intermediate_ed\eprops
+Item2=$(OUTPUT_INTERMEDIATE_DIR)\eprops
+Item3=intermediate
 
 [HistoryLists\hlFinalOutputDir]
-Count=7
-Item0=$(OUTPUT_BINARIES_DIR)\
-Item1=x:\stalker_addon\binaries\
-Item2=x:\binaries\
-Item3=x:\binaries
-Item4=x:\
-Item5=x:\build\
-Item6=x:\build
+Count=8
+Item0=e:\stalker_online\binaries
+Item1=$(OUTPUT_BINARIES_DIR)\
+Item2=x:\stalker_addon\binaries\
+Item3=x:\binaries\
+Item4=x:\binaries
+Item5=x:\
+Item6=x:\build\
+Item7=x:\build
 
 [HistoryLists\hIBPIOutputDir]
-Count=4
-Item0=x:\stalker_addon\libraries
-Item1=$(OUTPUT_LIBRARIES_DIR)
-Item2=$(OUTPUT_LIBRARIES_DIR)\
-Item3=x:\libraries
+Count=5
+Item0=e:\stalker_online\libraries
+Item1=x:\stalker_addon\libraries
+Item2=$(OUTPUT_LIBRARIES_DIR)
+Item3=$(OUTPUT_LIBRARIES_DIR)\
+Item4=x:\libraries
 
 [Debugging]
 DebugSourceDirs=$(BCB)\source\vcl

@@ -16,7 +16,6 @@ class TfmGameType : public TForm
 __published:	// IDE-managed Components
 	TExtBtn *ebOk;
 	TExtBtn *ebCancel;
-	TCheckBox *cbSingle;
 	TCheckBox *cbDeathMatch;
 	TCheckBox *cbTeamDeathMatch;
 	TCheckBox *cbArtefactHunt;

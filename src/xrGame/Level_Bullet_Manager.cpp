@@ -8,7 +8,6 @@
 #include "game_cl_base.h"
 #include "Actor.h"
 #include "gamepersistent.h"
-#include "mt_config.h"
 #include "game_cl_base_weapon_usage_statistic.h"
 #include "game_cl_mp.h"
 #include "reward_event_generator.h"
@@ -127,11 +126,7 @@ CBulletManager::~CBulletManager()
 
 void CBulletManager::Load		()
 {
-	char const * bullet_manager_sect = "bullet_manager";
-	if (!IsGameTypeSingle())
-	{
-		bullet_manager_sect = "mp_bullet_manager";
-	}
+	LPCSTR const bullet_manager_sect	= "mp_bullet_manager";
 	m_fTracerWidth			= pSettings->r_float(bullet_manager_sect, "tracer_width");
 	m_fTracerLengthMax		= pSettings->r_float(bullet_manager_sect, "tracer_length_max");
 	m_fTracerLengthMin		= pSettings->r_float(bullet_manager_sect, "tracer_length_min");
@@ -218,15 +213,11 @@ void CBulletManager::AddBullet(const Fvector& position,
 	bullet.Init					(position, direction, starting_speed, power, /*power_critical,*/ impulse, sender_id, sendersweapon_id, e_hit_type, maximum_distance, cartridge, air_resistance_factor, SendHit);
 //	bullet.frame_num			= Device.dwFrame;
 	bullet.flags.aim_bullet		= AimBullet;
-	if (!IsGameTypeSingle())
-	{
-		if (SendHit)
-			Game().m_WeaponUsageStatistic->OnBullet_Fire(&bullet, cartridge);
-		game_cl_mp*	tmp_cl_game = smart_cast<game_cl_mp*>(&Game());
-		if (tmp_cl_game->get_reward_generator())
-			tmp_cl_game->get_reward_generator()->OnBullet_Fire(sender_id, sendersweapon_id, position, direction); 
-	}
-	
+	if (SendHit)
+		Game().m_WeaponUsageStatistic->OnBullet_Fire(&bullet, cartridge);
+	game_cl_mp*	tmp_cl_game = smart_cast<game_cl_mp*>(&Game());
+	if (tmp_cl_game->get_reward_generator())
+		tmp_cl_game->get_reward_generator()->OnBullet_Fire(sender_id, sendersweapon_id, position, direction); 
 }
 
 void CBulletManager::UpdateWorkload()
@@ -709,7 +700,7 @@ BOOL CBulletManager::firetrace_callback	(collide::rq_result& result, LPVOID para
 	Fvector& collide_position		= data.collide_position;
 	collide_position				= Fvector().mad(bullet.bullet_pos, bullet.dir, result.range);
 	
-	float const	air_resistance		= (GameID() == eGameIDSingle) ? Level().BulletManager().m_fAirResistanceK : bullet.air_resistance;
+	float const	air_resistance		= bullet.air_resistance;
 
 	CBulletManager& bullet_manager	= Level().BulletManager();
 	Fvector const gravity			= { 0.f, -bullet_manager.m_fGravityConst, 0.f };
@@ -827,7 +818,7 @@ bool CBulletManager::process_bullet			(collide::rq_results & storage, SBullet& b
 	float const time_delta		= float(delta_time)/1000.f;
 	Fvector const gravity		= Fvector().set( 0.f, -m_fGravityConst, 0.f);
 
-	float const	air_resistance	= (GameID() == eGameIDSingle) ? m_fAirResistanceK : bullet.air_resistance;
+	float const	air_resistance	= bullet.air_resistance;
 	bullet.tracer_start_position= bullet.bullet_pos;
 
 #if 0//def DEBUG
@@ -1008,9 +999,9 @@ void CBulletManager::Render	()
 		Fvector center;
 		center.mad				(bullet->bullet_pos, tracer_direction,  -length*.5f);
 		bool bActor				= false;
-		if(Level().CurrentViewEntity())
+		if(Level().CurrentViewActor())
 		{
-			bActor				= ( bullet->parent_id == Level().CurrentViewEntity()->ID() );
+			bActor				= ( bullet->parent_id == Level().CurrentViewActor()->ID() );
 		}
 		tracers.Render			(bullet->bullet_pos, center, tracer_direction, length, width, bullet->m_u8ColorID, bullet->speed, bActor);
 	}
@@ -1025,11 +1016,8 @@ void CBulletManager::Render	()
 void CBulletManager::CommitRenderSet		()	// @ the end of frame
 {
 	m_BulletsRendered	= m_Bullets			;
-	if (g_mt_config.test(mtBullets))		{
-		Device.seqParallel.push_back		(fastdelegate::FastDelegate0<>(this,&CBulletManager::UpdateWorkload));
-	} else {
-		UpdateWorkload						();
-	}
+	//UpdateWorkload						();
+	Device.seqParallel.push_back		(fastdelegate::FastDelegate0<>(this,&CBulletManager::UpdateWorkload));
 }
 void CBulletManager::CommitEvents			()	// @ the start of frame
 {
@@ -1042,12 +1030,14 @@ void CBulletManager::CommitEvents			()	// @ the start of frame
 		{
 		case EVENT_HIT:
 			{
-				if (E.dynamic)	DynamicObjectHit	(E);
-				else			StaticObjectHit		(E);
+				if (E.dynamic)	
+					DynamicObjectHit	(E);
+				else
+					StaticObjectHit		(E);
 			}break;
 		case EVENT_REMOVE:
 			{
-				if (E.bullet.flags.allow_sendhit && GameID() != eGameIDSingle)
+				if (E.bullet.flags.allow_sendhit)
 					Game().m_WeaponUsageStatistic->OnBullet_Remove(&E.bullet);
 				m_Bullets[E.tgt_material] = m_Bullets.back();
 				m_Bullets.pop_back();
@@ -1089,18 +1079,11 @@ void CBulletManager::RegisterEvent			(EventType Type, BOOL _dynamic, SBullet* bu
 				//	bullet->targetID = R.O->ID();
 
 				E.Repeated = (R.O->ID() == E.bullet.targetID);
-				if (GameID() == eGameIDSingle)
+				if (bullet->targetID != R.O->ID())
 				{
-					bullet->targetID = R.O->ID();
-				}
-				else
-				{
-					if (bullet->targetID != R.O->ID())
-					{
-						CGameObject* pGO = smart_cast<CGameObject*>(R.O);
-						if (!pGO || !pGO->BonePassBullet(R.element))
-							bullet->targetID = R.O->ID();						
-					}
+					CGameObject* pGO = smart_cast<CGameObject*>(R.O);
+					if (!pGO || !pGO->BonePassBullet(R.element))
+						bullet->targetID = R.O->ID();						
 				}
 			};
 		}break;

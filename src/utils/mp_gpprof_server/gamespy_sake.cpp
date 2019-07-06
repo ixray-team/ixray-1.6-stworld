@@ -39,7 +39,7 @@ static void debug_callback(GSIDebugCategory theCat, GSIDebugType theType,
 		gGSIDebugTypeStrings[theType]);
 
 	vsprintf(error_buffer, theTokenStr, theParamList); 
-	std::cerr << tmp_prefix_buffer << error_buffer << std::endl;
+	std::clog << tmp_prefix_buffer << error_buffer << std::endl;
 }
 #endif
 
@@ -263,11 +263,14 @@ void sake_processor::fetch()
 	m_get_records_input.mFilter		= &*m_tmp_string.begin();
 	m_get_records_input.mOffset		= m_current_offset;
 	m_get_records_input.mMaxRecords	= max_request_records;
+
+	std::clog << "fetching strings from sake with filter: " << m_get_records_input.mFilter << std::endl;
 	
 	SAKERequest	tmp_request = sakeSearchForRecords(m_sake_inst,
 		&m_get_records_input,
 		&sake_processor::request_callback,
 		this);
+
 	m_processing_request = true;
 	
 	if (!tmp_request)

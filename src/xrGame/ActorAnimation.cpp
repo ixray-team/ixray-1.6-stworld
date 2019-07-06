@@ -12,9 +12,7 @@
 #endif
 #include "hit.h"
 #include "PHDestroyable.h"
-#include "Car.h"
 #include "../Include/xrRender/Kinematics.h"
-#include "ai_object_location.h"
 #include "game_cl_base.h"
 #include "../xrEngine/motion.h"
 #include "artefact.h"
@@ -263,18 +261,6 @@ void SVehicleAnimCollection::Create(IKinematicsAnimated* V,u16 num)
 	}
 }
 
-void CActor::steer_Vehicle(float angle)	
-{
-	if(!m_holder)		return;
-/*
-	CCar*	car			= smart_cast<CCar*>(m_holder);
-	u16 anim_type       = car->DriverAnimationType();
-	SVehicleAnimCollection& anims=m_vehicle_anims->m_vehicles_type_collections[anim_type];
-	if(angle==0.f) 		smart_cast<IKinematicsAnimated*>	(Visual())->PlayCycle(anims.idles[0]);
-	else if(angle>0.f)	smart_cast<IKinematicsAnimated*>	(Visual())->PlayCycle(anims.steer_right);
-	else				smart_cast<IKinematicsAnimated*>	(Visual())->PlayCycle(anims.steer_left);
-*/
-}
 
 void legs_play_callback		(CBlend *blend)
 {
@@ -383,7 +369,7 @@ void CActor::g_SetAnimation( u32 mstate_rl )
 		moving_idx						= STorsoWpn::eSprint;
 	}
 
-	if (this == Level().CurrentViewEntity())
+	if (this == Level().CurrentViewActor())
 	{	
 		if ((mstate_rl&mcSprint) != (mstate_old&mcSprint))
 		{
@@ -647,7 +633,7 @@ void CActor::g_SetAnimation( u32 mstate_rl )
 		UI().Font().pFontStat->OutNext	(buf);
 		UI().Font().pFontStat->OutNext	("Accel     [%3.2f, %3.2f, %3.2f]",VPUSH(NET_SavedAccel));
 		UI().Font().pFontStat->OutNext	("V         [%3.2f, %3.2f, %3.2f]",VPUSH(m_PhysicMovementControl->GetVelocity()));
-		UI().Font().pFontStat->OutNext	("vertex ID   %d",ai_location().level_vertex_id());
+		UI().Font().pFontStat->OutNext	("vertex ID   %d",u32(-1));
 		
 		Game().m_WeaponUsageStatistic->Draw();
 		*/

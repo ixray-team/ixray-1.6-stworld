@@ -15,30 +15,29 @@
 
 void CConsole::Register_callbacks()
 {
-	ec().assign_callback( DIK_PRIOR, text_editor::ks_free,  Callback( this, &CConsole::Prev_log      ) );
-	ec().assign_callback( DIK_NEXT,  text_editor::ks_free,  Callback( this, &CConsole::Next_log      ) );
-	ec().assign_callback( DIK_PRIOR, text_editor::ks_Ctrl,  Callback( this, &CConsole::Begin_log     ) );
-	ec().assign_callback( DIK_NEXT,  text_editor::ks_Ctrl,  Callback( this, &CConsole::End_log       ) );
+	ec().assign_callback( DIK_PRIOR, text_editor::ks_free,  text_editor::Callback( this, &CConsole::Prev_log      ) );
+	ec().assign_callback( DIK_NEXT,  text_editor::ks_free,  text_editor::Callback( this, &CConsole::Next_log      ) );
+	ec().assign_callback( DIK_PRIOR, text_editor::ks_Ctrl,  text_editor::Callback( this, &CConsole::Begin_log     ) );
+	ec().assign_callback( DIK_NEXT,  text_editor::ks_Ctrl,  text_editor::Callback( this, &CConsole::End_log       ) );
 
-	ec().assign_callback( DIK_TAB,   text_editor::ks_free,  Callback( this, &CConsole::Find_cmd      ) );
-	ec().assign_callback( DIK_TAB,   text_editor::ks_Shift, Callback( this, &CConsole::Find_cmd_back ) );
-	ec().assign_callback( DIK_TAB,   text_editor::ks_Alt,   Callback( this, &CConsole::GamePause     ) );
+	ec().assign_callback( DIK_TAB,   text_editor::ks_free,  text_editor::Callback( this, &CConsole::Find_cmd      ) );
+	ec().assign_callback( DIK_TAB,   text_editor::ks_Shift, text_editor::Callback( this, &CConsole::Find_cmd_back ) );
 
-	ec().assign_callback( DIK_UP,    text_editor::ks_free,  Callback( this, &CConsole::Prev_tip      ) );
-	ec().assign_callback( DIK_DOWN,  text_editor::ks_free,  Callback( this, &CConsole::Next_tip      ) );
-	ec().assign_callback( DIK_UP,    text_editor::ks_Ctrl,  Callback( this, &CConsole::Prev_cmd      ) );
-	ec().assign_callback( DIK_DOWN,  text_editor::ks_Ctrl,  Callback( this, &CConsole::Next_cmd      ) );
+	ec().assign_callback( DIK_UP,    text_editor::ks_free,  text_editor::Callback( this, &CConsole::Prev_tip      ) );
+	ec().assign_callback( DIK_DOWN,  text_editor::ks_free,  text_editor::Callback( this, &CConsole::Next_tip      ) );
+	ec().assign_callback( DIK_UP,    text_editor::ks_Ctrl,  text_editor::Callback( this, &CConsole::Prev_cmd      ) );
+	ec().assign_callback( DIK_DOWN,  text_editor::ks_Ctrl,  text_editor::Callback( this, &CConsole::Next_cmd      ) );
 
-	ec().assign_callback( DIK_HOME,  text_editor::ks_Alt,   Callback( this, &CConsole::Begin_tips    ) );
-	ec().assign_callback( DIK_END,   text_editor::ks_Alt,   Callback( this, &CConsole::End_tips      ) );
-	ec().assign_callback( DIK_PRIOR, text_editor::ks_Alt,   Callback( this, &CConsole::PageUp_tips   ) );
-	ec().assign_callback( DIK_NEXT,  text_editor::ks_Alt,   Callback( this, &CConsole::PageDown_tips ) );
+	ec().assign_callback( DIK_HOME,  text_editor::ks_Alt,   text_editor::Callback( this, &CConsole::Begin_tips    ) );
+	ec().assign_callback( DIK_END,   text_editor::ks_Alt,   text_editor::Callback( this, &CConsole::End_tips      ) );
+	ec().assign_callback( DIK_PRIOR, text_editor::ks_Alt,   text_editor::Callback( this, &CConsole::PageUp_tips   ) );
+	ec().assign_callback( DIK_NEXT,  text_editor::ks_Alt,   text_editor::Callback( this, &CConsole::PageDown_tips ) );
 	
-	ec().assign_callback( DIK_RETURN,      text_editor::ks_free, Callback( this, &CConsole::Execute_cmd ) );
-	ec().assign_callback( DIK_NUMPADENTER, text_editor::ks_free, Callback( this, &CConsole::Execute_cmd ) );
+	ec().assign_callback( DIK_RETURN,      text_editor::ks_free, text_editor::Callback( this, &CConsole::Execute_cmd ) );
+	ec().assign_callback( DIK_NUMPADENTER, text_editor::ks_free, text_editor::Callback( this, &CConsole::Execute_cmd ) );
 	
-	ec().assign_callback( DIK_ESCAPE, text_editor::ks_free, Callback( this, &CConsole::Hide_cmd_esc ) );
-	ec().assign_callback( DIK_GRAVE,  text_editor::ks_free, Callback( this, &CConsole::Hide_cmd     ) );
+	ec().assign_callback( DIK_ESCAPE, text_editor::ks_free, text_editor::Callback( this, &CConsole::Hide_cmd_esc ) );
+	ec().assign_callback( DIK_GRAVE,  text_editor::ks_free, text_editor::Callback( this, &CConsole::Hide_cmd     ) );
 }
 
 void CConsole::Prev_log() // DIK_PRIOR=PAGE_UP
@@ -87,14 +86,14 @@ void CConsole::Find_cmd_back() // DIK_TAB+shift
 	bool b_ra  = (edt == strstr( edt, radmin_cmd_name ) );
 	u32 offset = (b_ra)? xr_strlen( radmin_cmd_name ) : 0;
 
-	vecCMD_IT it = Commands.lower_bound( edt + offset );
-	if ( it != Commands.begin() )
+
+	IConsole_Command* cc = pConsoleCommands->GetPrevCommand( edt + offset );
+
+	if ( cc )
 	{
-		--it;
-		IConsole_Command& cc = *(it->second);
-		LPCSTR name_cmd      = cc.Name();
-		u32    name_cmd_size = xr_strlen( name_cmd );
-		PSTR   new_str  = (PSTR)_alloca( (offset + name_cmd_size + 2) * sizeof(char) );
+		LPCSTR name_cmd      = cc->Name();
+		u32 name_cmd_size	= xr_strlen( name_cmd );
+		PSTR new_str		= (PSTR)_alloca( (offset + name_cmd_size + 2) * sizeof(char) );
 
 		xr_strcpy( new_str, offset + name_cmd_size + 2, (b_ra)? radmin_cmd_name : "" );
 		xr_strcat( new_str, offset + name_cmd_size + 2, name_cmd );
@@ -161,7 +160,7 @@ void CConsole::PageDown_tips()
 	check_next_selected_tip();
 }
 
-void CConsole::Execute_cmd() // DIK_RETURN, DIK_NUMPADENTER
+void CConsole::Execute_cmd( ) // DIK_RETURN, DIK_NUMPADENTER
 {
 	if ( 0 <= m_select_tip && m_select_tip < (int)m_tips.size() )
 	{
@@ -182,7 +181,7 @@ void CConsole::Execute_cmd() // DIK_RETURN, DIK_NUMPADENTER
 	}
 	else
 	{
-		ExecuteCommand( ec().str_edit() );
+		ExecuteString( ec().str_edit(), true );
 	}
 	m_disable_tips = false;
 }
@@ -194,7 +193,7 @@ void CConsole::Show_cmd()
 
 void CConsole::Hide_cmd()
 {
-	Hide();
+	Hide	( );
 }
 
 void CConsole::Hide_cmd_esc()
@@ -204,10 +203,5 @@ void CConsole::Hide_cmd_esc()
 		m_disable_tips = true;
 		return;
 	}
-	Hide();
-}
-
-void CConsole::GamePause()
-{
-
+	Hide	( );
 }

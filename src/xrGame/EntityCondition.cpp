@@ -9,7 +9,6 @@
 #include "entity_alive.h"
 #include "../Include/xrRender/KinematicsAnimated.h"
 #include "../Include/xrRender/Kinematics.h"
-#include "object_broker.h"
 #include "ActorHelmet.h"
 
 #define MAX_HEALTH 1.0f
@@ -231,7 +230,7 @@ void  CEntityCondition::UpdateWounds		()
 
 void CEntityCondition::UpdateConditionTime()
 {
-	u64 _cur_time = (GameID() == eGameIDSingle) ? Level().GetGameTime() : Level().timeServer();
+	u64 _cur_time = Level().timeServer();
 	
 	if(m_bTimeValid)
 	{

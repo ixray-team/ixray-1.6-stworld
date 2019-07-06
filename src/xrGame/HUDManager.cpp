@@ -5,19 +5,21 @@
 #include "../xrEngine/igame_level.h"
 #include "../xrEngine/xr_input.h"
 #include "GamePersistent.h"
-#include "MainMenu.h"
+#include "lobby_menu.h"
 #include "grenade.h"
 #include "spectator.h"
-#include "Car.h"
 #include "UIGameCustom.h"
 #include "UICursor.h"
 #include "string_table.h"
 #include "game_cl_base.h"
+#include "uigamecustom.h"
+#include "ui/xrUIXmlParser.h"
+
 #ifdef	DEBUG
 #include "phdebug.h"
 #endif
 
-extern CUIGameCustom*	CurrentGameUI()	{return HUD().GetGameUI();}
+extern CUIGameCustom*	CurrentGameUI()	{return (g_dedicated_server) ? NULL : HUD().GetGameUI(); }
 
 CFontManager::CFontManager()
 {
@@ -164,7 +166,7 @@ void CHUDManager::Render_First()
 {
 	if (!psHUD_Flags.is(HUD_WEAPON|HUD_WEAPON_RT|HUD_WEAPON_RT2|HUD_DRAW_RT2))return;
 	if (0==pUIGame)					return;
-	CObject*	O					= g_pGameLevel->CurrentViewEntity();
+	CObject*	O					= g_pGameLevel->CurrentViewActor();
 	if (0==O)						return;
 	CActor*		A					= smart_cast<CActor*> (O);
 	if (!A)							return;
@@ -179,7 +181,7 @@ void CHUDManager::Render_First()
 
 bool need_render_hud()
 {
-	CObject*	O					= g_pGameLevel ? g_pGameLevel->CurrentViewEntity() : NULL;
+	CObject*	O					= g_pGameLevel ? g_pGameLevel->CurrentViewActor() : NULL;
 	if (0==O)						
 		return false;
 
@@ -187,7 +189,7 @@ bool need_render_hud()
 	if (A && (!A->HUDview() || !A->g_Alive()) ) 
 		return false;
 
-	if( smart_cast<CCar*>(O) || smart_cast<CSpectator*>(O) )
+	if( smart_cast<CSpectator*>(O) )
 		return false;
 
 	return true;
@@ -200,7 +202,7 @@ void CHUDManager::Render_Last()
 
 	if(!need_render_hud())			return;
 
-	CObject*	O					= g_pGameLevel->CurrentViewEntity();
+	CObject*	O					= g_pGameLevel->CurrentViewActor();
 	// hud itself
 	::Render->set_HUD				(TRUE);
 	::Render->set_Object			(O->H_Root());

@@ -1,4 +1,4 @@
-#include "pch_script.h"
+#include "stdafx.h"
 #include "HangingLamp.h"
 #include "../xrEngine/LightAnimLibrary.h"
 #include "../xrEngine/xr_collide_form.h"
@@ -10,8 +10,6 @@
 #include "../Include/xrRender/Kinematics.h"
 #include "../Include/xrRender/KinematicsAnimated.h"
 #include "game_object_space.h"
-#include "script_callback_ex.h"
-#include "script_game_object.h"
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -178,28 +176,13 @@ void	CHangingLamp::CopySpawnInit		()
 	if(!K->LL_GetBoneVisible(light_bone))
 		TurnOff();
 }
-void	CHangingLamp::net_Save			(NET_Packet& P)	
-{
-	inherited::net_Save(P);
-	CPHSkeleton::SaveNetState(P);
-}
 
 BOOL	CHangingLamp::net_SaveRelevant	()
 {
 	return (TRUE);
 }
 
-void	CHangingLamp::	save			(NET_Packet &output_packet)
-{
-	inherited::save(output_packet);
-	output_packet.w_u8((u8)m_bState);
 
-}
-void	CHangingLamp::load				(IReader &input_packet)
-{
-	inherited::load(input_packet);
-	m_bState	= (u8)input_packet.r_u8();
-}
 void CHangingLamp::shedule_Update	(u32 dt)
 {
 	CPHSkeleton::Update(dt);
@@ -318,13 +301,6 @@ void CHangingLamp::TurnOff	()
 void	CHangingLamp::Hit					(SHit* pHDS)
 {
 	SHit	HDS = *pHDS;
-	callback(GameObject::eHit)(
-		lua_game_object(), 
-		HDS.power,
-		HDS.dir,
-		smart_cast<const CGameObject*>(HDS.who)->lua_game_object(),
-		HDS.bone()
-		);
 	BOOL	bWasAlive		= Alive		();
 
 	if(m_pPhysicsShell) m_pPhysicsShell->applyHit(pHDS->p_in_bone_space,pHDS->dir,pHDS->impulse,pHDS->boneID,pHDS->hit_type);
@@ -382,7 +358,7 @@ void CHangingLamp::CreateBody(CSE_ALifeObjectHangingLamp	*lamp)
 	SAllDDOParams disable_params;
 	disable_params.Load(smart_cast<IKinematics*>(Visual())->LL_UserData());
 	m_pPhysicsShell->set_DisableParams(disable_params);
-	ApplySpawnIniToPhysicShell(&lamp->spawn_ini(),m_pPhysicsShell,fixed_bones[0]!='\0');
+//.	ApplySpawnIniToPhysicShell(&lamp->spawn_ini(),m_pPhysicsShell,fixed_bones[0]!='\0');
 }
 
 void CHangingLamp::net_Export(NET_Packet& P)
@@ -393,21 +369,4 @@ void CHangingLamp::net_Export(NET_Packet& P)
 void CHangingLamp::net_Import(NET_Packet& P)
 {
 	VERIFY					(Remote());
-}
-
-BOOL CHangingLamp::UsedAI_Locations()
-{
-	return					(FALSE);
-}
-
-#pragma optimize("s",on)
-void CHangingLamp::script_register(lua_State *L)
-{
-	luabind::module(L)
-	[
-		luabind::class_<CHangingLamp,CGameObject>("hanging_lamp")
-			.def(luabind::constructor<>())
-			.def("turn_on",		&CHangingLamp::TurnOn)
-			.def("turn_off",	&CHangingLamp::TurnOff)
-	];
 }

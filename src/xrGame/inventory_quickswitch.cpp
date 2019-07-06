@@ -132,7 +132,7 @@ bool CInventory::ActivateNextItemInActiveSlot()
 	}
 	
 	CObject* pActor_owner = smart_cast<CObject*>(m_pOwner);
-	if ( Level().CurrentViewEntity() != pActor_owner )
+	if ( Level().CurrentViewActor() != pActor_owner )
 	{
 		return false;
 	}

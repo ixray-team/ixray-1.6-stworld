@@ -121,18 +121,6 @@ void CEatableItemObject::net_Export		(NET_Packet& P)
 	CEatableItem::net_Export			(P);
 }
 
-void CEatableItemObject::save				(NET_Packet &packet)
-{
-	CPhysicItem::save					(packet);
-	CEatableItem::save				(packet);
-}
-
-void CEatableItemObject::load				(IReader &packet)
-{
-	CPhysicItem::load					(packet);
-	CEatableItem::load				(packet);
-}
-
 void CEatableItemObject::renderable_Render()
 {
 	CPhysicItem::renderable_Render		();
@@ -198,11 +186,6 @@ void CEatableItemObject::OnRender			()
 bool CEatableItemObject::NeedToDestroyObject() const
 {
 	return CInventoryItem::NeedToDestroyObject();
-}
-
-u32	 CEatableItemObject::ef_weapon_type		() const
-{
-	return								(0);
 }
 
 bool CEatableItemObject::Useful				() const

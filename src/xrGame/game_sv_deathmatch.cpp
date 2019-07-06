@@ -18,7 +18,7 @@
 
 //#define DELAYED_ROUND_TIME	7000
 #include "ui\UIBuyWndShared.h"
-#include "../xrEngine/xr_ioconsole.h"
+#include "../xrEngine/xr_ioc_cmd.h"
 
 #define UNBUYABLESLOT		20
 
@@ -47,7 +47,6 @@ u32					game_sv_Deathmatch::GetAnomaliesTime		() {return g_sv_dm_dwAnomalySetLen
 game_sv_Deathmatch::game_sv_Deathmatch()
 :pure_relcase(&game_sv_Deathmatch::net_Relcase)
 {
-	m_type = eGameIDDeathmatch;
 	
 	m_dwLastAnomalySetID	= 1001;
 	m_dwLastAnomalyStartTime = 0;
@@ -436,7 +435,7 @@ void	game_sv_Deathmatch::Update()
 
 				if(GameDM)
 				{
-					CObject* pObject				= Level().CurrentViewEntity();
+					CObject* pObject				= Level().CurrentViewActor();
 					if (pObject && smart_cast<CActor*>(pObject))
 					{
 						string1024					Text;
@@ -451,7 +450,7 @@ void	game_sv_Deathmatch::Update()
 		break;
 	case GAME_PHASE_PENDING:
 		{
-			CheckStatisticsReady();
+			//CheckStatisticsReady();
 			checkForRoundStart	();
 		}
 		break;
@@ -470,7 +469,7 @@ INT g_sv_Wait_For_Players_Ready = 1;
 
 bool game_sv_Deathmatch::checkForRoundStart()
 {
-	if (!Level().m_bGameConfigStarted)	//in case of starting server stage (net_start 1..6) we can't do restart ....
+	if (!Level().m_variables.m_game_config_started)	//in case of starting server stage (net_start 1..6) we can't do restart ....
 		return false;
 
 	if (m_bFastRestart ||
@@ -720,7 +719,7 @@ void game_sv_Deathmatch::OnPlayerReady(ClientID id)
 				return;
 			}
 			//------------------------------------------------------------
-			CSE_Abstract* pOwner			= xrCData->owner;
+			CSE_Abstract* pOwner			= xrCData->owner_;
 			CSE_Spectator	*pS				= smart_cast<CSE_Spectator*>(pOwner);
 			if (pS)
 			{
@@ -731,7 +730,7 @@ void game_sv_Deathmatch::OnPlayerReady(ClientID id)
 			}
 			//------------------------------------------------------------			
 			RespawnPlayer(id, false);
-			pOwner = xrCData->owner;
+			pOwner = xrCData->owner_;
 			CSE_ALifeCreatureActor	*pA	=	smart_cast<CSE_ALifeCreatureActor*>(pOwner);
 			if(pA)
 			{
@@ -827,9 +826,9 @@ void game_sv_Deathmatch::assign_RP(CSE_Abstract* E, game_PlayerState* ps_who)
 		for (u32 e=0; e<tmp_functor.pEnemies.size(); e++)
 		{
 			xrClientData* xrCData	=	tmp_functor.pEnemies[e];
-			if (!xrCData || !xrCData->owner) continue;
+			if (!xrCData || !xrCData->owner_) continue;
 
-			CSE_Abstract* pOwner = xrCData->owner;
+			CSE_Abstract* pOwner = xrCData->owner_;
 			float Dist = r.P.distance_to_sqr(pOwner->o_Position);
 
 			if (MinEnemyDist > Dist) MinEnemyDist = Dist;
@@ -953,83 +952,6 @@ void	game_sv_Deathmatch::OnPlayerBuyFinished		(ClientID id_who, NET_Packet& P)
 		SpawnWeaponsForActor(e_Actor, ps);
 	}
 	SetCanOpenBuyMenu(id_who);
-
-	/*game_PlayerState*	ps		= get_id	(id_who);
-	if (!ps || ps->IsSkip())		return;	
-	
-	P.r_s32(ps->LastBuyAcount);	
-	if (ps->LastBuyAcount != 0) ps->m_bClearRun = false;
-
-	xr_vector<s16>		ItemsDesired;
-
-	u8 NumItems;
-	P.r_u8(NumItems);
-	for (u8 i=0; i<NumItems; i++)
-	{
-		s16	ItemID;
-		P.r_s16(ItemID);
-//		Msg("------------- Player wants %d", ItemID);
-		ItemsDesired.push_back(ItemID);
-	};
-
-	CSE_ALifeCreatureActor*		e_Actor	= smart_cast<CSE_ALifeCreatureActor*>(get_entity_from_eid	(ps->GameID));
-	CActor* pActor = smart_cast<CActor*>(Level().Objects.net_Find	(ps->GameID));
-	if (pActor)
-	{
-		PIItem pItem = NULL;
-		xr_vector<u16>				ItemsToDelete;
-
-		bool ExactMatch	= true;
-		//проверяем пояс
-		TIItemContainer::const_iterator	IBelt = pActor->inventory().m_belt.begin();
-		TIItemContainer::const_iterator	EBelt = pActor->inventory().m_belt.end();
-
-		for ( ; IBelt != EBelt; ++IBelt) 
-		{
-			pItem = (*IBelt);
-			CheckItem(ps, pItem, &ItemsDesired, &ItemsToDelete, ExactMatch);
-		};
-
-		//проверяем ruck
-		TIItemContainer::const_iterator	IRuck = pActor->inventory().m_ruck.begin();
-		TIItemContainer::const_iterator	ERuck = pActor->inventory().m_ruck.end();
-
-		for ( ; IRuck != ERuck; ++IRuck) 
-		{
-			pItem = (*IRuck);			
-			if (!pItem) continue;
-			CheckItem(ps, pItem, &ItemsDesired, &ItemsToDelete, ExactMatch);
-		};
-
-		//проверяем слоты
-		TISlotArr::const_iterator	ISlot = pActor->inventory().m_slots.begin();
-		TISlotArr::const_iterator	ESlot = pActor->inventory().m_slots.end();
-
-		for ( ; ISlot != ESlot; ++ISlot) 
-		{
-			pItem = (*ISlot).m_pIItem;
-			CheckItem(ps, pItem, &ItemsDesired, &ItemsToDelete, ExactMatch);
-		};
-		
-		xr_vector<u16>::iterator	IDI = ItemsToDelete.begin();
-		xr_vector<u16>::iterator	EDI = ItemsToDelete.end();
-		for ( ; IDI != EDI; ++IDI) 
-		{
-			NET_Packet			P;
-			u_EventGen			(P,GE_DESTROY,*IDI);
-			Level().Send(P,net_flags(TRUE,TRUE));
-		};
-	};
-
-	ps->pItemList.clear();
-	for (u32 it = 0; it<ItemsDesired.size(); it++)
-	{
-		ps->pItemList.push_back(ItemsDesired[it]);
-	};
-
-	if (!pActor) return;
-
- 	SpawnWeaponsForActor(e_Actor, ps);*/
 };
 
 void	game_sv_Deathmatch::SpawnWeaponsForActor(CSE_Abstract* pE, game_PlayerState*	ps)
@@ -1768,12 +1690,15 @@ void game_sv_Deathmatch::OnPlayerConnect(ClientID id_who)
 
 	if (!xrCData->flags.bReconnect)
 	{
-		ps_who->clear();
-		ps_who->team				=	0;	
-		ps_who->skin				=	-1;
+		string64 name_bk;
+		strcpy_s					(name_bk, ps_who->getName());
+		ps_who->clear				( );
+		ps_who->team				= 0;	
+		ps_who->skin				= -1;
+		ps_who->setName				(name_bk);
 	};
+
 	ps_who->setFlag(GAME_PLAYER_FLAG_SPECTATOR);
-	
 	ps_who->resetFlag(GAME_PLAYER_FLAG_SKIP);
 	
 
@@ -1854,7 +1779,7 @@ void	game_sv_Deathmatch::RespawnPlayer			(ClientID id_who, bool NoSpectator)
 
 	xrClientData*	xrCData	= (xrClientData*)m_server->ID_to_client	(id_who);
 	game_PlayerState*	ps	=	xrCData->ps;
-	CSE_Abstract*	pOwner = xrCData->owner;
+	CSE_Abstract*	pOwner = xrCData->owner_;
 	CSE_ALifeCreatureActor	*pA	=	smart_cast<CSE_ALifeCreatureActor*>(pOwner);
 	if(!pA) return;
 
@@ -1871,7 +1796,7 @@ void	game_sv_Deathmatch::RespawnPlayer			(ClientID id_who, bool NoSpectator)
 INT		G_DELAYED_ROUND_TIME	= 7;
 void	game_sv_Deathmatch::OnDelayedRoundEnd( ERoundEnd_Result reason )
 {
-	DumpRoundStatisticsAsync();
+	//DumpRoundStatisticsAsync();
 	round_end_reason = reason;
 
 	m_delayedRoundEnd = true;
@@ -1903,7 +1828,7 @@ void	game_sv_Deathmatch::check_ForceRespawn		()
 			{
 				m_owner->SetPlayersDefItems(ps);
 				m_owner->RespawnPlayer(l_pC->ID, true);
-				m_owner->SpawnWeaponsForActor(l_pC->owner, ps);
+				m_owner->SpawnWeaponsForActor(l_pC->owner_, ps);
 				m_owner->Check_ForClearRun(ps);
 			}
 		};
@@ -2192,7 +2117,7 @@ void		game_sv_Deathmatch::check_for_WarmUp()
 	if (m_dwWarmUp_CurTime < Level().timeServer())
 	{
 		m_dwWarmUp_CurTime	= 0;
-		Console->Execute	("g_restart_fast");
+		pConsoleCommands->Execute	("g_restart_fast");
 	};
 };
 
@@ -2208,31 +2133,31 @@ void		game_sv_Deathmatch::OnPlayer_Sell_Item		(ClientID id_who, NET_Packet &P)
 {
 };
 
-void game_sv_Deathmatch::WriteGameState(CInifile& ini, LPCSTR sect, bool bRoundResult)
-{
-	inherited::WriteGameState(ini, sect, bRoundResult);
-
-	if(!bRoundResult)
-		ini.w_string		(sect,"in_warmup", m_bInWarmUp?"true":"false");
-	ini.w_string		(sect,"anomalies", IsAnomaliesEnabled()?"true":"false");
-
-	if(!bRoundResult)
-	{
-		game_PlayerState*	ps = GetWinningPlayer();
-		if(ps)
-		{
-			ini.w_string	(sect,"best_killer", ps->getName());
-		}
-	}
-	ini.w_s32			(sect,"timelimit_mins", GetTimeLimit());
-	ini.w_s32			(sect,"fraglimit", GetFragLimit());
-
-	if(!bRoundResult)
-	{
-		u32 game_time		= (Level().timeServer()-m_round_start_time);
-		ini.w_u32			(sect,"round_time_sec", game_time/1000);
-	}
-}
+//void game_sv_Deathmatch::WriteGameState(CInifile& ini, LPCSTR sect, bool bRoundResult)
+//{
+//	inherited::WriteGameState(ini, sect, bRoundResult);
+//
+//	if(!bRoundResult)
+//		ini.w_string		(sect,"in_warmup", m_bInWarmUp?"true":"false");
+//	ini.w_string		(sect,"anomalies", IsAnomaliesEnabled()?"true":"false");
+//
+//	if(!bRoundResult)
+//	{
+//		game_PlayerState*	ps = GetWinningPlayer();
+//		if(ps)
+//		{
+//			ini.w_string	(sect,"best_killer", ps->getName());
+//		}
+//	}
+//	ini.w_s32			(sect,"timelimit_mins", GetTimeLimit());
+//	ini.w_s32			(sect,"fraglimit", GetFragLimit());
+//
+//	if(!bRoundResult)
+//	{
+//		u32 game_time		= (Level().timeServer()-m_round_start_time);
+//		ini.w_u32			(sect,"round_time_sec", game_time/1000);
+//	}
+//}
 
 void game_sv_Deathmatch::FillDeathActorRejectItems(CSE_ActorMP *actor, xr_vector<CSE_Abstract*> & to_reject)
 {

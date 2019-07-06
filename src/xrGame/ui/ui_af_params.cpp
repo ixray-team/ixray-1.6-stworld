@@ -4,7 +4,6 @@
 
 #include "..\actor.h"
 #include "..\ActorCondition.h"
-#include "object_broker.h"
 #include "UIXmlInit.h"
 #include "UIHelper.h"
 #include "../string_table.h"
@@ -156,7 +155,7 @@ void CUIArtefactParams::SetInfo( shared_str const& af_section )
 	DetachAll();
 	AttachChild( m_Prop_line );
 
-	CActor* actor = smart_cast<CActor*>( Level().CurrentViewEntity() );
+	CActor* actor = smart_cast<CActor*>( Level().CurrentViewActor() );
 	if ( !actor )
 	{
 		return;

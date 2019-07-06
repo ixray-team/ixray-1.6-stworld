@@ -43,6 +43,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="0"
 				EnableIntrinsicFunctions="false"
 				FavorSizeOrSpeed="0"
@@ -50,7 +51,6 @@
 				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
 				PreprocessorDefinitions="WIN32;DEBUG;_WINDOWS;_USRDLL;XRSOUND_EXPORTS;_SECURE_SCL=0"
 				StringPooling="false"
-				MinimalRebuild="true"
 				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
 				SmallerTypeCheck="true"
@@ -67,7 +67,6 @@
 				BrowseInformation="0"
 				WarningLevel="4"
 				SuppressStartupBanner="true"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -97,208 +96,6 @@
 				DataExecutionPrevention="0"
 				ImportLibrary="..\..\..\libraries\$(ProjectName).lib"
 				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="..\..\..\binaries"
-			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
-			ConfigurationType="2"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			CharacterSet="2"
-			WholeProgramOptimization="1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="2"
-				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				OmitFramePointers="true"
-				EnableFiberSafeOptimizations="true"
-				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;XRSOUND_EXPORTS;_SECURE_SCL=0"
-				StringPooling="true"
-				ExceptionHandling="0"
-				RuntimeLibrary="2"
-				BufferSecurityCheck="false"
-				EnableFunctionLevelLinking="false"
-				EnableEnhancedInstructionSet="1"
-				FloatingPointModel="2"
-				ForceConformanceInForLoopScope="false"
-				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="$(IntDir)/$(ProjectName).pch"
-				AssemblerOutput="0"
-				AssemblerListingLocation="$(IntDir)/"
-				ObjectFile="$(IntDir)/"
-				ProgramDataBaseFileName="$(IntDir)/"
-				BrowseInformation="0"
-				WarningLevel="4"
-				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib OpenAL32.lib"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
-				GenerateMapFile="false"
-				MapFileName=""
-				SubSystem="0"
-				LargeAddressAware="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				LinkTimeCodeGeneration="1"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="..\..\..\libraries\$(ProjectName).lib"
-				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Mixed|Win32"
-			OutputDirectory="..\..\..\binaries"
-			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
-			ConfigurationType="2"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="3"
-				InlineFunctionExpansion="2"
-				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				OmitFramePointers="false"
-				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
-				PreprocessorDefinitions="MIXED,WIN32;DEBUG;_WINDOWS;_USRDLL;XRSOUND_EXPORTS;_SECURE_SCL=0"
-				StringPooling="true"
-				RuntimeLibrary="2"
-				BufferSecurityCheck="true"
-				EnableFunctionLevelLinking="false"
-				FloatingPointModel="2"
-				ForceConformanceInForLoopScope="false"
-				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="$(IntDir)/$(ProjectName).pch"
-				AssemblerOutput="0"
-				AssemblerListingLocation="$(IntDir)/"
-				ObjectFile="$(IntDir)/"
-				ProgramDataBaseFileName="$(IntDir)/"
-				BrowseInformation="0"
-				WarningLevel="4"
-				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib OpenAL32.lib"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
-				GenerateDebugInformation="true"
-				GenerateMapFile="false"
-				MapFileName="$(OutDir)/$(ProjectName).map"
-				SubSystem="2"
-				LargeAddressAware="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="..\..\..\libraries\$(ProjectName).lib"
-				TargetMachine="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -388,7 +185,7 @@
 				Name="VCX360LinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalOptions="/NODEFAULTLIB:LIBCMTD"
-				AdditionalDependencies="libvorbisfile_static_d.lib libogg_static_d.lib OpenAL32.lib"
+				AdditionalDependencies="vorbisfile_static_d.lib ogg_static_d.lib OpenAL32.lib"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
@@ -414,6 +211,111 @@
 				Name="VCPostBuildEventTool"
 			/>
 			<DebuggerTool
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="..\..\..\binaries"
+			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
+				Optimization="2"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="true"
+				EnableFiberSafeOptimizations="true"
+				WholeProgramOptimization="true"
+				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;XRSOUND_EXPORTS;_SECURE_SCL=0"
+				StringPooling="true"
+				ExceptionHandling="0"
+				RuntimeLibrary="2"
+				BufferSecurityCheck="false"
+				EnableFunctionLevelLinking="false"
+				EnableEnhancedInstructionSet="1"
+				FloatingPointModel="2"
+				ForceConformanceInForLoopScope="false"
+				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="$(IntDir)/$(ProjectName).pch"
+				AssemblerOutput="0"
+				AssemblerListingLocation="$(IntDir)/"
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/"
+				BrowseInformation="0"
+				WarningLevel="4"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib OpenAL32.lib"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				GenerateMapFile="false"
+				MapFileName=""
+				SubSystem="0"
+				LargeAddressAware="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				LinkTimeCodeGeneration="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="..\..\..\libraries\$(ProjectName).lib"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
@@ -481,7 +383,7 @@
 			/>
 			<Tool
 				Name="VCX360LinkerTool"
-				AdditionalDependencies="libvorbisfile_static.lib libogg_static.lib OpenAL32.lib"
+				AdditionalDependencies="vorbisfile_static.lib ogg_static.lib OpenAL32.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
 				GenerateDebugInformation="true"
@@ -509,6 +411,103 @@
 				Name="VCPostBuildEventTool"
 			/>
 			<DebuggerTool
+			/>
+		</Configuration>
+		<Configuration
+			Name="Mixed|Win32"
+			OutputDirectory="..\..\..\binaries"
+			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
+				Optimization="3"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="false"
+				EnableFiberSafeOptimizations="true"
+				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
+				PreprocessorDefinitions="MIXED,WIN32;DEBUG;_WINDOWS;_USRDLL;XRSOUND_EXPORTS;_SECURE_SCL=0"
+				StringPooling="true"
+				RuntimeLibrary="2"
+				BufferSecurityCheck="true"
+				EnableFunctionLevelLinking="false"
+				FloatingPointModel="2"
+				ForceConformanceInForLoopScope="false"
+				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="$(IntDir)/$(ProjectName).pch"
+				AssemblerOutput="0"
+				AssemblerListingLocation="$(IntDir)/"
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/"
+				BrowseInformation="0"
+				WarningLevel="4"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib OpenAL32.lib"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
+				GenerateDebugInformation="true"
+				GenerateMapFile="false"
+				MapFileName="$(OutDir)/$(ProjectName).map"
+				SubSystem="2"
+				LargeAddressAware="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="..\..\..\libraries\$(ProjectName).lib"
+				TargetMachine="0"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
@@ -573,7 +572,7 @@
 			/>
 			<Tool
 				Name="VCX360LinkerTool"
-				AdditionalDependencies="libvorbisfile_static.lib libogg_static.lib OpenAL32.lib"
+				AdditionalDependencies="vorbisfile_static.lib ogg_static.lib OpenAL32.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
 				GenerateDebugInformation="true"
@@ -622,12 +621,28 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|Xbox 360"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="0"
+			/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="0"
 					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Xbox 360"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="0"
+			/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Mixed|Win32"
@@ -638,28 +653,12 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Xbox 360"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Xbox 360"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Mixed|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						UsePrecompiledHeader="0"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="0"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -686,12 +685,28 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|Xbox 360"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="1"
+			/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"
 					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Xbox 360"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="1"
+			/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Mixed|Win32"
@@ -702,28 +717,12 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Xbox 360"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Xbox 360"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Mixed|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						UsePrecompiledHeader="1"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="1"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -809,11 +808,11 @@
 				<FileConfiguration
 					Name="Mixed|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						Optimization="3"
-						InlineFunctionExpansion="2"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				Optimization="3"
+				InlineFunctionExpansion="2"
+			/>
 				</FileConfiguration>
 			</File>
 		</Filter>

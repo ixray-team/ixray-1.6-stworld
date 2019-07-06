@@ -21,7 +21,6 @@ void first_bullet_controller::load(shared_str const & section)
 
 bool first_bullet_controller::is_bullet_first(float actor_linear_velocity) const
 {
-	R_ASSERT2(!IsGameTypeSingle(), "first bullet shot can't be in single game mode");
 	if (!m_use_first_bullet)
 		return false;
 	if (m_actor_velocity_limit < actor_linear_velocity)

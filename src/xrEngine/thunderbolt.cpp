@@ -7,6 +7,7 @@
 #include "Thunderbolt.h"
 #include "igame_persistent.h"
 #include "LightAnimLibrary.h"
+#include "Environment.h"
 
 #ifdef _EDITOR
     #include "ui_toolscustom.h"
@@ -161,7 +162,7 @@ BOOL CEffect_Thunderbolt::RayPick(const Fvector& s, const Fvector& d, float& dis
     bRes 				= Tools->RayPick	(s,d,dist,0,0);
 #else
 	collide::rq_result	RQ;
-	CObject* E 			= g_pGameLevel->CurrentViewEntity();
+	CObject* E 			= g_pGameLevel->CurrentViewActor();
 	bRes 				= g_pGameLevel->ObjectSpace.RayPick(s,d,dist,collide::rqtBoth,RQ,E);	
     if (bRes) dist	 	= RQ.range;
     else{

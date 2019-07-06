@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "UIOptionsItem.h"
 #include "UIOptionsManager.h"
-#include "../../xrEngine/xr_ioconsole.h"
+#include "../../xrEngine/xr_ioc_cmd.h"
 
 CUIOptionsManager CUIOptionsItem::m_optionsManager;
 
@@ -32,7 +32,7 @@ void CUIOptionsItem::OnMessage(LPCSTR message)
 
 LPCSTR CUIOptionsItem::GetOptStringValue()
 {
-	return Console->GetString(m_entry.c_str());
+	return pConsoleCommands->GetString(m_entry.c_str());
 }
 
 void CUIOptionsItem::SaveOptStringValue(LPCSTR val)
@@ -40,53 +40,53 @@ void CUIOptionsItem::SaveOptStringValue(LPCSTR val)
 	xr_string command	= m_entry.c_str();
 	command				+= " ";
 	command				+= val;
-	Console->Execute	(command.c_str());
+	pConsoleCommands->Execute	(command.c_str());
 }
 
 void CUIOptionsItem::GetOptIntegerValue(int& val, int& min, int& max)
 {
-	val = Console->GetInteger(m_entry.c_str(), min, max);
+	val = pConsoleCommands->GetInteger(m_entry.c_str(), min, max);
 }
 
 void CUIOptionsItem::SaveOptIntegerValue(int val)
 {
 	string512			command;
 	xr_sprintf			(command, "%s %d", m_entry.c_str(), val);
-	Console->Execute	(command);
+	pConsoleCommands->Execute	(command);
 }
 
 void CUIOptionsItem::GetOptFloatValue(float& val, float& min, float& max)
 {
-	val = Console->GetFloat(m_entry.c_str(), min, max);
+	val = pConsoleCommands->GetFloat(m_entry.c_str(), min, max);
 }
 
 void CUIOptionsItem::SaveOptFloatValue(float val)
 {
 	string512			command;
 	xr_sprintf			(command, "%s %f", m_entry.c_str(), val);
-	Console->Execute	(command);
+	pConsoleCommands->Execute	(command);
 }
 
 bool CUIOptionsItem::GetOptBoolValue()
 {
-	return Console->GetBool( m_entry.c_str() );
+	return pConsoleCommands->GetBool( m_entry.c_str() );
 }
 
 void CUIOptionsItem::SaveOptBoolValue(bool val)
 {
 	string512		command;
 	xr_sprintf		(command, "%s %s", m_entry.c_str(), (val)?"1":"0");
-	Console->Execute(command);
+	pConsoleCommands->Execute(command);
 }
 
 LPCSTR CUIOptionsItem::GetOptTokenValue()
 {
-	return Console->GetToken(m_entry.c_str());
+	return pConsoleCommands->GetToken(m_entry.c_str());
 }
 
 xr_token* CUIOptionsItem::GetOptToken()
 {
-	return Console->GetXRToken(m_entry.c_str());
+	return pConsoleCommands->GetXRToken(m_entry.c_str());
 }
 
 void CUIOptionsItem::SaveOptValue()

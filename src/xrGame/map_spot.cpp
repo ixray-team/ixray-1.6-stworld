@@ -3,17 +3,13 @@
 #include "map_location.h"
 
 #include "ui/UIXmlInit.h"
-#include "ui/UIMApWnd.h"
 #include "level.h"
 #include "ui/UIInventoryUtilities.h"
 #include "../xrEngine/xr_object.h"
-#include "object_broker.h"
 #include "ui/UITextureMaster.h"
 #include "ui/UIHelper.h"
 
 #include "../Include/xrRender/UIShader.h"
-#include "gametaskmanager.h"
-#include "gametask.h"
 
 CMapSpot::CMapSpot(CMapLocation* ml)
 :m_map_location(ml)
@@ -88,20 +84,7 @@ void CMapSpot::Update()
 
 bool CMapSpot::OnMouseDown( int mouse_btn )
 {
-	if ( mouse_btn == MOUSE_1 )
-	{
-		CGameTask* t = Level().GameTaskManager().HasGameTask(m_map_location, true);
-		if(t)
-		{
-			GetMessageTarget()->SendMessage(this, MAP_SELECT_SPOT);
-			return true;
-		}
-		return false;
-	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
 
@@ -223,7 +206,7 @@ void CMiniMapSpot::Load(CUIXml* xml, LPCSTR path)
 
 void CMiniMapSpot::Draw()
 {
-	CObject* O = Level().CurrentViewEntity();
+	CObject* O = Level().CurrentViewActor();
 	if(O&&m_icon_above->inited()&&m_icon_below->inited()){
 		float ml_y = MapLocation()->GetLastPosition().y;
 		float d = O->Position().y-ml_y;

@@ -38,8 +38,6 @@ public:
 #ifdef DEBUG
 	virtual void	OnRender			();
 #endif
-protected:
-	virtual BOOL	UsedAI_Locations	();
 public:
 			const Fvector&	Axis				()const		{return m_axis;}
 	virtual float			DDAxis				(Fvector& dir)const;

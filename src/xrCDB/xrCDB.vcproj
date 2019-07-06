@@ -51,6 +51,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="2"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
@@ -79,7 +80,6 @@
 				BrowseInformation="0"
 				WarningLevel="4"
 				SuppressStartupBanner="true"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="1"
 			/>
 			<Tool
@@ -108,221 +108,6 @@
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				LinkTimeCodeGeneration="1"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="..\..\..\libraries\$(ProjectName).lib"
-				TargetMachine="0"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Mixed|Win32"
-			OutputDirectory="..\..\..\binaries"
-			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
-			ConfigurationType="2"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				MkTypLibCompatible="true"
-				SuppressStartupBanner="true"
-				TargetEnvironment="1"
-				TypeLibraryName="x:\xrCDB.tlb"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="3"
-				InlineFunctionExpansion="2"
-				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				OmitFramePointers="false"
-				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
-				PreprocessorDefinitions="MIXED,WIN32;DEBUG;_WINDOWS;_USRDLL;XRCDB_EXPORTS;_SECURE_SCL=0"
-				StringPooling="true"
-				RuntimeLibrary="2"
-				BufferSecurityCheck="true"
-				EnableFunctionLevelLinking="false"
-				FloatingPointModel="2"
-				ForceConformanceInForLoopScope="false"
-				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="$(IntDir)/$(ProjectName).pch"
-				AssemblerOutput="0"
-				AssemblerListingLocation="$(IntDir)/"
-				ObjectFile="$(IntDir)/"
-				ProgramDataBaseFileName="$(IntDir)/"
-				BrowseInformation="0"
-				WarningLevel="4"
-				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
-				GenerateDebugInformation="true"
-				GenerateMapFile="false"
-				MapFileName="$(OutDir)/$(ProjectName).map"
-				SubSystem="2"
-				LargeAddressAware="1"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="..\..\..\libraries\$(ProjectName).lib"
-				TargetMachine="0"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory="..\..\..\binaries"
-			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
-			ConfigurationType="2"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				MkTypLibCompatible="true"
-				SuppressStartupBanner="true"
-				TargetEnvironment="1"
-				TypeLibraryName="x:\xrCDB.tlb"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				EnableIntrinsicFunctions="false"
-				FavorSizeOrSpeed="0"
-				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
-				PreprocessorDefinitions="WIN32;DEBUG;_WINDOWS;_USRDLL;XRCDB_EXPORTS;_SECURE_SCL=0"
-				StringPooling="false"
-				MinimalRebuild="true"
-				ExceptionHandling="1"
-				BasicRuntimeChecks="3"
-				SmallerTypeCheck="true"
-				RuntimeLibrary="2"
-				EnableFunctionLevelLinking="true"
-				FloatingPointModel="2"
-				ForceConformanceInForLoopScope="false"
-				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="stdafx.h"
-				PrecompiledHeaderFile="$(IntDir)/$(ProjectName).pch"
-				AssemblerListingLocation="$(IntDir)/"
-				ObjectFile="$(IntDir)/"
-				ProgramDataBaseFileName="$(IntDir)/"
-				BrowseInformation="0"
-				WarningLevel="4"
-				SuppressStartupBanner="true"
-				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="1"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				IgnoreImportLibrary="true"
-				AdditionalOptions="/MACHINE:I386"
-				LinkIncremental="2"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
-				GenerateDebugInformation="true"
-				GenerateMapFile="false"
-				MapFileName=""
-				MapExports="false"
-				LargeAddressAware="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				ImportLibrary="..\..\..\libraries\$(ProjectName).lib"
@@ -457,6 +242,111 @@
 			/>
 		</Configuration>
 		<Configuration
+			Name="Mixed|Win32"
+			OutputDirectory="..\..\..\binaries"
+			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName="x:\xrCDB.tlb"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
+				Optimization="3"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="false"
+				EnableFiberSafeOptimizations="true"
+				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
+				PreprocessorDefinitions="MIXED,WIN32;DEBUG;_WINDOWS;_USRDLL;XRCDB_EXPORTS;_SECURE_SCL=0"
+				StringPooling="true"
+				RuntimeLibrary="2"
+				BufferSecurityCheck="true"
+				EnableFunctionLevelLinking="false"
+				FloatingPointModel="2"
+				ForceConformanceInForLoopScope="false"
+				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="$(IntDir)/$(ProjectName).pch"
+				AssemblerOutput="0"
+				AssemblerListingLocation="$(IntDir)/"
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/"
+				BrowseInformation="0"
+				WarningLevel="4"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
+				GenerateDebugInformation="true"
+				GenerateMapFile="false"
+				MapFileName="$(OutDir)/$(ProjectName).map"
+				SubSystem="2"
+				LargeAddressAware="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="..\..\..\libraries\$(ProjectName).lib"
+				TargetMachine="0"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
 			Name="Mixed|Xbox 360"
 			OutputDirectory="..\..\..\binaries\$(PlatformName)"
 			IntermediateDirectory="..\..\..\intermediate\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
@@ -549,6 +439,115 @@
 				Name="VCPostBuildEventTool"
 			/>
 			<DebuggerTool
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory="..\..\..\binaries"
+			IntermediateDirectory="..\..\..\intermediate\$(ConfigurationName)\$(ProjectName)"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName="x:\xrCDB.tlb"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
+				Optimization="0"
+				EnableIntrinsicFunctions="false"
+				FavorSizeOrSpeed="0"
+				EnableFiberSafeOptimizations="true"
+				AdditionalIncludeDirectories="../../sdk/include/stlport;../../sdk/include/"
+				PreprocessorDefinitions="WIN32;DEBUG;_WINDOWS;_USRDLL;XRCDB_EXPORTS;_SECURE_SCL=0"
+				StringPooling="false"
+				ExceptionHandling="1"
+				BasicRuntimeChecks="3"
+				SmallerTypeCheck="true"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="true"
+				FloatingPointModel="2"
+				ForceConformanceInForLoopScope="false"
+				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="stdafx.h"
+				PrecompiledHeaderFile="$(IntDir)/$(ProjectName).pch"
+				AssemblerListingLocation="$(IntDir)/"
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/"
+				BrowseInformation="0"
+				WarningLevel="4"
+				SuppressStartupBanner="true"
+				DebugInformationFormat="1"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				IgnoreImportLibrary="true"
+				AdditionalOptions="/MACHINE:I386"
+				LinkIncremental="2"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\..\sdk\libraries;..\..\..\libraries"
+				GenerateDebugInformation="true"
+				GenerateMapFile="false"
+				MapFileName=""
+				MapExports="false"
+				LargeAddressAware="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="..\..\..\libraries\$(ProjectName).lib"
+				TargetMachine="0"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
@@ -672,12 +671,28 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Release|Xbox 360"
+					ExcludedFromBuild="true"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+			/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Mixed|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
 					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Mixed|Xbox 360"
+					ExcludedFromBuild="true"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+			/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -689,29 +704,13 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release|Xbox 360"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Mixed|Xbox 360"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Debug|Xbox 360"
 					ExcludedFromBuild="true"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -728,10 +727,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -750,12 +749,28 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Release|Xbox 360"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="1"
+			/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Mixed|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"
 					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Mixed|Xbox 360"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				UsePrecompiledHeader="1"
+			/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -767,29 +782,13 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release|Xbox 360"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Mixed|Xbox 360"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-						UsePrecompiledHeader="1"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+				UsePrecompiledHeader="1"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -810,10 +809,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -832,6 +831,14 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Release|Xbox 360"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				AssemblerOutput="4"
+			/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Debug|Win32"
 					>
 					<Tool
@@ -840,20 +847,12 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release|Xbox 360"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						AssemblerOutput="4"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -870,10 +869,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -888,6 +887,14 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Release|Xbox 360"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				AssemblerOutput="4"
+			/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Debug|Win32"
 					>
 					<Tool
@@ -896,20 +903,12 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release|Xbox 360"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						AssemblerOutput="4"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -924,12 +923,28 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Release|Xbox 360"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				AssemblerOutput="4"
+			/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Mixed|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
 						AssemblerOutput="4"
 					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Mixed|Xbox 360"
+					>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				AssemblerOutput="4"
+			/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -940,28 +955,12 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release|Xbox 360"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						AssemblerOutput="4"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Mixed|Xbox 360"
-					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						AssemblerOutput="4"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 		</Filter>
@@ -982,10 +981,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1006,10 +1005,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1030,10 +1029,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1066,10 +1065,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1090,10 +1089,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1114,10 +1113,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1142,10 +1141,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1166,10 +1165,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1194,10 +1193,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1218,10 +1217,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1242,10 +1241,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1266,10 +1265,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1290,10 +1289,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1318,10 +1317,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1346,10 +1345,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1374,10 +1373,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1402,10 +1401,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1438,10 +1437,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1466,10 +1465,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1490,10 +1489,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1514,10 +1513,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1550,10 +1549,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1574,10 +1573,10 @@
 				<FileConfiguration
 					Name="Debug|Xbox 360"
 					>
-					<Tool
-						Name="VCCLX360CompilerTool"
-						MinimalRebuild="false"
-					/>
+			<Tool
+				Name="VCCLX360CompilerTool"
+				MinimalRebuild="false"
+			/>
 				</FileConfiguration>
 			</File>
 			<File

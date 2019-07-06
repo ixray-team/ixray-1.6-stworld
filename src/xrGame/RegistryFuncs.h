@@ -1,5 +1,8 @@
 #pragma once
 
+#define REGISTRY_PATH					"Software\\GSC Game World\\STALKER-COP\\"
+#define REGISTRY_VALUE_USERNAME			"InstallUserName"
+
 bool	ReadRegistry_StrValue	(LPCSTR rKeyName, char* value );
 void	WriteRegistry_StrValue	(LPCSTR rKeyName, const char* value );
 

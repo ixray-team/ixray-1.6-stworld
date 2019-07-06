@@ -8,7 +8,7 @@
 #include <d3dx9.h>
 #pragma warning(default:4995)
 #include "HW.h"
-#include "../../xrEngine/XR_IOConsole.h"
+#include "../../xrEngine/xr_ioc_cmd.h"
 
 #ifndef _EDITOR
 	void	fill_vid_mode_list			(CHW* _hw);
@@ -25,16 +25,13 @@
 
  CHW			HW;
 
-#ifdef DEBUG
-IDirect3DStateBlock9*	dwDebugSB = 0;
-#endif
-
 CHW::CHW() : 
 	hD3D(NULL),
 	pD3D(NULL),
 	pDevice(NULL),
 	pBaseRT(NULL),
 	pBaseZB(NULL),
+	m_present_sync_mode(D3DPRESENT_INTERVAL_DEFAULT),
 	m_move_window(true)
 {
 	;
@@ -47,9 +44,6 @@ CHW::~CHW()
 
 void CHW::Reset		(HWND hwnd)
 {
-#ifdef DEBUG
-	_RELEASE			(dwDebugSB);
-#endif
 	_RELEASE			(pBaseZB);
 	_RELEASE			(pBaseRT);
 
@@ -67,7 +61,7 @@ void CHW::Reset		(HWND hwnd)
 	// Windoze
 	DevPP.SwapEffect			= bWindowed?D3DSWAPEFFECT_COPY:D3DSWAPEFFECT_DISCARD;
 	DevPP.Windowed				= bWindowed;
-	DevPP.PresentationInterval	= D3DPRESENT_INTERVAL_IMMEDIATE;
+	DevPP.PresentationInterval	= selectPresentInterval();
 	if( !bWindowed )		DevPP.FullScreen_RefreshRateInHz	= selectRefresh	(DevPP.BackBufferWidth,DevPP.BackBufferHeight,Caps.fTarget);
 	else					DevPP.FullScreen_RefreshRateInHz	= D3DPRESENT_RATE_DEFAULT;
 #endif
@@ -80,9 +74,6 @@ void CHW::Reset		(HWND hwnd)
 	}
 	R_CHK				(pDevice->GetRenderTarget			(0,&pBaseRT));
 	R_CHK				(pDevice->GetDepthStencilSurface	(&pBaseZB));
-#ifdef DEBUG
-	R_CHK				(pDevice->CreateStateBlock			(D3DSBT_ALL,&dwDebugSB));
-#endif
 #ifndef _EDITOR
 	updateWindowProps	(hwnd);
 #endif
@@ -162,10 +153,6 @@ void	CHW::DestroyDevice	()
 
 	_SHOW_REF				("refCount:pBaseRT",pBaseRT);
 	_RELEASE				(pBaseRT);
-#ifdef DEBUG
-	_SHOW_REF				("refCount:dwDebugSB",dwDebugSB);
-	_RELEASE				(dwDebugSB);
-#endif
 #ifdef _EDITOR
 	_RELEASE				(HW.pDevice);
 #else
@@ -203,7 +190,7 @@ void	CHW::selectResolution	(u32 &dwWidth, u32 &dwHeight, BOOL bWindowed)
 			if(_ParseItem(buff,vid_mode_token)==u32(-1)) //not found
 			{ //select safe
 				xr_sprintf				(buff,sizeof(buff),"vid_mode %s",vid_mode_token[0].name);
-				Console->Execute		(buff);
+				pConsoleCommands->Execute		(buff);
 			}
 
 			dwWidth						= psCurrentVidMode[0];
@@ -351,7 +338,7 @@ void		CHW::CreateDevice		(HWND m_hWnd, bool move_window)
 	P.Flags					= 0;	//. D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL;
 
 	// Refresh rate
-	P.PresentationInterval	= D3DPRESENT_INTERVAL_IMMEDIATE;
+	P.PresentationInterval	= selectPresentInterval();
     if( !bWindowed )		P.FullScreen_RefreshRateInHz	= selectRefresh	(P.BackBufferWidth, P.BackBufferHeight,fTarget);
     else					P.FullScreen_RefreshRateInHz	= D3DPRESENT_RATE_DEFAULT;
 
@@ -401,14 +388,12 @@ void		CHW::CreateDevice		(HWND m_hWnd, bool move_window)
 	}
 
 	// Capture misc data
-#ifdef DEBUG
-	R_CHK	(pDevice->CreateStateBlock			(D3DSBT_ALL,&dwDebugSB));
-#endif
 	R_CHK	(pDevice->GetRenderTarget			(0,&pBaseRT));
 	R_CHK	(pDevice->GetDepthStencilSurface	(&pBaseZB));
 	u32	memory									= pDevice->GetAvailableTextureMem	();
 	Msg		("*     Texture memory: %d M",		memory/(1024*1024));
 	Msg		("*          DDI-level: %2.1f",		float(D3DXGetDriverLevel(pDevice))/100.f);
+
 #ifndef _EDITOR
 	updateWindowProps							(m_hWnd);
 	fill_vid_mode_list							(this);
@@ -420,13 +405,14 @@ u32	CHW::selectPresentInterval	()
 	D3DCAPS9	caps;
 	pD3D->GetDeviceCaps(DevAdapter,DevT,&caps);
 
-	if (!psDeviceFlags.test(rsVSync)) 
+	if(psDeviceFlags.test(rsVSync)) 
 	{
-		if (caps.PresentationIntervals & D3DPRESENT_INTERVAL_IMMEDIATE)
-			return D3DPRESENT_INTERVAL_IMMEDIATE;
 		if (caps.PresentationIntervals & D3DPRESENT_INTERVAL_ONE)
 			return D3DPRESENT_INTERVAL_ONE;
 	}
+	else if (caps.PresentationIntervals & D3DPRESENT_INTERVAL_IMMEDIATE)
+		return D3DPRESENT_INTERVAL_IMMEDIATE;
+
 	return D3DPRESENT_INTERVAL_DEFAULT;
 }
 

@@ -331,31 +331,32 @@ void CExplosive::Explode()
 #endif
 //	Msg("---------CExplosive Explode [%d] frame[%d]",cast_game_object()->ID(), Device.dwFrame);
 	OnBeforeExplosion();
-	//играем звук взрыва
-	Sound->play_at_pos(sndExplode, 0, pos, false);
-	
-	//показываем эффекты
 
-	m_wallmark_manager.PlaceWallmarks		(pos);
+	if(!g_dedicated_server)
+	{
+		Sound->play_at_pos(sndExplode, 0, pos, false);
+		m_wallmark_manager.PlaceWallmarks		(pos);
 
-	Fvector									vel;
-	smart_cast<CPhysicsShellHolder*>(cast_game_object())->PHGetLinearVell(vel);
+		Fvector									vel;
+		smart_cast<CPhysicsShellHolder*>(cast_game_object())->PHGetLinearVell(vel);
 
-	Fmatrix explode_matrix;
-	explode_matrix.identity();
-	explode_matrix.j.set(dir);
-	Fvector::generate_orthonormal_basis(explode_matrix.j, explode_matrix.i, explode_matrix.k);
-	explode_matrix.c.set(pos);
+		Fmatrix explode_matrix;
+		explode_matrix.identity();
+		explode_matrix.j.set(dir);
+		Fvector::generate_orthonormal_basis(explode_matrix.j, explode_matrix.i, explode_matrix.k);
+		explode_matrix.c.set(pos);
 
-	CParticlesObject* pStaticPG; 
-	pStaticPG = CParticlesObject::Create(*m_sExplodeParticles,!m_bDynamicParticles); 
-	if (m_bDynamicParticles) m_pExpParticle = pStaticPG;
-	pStaticPG->UpdateParent(explode_matrix,vel);
-	pStaticPG->Play(false);
+		CParticlesObject* pStaticPG; 
+		pStaticPG = CParticlesObject::Create(*m_sExplodeParticles,!m_bDynamicParticles); 
+		if (m_bDynamicParticles) 
+			m_pExpParticle = pStaticPG;
 
-	//включаем подсветку от взрыва
-	StartLight();
+		pStaticPG->UpdateParent(explode_matrix,vel);
+		pStaticPG->Play(false);
 
+		//включаем подсветку от взрыва
+		StartLight();
+	}
 	//trace frags
 	Fvector frag_dir; 
 	
@@ -363,19 +364,16 @@ void CExplosive::Explode()
 	//осколки
 	//////////////////////////////
 	//-------------------------------------
-	bool SendHits = false;
-	if (OnServer()) SendHits = true;
-	else SendHits = false;
+	bool SendHits = OnServer();
 
-
-	for(int i = 0; i < m_iFragsNum; ++i){
+	for(int i = 0; i < m_iFragsNum; ++i)
+	{
 		frag_dir.random_dir	();
 		frag_dir.normalize	();
 		
 		CCartridge cartridge;
 		cartridge.param_s.kDist				= 1.f;
 		cartridge.param_s.kHit				= 1.f;
-//.		cartridge.param_s.kCritical			= 1.f;
 		cartridge.param_s.kImpulse			= 1.f;
 		cartridge.param_s.kAP				= 1.f;
 		cartridge.param_s.fWallmarkSize		= fWallmarkSize;
@@ -390,10 +388,6 @@ void CExplosive::Explode()
 
 	if (cast_game_object()->Remote()) return;
 	
-	/////////////////////////////////
-	//взрывная волна
-	////////////////////////////////
-	//---------------------------------------------------------------------
 	xr_vector<ISpatial*>	ISpatialResult;
 	g_SpatialSpace->q_sphere(ISpatialResult,0,STYPE_COLLIDEABLE,pos,m_fBlastRadius);
 
@@ -422,7 +416,7 @@ STOP_PROFILE
 #endif
 	//////////////////////////////////////////////////////////////////////////
 	// Explode Effector	//////////////
-	CGameObject* GO = smart_cast<CGameObject*>(Level().CurrentEntity());
+	CGameObject* GO = smart_cast<CGameObject*>(Level().CurrentActor());
 	CActor* pActor = smart_cast<CActor*>(GO);
 	if(pActor)
 	{
@@ -752,14 +746,9 @@ void CExplosive::ActivateExplosionBox(const Fvector &size,Fvector &in_out_pos)
 	ActivateShapeExplosive( self_obj, size, m_vExplodeSize, in_out_pos );
 	if(self_shell&&self_shell->isActive())self_shell->EnableCollision();
 }
+
 void CExplosive::net_Relcase(CObject* O)
 {
-	if (GameID() == eGameIDSingle)
-	{
-		if(O->ID()==m_iCurrentParentID)
-			m_iCurrentParentID=u16(-1);
-	}
-	
 	BLASTED_OBJECTS_I I=std::find(m_blasted_objects.begin(),m_blasted_objects.end(),smart_cast<CPhysicsShellHolder*>(O));
 	if(m_blasted_objects.end()!=I)
 	{

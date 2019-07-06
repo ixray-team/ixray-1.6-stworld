@@ -136,11 +136,8 @@ private:
 	iphysics_scripted			&get_scripted					()							{ return *this; }
 	void						set_step_time_callback			(PhysicsStepTimeCallback* cb ){ physics_step_time_callback = cb; }
 	void						set_update_callback				( IPHWorldUpdateCallbck* cb ){ VERIFY( cb ); m_update_callback	= cb; }
-//	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
-//add_to_type_list(CPHWorld)
-//#undef script_type_list
-//#define script_type_list save_type_list(CPHWorld)
+
 extern CPHWorld	*ph_world					;
 IC CPHWorld&	inl_ph_world		()
 {

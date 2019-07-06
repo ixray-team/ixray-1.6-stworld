@@ -21,12 +21,10 @@ protected:
 	virtual		void				ConsoleCommands_Clear	();
 
 public:	
-									game_sv_TeamDeathmatch	(){m_type = eGameIDTeamDeathmatch;}
+									game_sv_TeamDeathmatch	(){}
 	virtual		void				Create					(shared_str& options);
 
 	virtual		void				OnEvent					(NET_Packet &tNetPacket, u16 type, u32 time, ClientID sender );
-
-	virtual		LPCSTR				type_name			() const { return "teamdeathmatch";};
 
 	virtual		void				Update					();
 	virtual		void				net_Export_State		(NET_Packet& P, ClientID id_to);				// full state
@@ -83,5 +81,5 @@ public:
 				void				OnObjectLeaveTeamBase	(u16 id, u16 zone_team);
 	virtual		void				RespawnPlayer			(ClientID id_who, bool NoSpectator);
 protected:
-	virtual		void				WriteGameState			(CInifile& ini, LPCSTR sect, bool bRoundResult);
+//	virtual		void				WriteGameState			(CInifile& ini, LPCSTR sect, bool bRoundResult);
 };

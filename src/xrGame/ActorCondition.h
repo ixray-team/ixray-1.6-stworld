@@ -6,8 +6,6 @@
 #include "EntityCondition.h"
 #include "actor_defs.h"
 
-template <typename _return_type>
-class CScriptCallbackEx;
 class CActor;
 class CActorDeathEffector;
 
@@ -27,7 +25,7 @@ private:
 	Flags16											m_condition_flags;
 private:
 	CActor*											m_object;
-	CActorDeathEffector*							m_death_effector;
+//	CActorDeathEffector*							m_death_effector;
 	void				UpdateTutorialThresholds	();
 			void 		UpdateSatiety				();
 	virtual void		UpdateRadiation				();
@@ -170,17 +168,17 @@ protected:
 	ref_sound m_use_sound;
 };
 
-class CActorDeathEffector
-{
-	CActorCondition*		m_pParent;
-	ref_sound				m_death_sound;
-	bool					m_b_actual;
-	float					m_start_health;
-	void xr_stdcall			OnPPEffectorReleased		();
-public:
-			CActorDeathEffector	(CActorCondition* parent, LPCSTR sect);	// -((
-			~CActorDeathEffector();
-	void	UpdateCL			();
-	IC bool	IsActual			() {return m_b_actual;}
-	void	Stop				();
-};
+//class CActorDeathEffector
+//{
+//	CActorCondition*		m_pParent;
+//	ref_sound				m_death_sound;
+//	bool					m_b_actual;
+//	float					m_start_health;
+//	void xr_stdcall			OnPPEffectorReleased		();
+//public:
+//			CActorDeathEffector	(CActorCondition* parent, LPCSTR sect);	// -((
+//			~CActorDeathEffector();
+//	void	UpdateCL			();
+//	IC bool	IsActual			() {return m_b_actual;}
+//	void	Stop				();
+//};

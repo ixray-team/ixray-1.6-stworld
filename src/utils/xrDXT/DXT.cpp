@@ -11,6 +11,15 @@
 #include "dds.h"
 #include <ddraw.h>
 
+HRESULT __cdecl nvDXTcompress(RGBAImage & image,
+                      CompressionOptions * options,
+                      MIPcallback callback,
+                      RECT * rect)
+{
+	return DD_FALSE;
+}
+
+
 BOOL APIENTRY DllMain( HANDLE hModule, 
                        u32  ul_reason_for_call, 
                        LPVOID lpReserved

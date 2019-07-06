@@ -50,7 +50,6 @@ public:
 	virtual void OnH_A_Chield		();
 	virtual void UpdateCL();
 
-	virtual BOOL UsedAI_Locations	()			{return	(FALSE);}
 	virtual bool Useful				() const	{return (m_eState == eInactive);	}
 
 	virtual void renderable_Render() {inherited::renderable_Render();}

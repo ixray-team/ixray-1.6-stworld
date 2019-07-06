@@ -15,7 +15,7 @@ Fvector _wpn_root_pos;
 float CalcMotionSpeed(const shared_str& anim_name)
 {
 
-	if(!IsGameTypeSingle() && (anim_name=="anm_show" || anim_name=="anm_hide") )
+	if((anim_name=="anm_show" || anim_name=="anm_hide") )
 		return 2.0f;
 	else
 		return 1.0f;
@@ -70,13 +70,12 @@ void player_hud_motion_container::load(IKinematicsAnimated* model, const shared_
 			}
 
 			//and load all motions for it
-
 			for(u32 i=0; i<=8; ++i)
 			{
 				if(i==0)
-					xr_strcpy				(buff,pm->m_base_name.c_str());		
+					xr_strcpy			(buff,pm->m_base_name.c_str());		
 				else
-					xr_sprintf				(buff,"%s%d",pm->m_base_name.c_str(),i);		
+					xr_sprintf			(buff,"%s%d",pm->m_base_name.c_str(),i);		
 
 				motion_ID				= model->ID_Cycle_Safe(buff);
 				if(motion_ID.valid())
@@ -370,29 +369,6 @@ u32 attachable_hud_item::anim_play(const shared_str& anm_name_b, BOOL bMixIn, co
 	//R_ASSERT2		(parent_object, "object has no parent actor");
 	//CObject*		parent_object = static_cast_checked<CObject*>(&m_parent_hud_item->object());
 
-	if (IsGameTypeSingle() && parent_object.H_Parent() == Level().CurrentControlEntity())
-	{
-		CActor* current_actor	= static_cast_checked<CActor*>(Level().CurrentControlEntity());
-		VERIFY					(current_actor);
-		CEffectorCam* ec		= current_actor->Cameras().GetCamEffector(eCEWeaponAction);
-
-	
-		if(NULL==ec)
-		{
-			string_path			ce_path;
-			string_path			anm_name;
-			strconcat			(sizeof(anm_name),anm_name,"camera_effects\\weapon\\", M.name.c_str(),".anm");
-			if (FS.exist( ce_path, "$game_anims$", anm_name))
-			{
-				CAnimatorCamEffector* e		= xr_new<CAnimatorCamEffector>();
-				e->SetType					(eCEWeaponAction);
-				e->SetHudAffect				(false);
-				e->SetCyclic				(false);
-				e->Start					(anm_name);
-				current_actor->Cameras().AddCamEffector(e);
-			}
-		}
-	}
 	return ret;
 }
 

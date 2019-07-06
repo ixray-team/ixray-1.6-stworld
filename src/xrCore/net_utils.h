@@ -38,8 +38,6 @@ struct XRCORE_API IIniFileStream
 	virtual void	__stdcall	r_s64			(s64&)						= 0;
 
 	virtual void	__stdcall	r_string		(LPSTR dest, u32 dest_size)	= 0;
-//	virtual void	__stdcall	r_tell			()							= 0;
-//	virtual void	__stdcall	r_seek			(u32 pos)					= 0;
 	virtual void	__stdcall	skip_stringZ	()							= 0;
 };
 
@@ -93,9 +91,8 @@ public:
 		R_ASSERT	(inistream==NULL || w_allow);
 		VERIFY		(p && count);
 		VERIFY		(B.count + count < NET_PacketSizeLimit);
-		CopyMemory(&B.data[B.count],p,count);
+		CopyMemory	(&B.data[B.count],p,count);
 		B.count		+= count;
-		VERIFY		(B.count<NET_PacketSizeLimit);
 	}
 	IC void w_seek	(u32 pos, const void* p, u32 count);
 	IC u32	w_tell	()						{ return B.count; }

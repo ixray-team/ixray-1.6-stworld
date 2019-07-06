@@ -144,8 +144,6 @@ bool CGrenade::DropGrenade()
 
 void CGrenade::DiscardState()
 {
-	if(IsGameTypeSingle() && (GetState()==eReady || GetState()==eThrow) )
-		OnStateSwitch(eIdle);
 }
 
 void CGrenade::SendHiddenItem						()
@@ -208,7 +206,7 @@ void CGrenade::Destroy()
 bool CGrenade::Useful() const
 {
 
-	bool res = (/* !m_throw && */ m_dwDestroyTime == 0xffffffff && CExplosive::Useful() && TestServerFlag(CSE_ALifeObject::flCanSave));
+	bool res = (/* !m_throw && */ m_dwDestroyTime == 0xffffffff && CExplosive::Useful());
 
 	return res;
 }
@@ -277,10 +275,8 @@ void CGrenade::UpdateCL()
 {
 	inherited::UpdateCL			();
 	CExplosive::UpdateCL		();
-
-	if(!IsGameTypeSingle())	make_Interpolation();
+	make_Interpolation			();
 }
-
 
 bool CGrenade::Action(u16 cmd, u32 flags) 
 {
@@ -320,7 +316,6 @@ bool CGrenade::Action(u16 cmd, u32 flags)
 
 bool CGrenade::NeedToDestroyObject()	const
 {
-	if ( IsGameTypeSingle()			) return false;
 	if ( Remote()					) return false;
 	if ( TimePassedAfterIndependant() > m_dwGrenadeRemoveTime)
 		return true;
@@ -334,12 +329,6 @@ ALife::_TIME_ID	 CGrenade::TimePassedAfterIndependant()	const
 		return Level().timeServer() - m_dwGrenadeIndependencyTime;
 	else
 		return 0;
-}
-
-BOOL CGrenade::UsedAI_Locations		()
-{
-#pragma todo("Dima to Yura : It crashes, because on net_Spawn object doesn't use AI locations, but on net_Destroy it does use them")
-	return inherited::UsedAI_Locations( );//m_dwDestroyTime == 0xffffffff;
 }
 
 void CGrenade::net_Relcase(CObject* O )
@@ -384,8 +373,8 @@ bool CGrenade::GetBriefInfo( II_BriefInfo& info )
 	VERIFY( m_pInventory );
 	info.clear();
 
-	info.name._set( m_nameShort );
-	info.icon._set( cNameSect() );
+	info.name = NameShort();
+	info.icon = cNameSect();
 
 	u32 ThisGrenadeCount	= m_pInventory->dwfGetSameItemCount( cNameSect().c_str(), true );
 	

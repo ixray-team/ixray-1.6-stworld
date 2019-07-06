@@ -137,7 +137,7 @@ void CUIOutfitInfo::InitFromXml( CUIXml& xml_doc )
 
 void CUIOutfitInfo::UpdateInfo( CCustomOutfit* cur_outfit, CCustomOutfit* slot_outfit )
 {
-	CActor* actor = smart_cast<CActor*>( Level().CurrentViewEntity() );
+	CActor* actor = smart_cast<CActor*>( Level().CurrentViewActor() );
 	if ( !actor || !cur_outfit )
 	{
 		return;
@@ -198,7 +198,7 @@ void CUIOutfitInfo::UpdateInfo( CCustomOutfit* cur_outfit, CCustomOutfit* slot_o
 
 void CUIOutfitInfo::UpdateInfo( CHelmet* cur_helmet, CHelmet* slot_helmet )
 {
-	CActor* actor = smart_cast<CActor*>( Level().CurrentViewEntity() );
+	CActor* actor = smart_cast<CActor*>( Level().CurrentViewActor() );
 	if ( !actor || !cur_helmet )
 	{
 		return;

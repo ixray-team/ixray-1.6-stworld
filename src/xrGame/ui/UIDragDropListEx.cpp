@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "UIDragDropListEx.h"
 #include "UIScrollBar.h"
-#include "object_broker.h"
 #include "UICellItem.h"
 #include "UICursor.h"
 

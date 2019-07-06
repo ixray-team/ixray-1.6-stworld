@@ -8,11 +8,6 @@
 #include "../../xrEngine/xr_object.h"
 #include "../xrRender/lighttrack.h"
 
-#ifndef _EDITOR
-#include "../../xrCPU_Pipe/ttapi.h"
-#endif
-
-
 // tir2.xrdemo		-> 45.2
 // tir2.xrdemo		-> 61.8
 
@@ -127,10 +122,6 @@ void CLightProjector::OnAppActivate()
 #include "../xrRender/SkeletonCustom.h"
 void CLightProjector::calculate	()
 {
-	#ifdef _GPA_ENABLED	
-		TAL_SCOPED_TASK_NAMED( "CLightProjector::calculate()" );
-	#endif // _GPA_ENABLED
-
 	if (receivers.empty())		return;
 
 	// perform validate / markup

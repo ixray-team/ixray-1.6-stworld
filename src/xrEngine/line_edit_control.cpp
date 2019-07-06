@@ -61,7 +61,7 @@ line_edit_control::line_edit_control( u32 str_buffer_size )
 
 	init( str_buffer_size );
 
-	update_key_states	();
+	m_key_state.zero( );
 }
 
 line_edit_control::~line_edit_control()
@@ -109,19 +109,6 @@ static inline bool get_caps_lock_state	()
 #endif // #if 0
 }
 
-void line_edit_control::update_key_states	()
-{
-	m_key_state.zero( );
-
-	set_key_state	( ks_LShift,	!!pInput->iGetAsyncKeyState(DIK_LSHIFT)		);
-	set_key_state	( ks_RShift,	!!pInput->iGetAsyncKeyState(DIK_RSHIFT)		);
-	set_key_state	( ks_LCtrl,		!!pInput->iGetAsyncKeyState(DIK_LCONTROL)	);
-	set_key_state	( ks_RCtrl,		!!pInput->iGetAsyncKeyState(DIK_RCONTROL)	);
-	set_key_state	( ks_LAlt,		!!pInput->iGetAsyncKeyState(DIK_LALT)		);
-	set_key_state	( ks_RAlt,		!!pInput->iGetAsyncKeyState(DIK_RALT)		);
-	set_key_state	( ks_CapsLock,	text_editor::get_caps_lock_state()			);
-}
-
 void line_edit_control::clear_states()
 {
 	m_edit_str[0]	= 0;
@@ -153,7 +140,7 @@ void line_edit_control::clear_states()
 	m_need_update		= false;
 	m_unselected_mode	= false;
 
-	update_key_states	( );
+	m_key_state.zero( );
 }
 
 void line_edit_control::init( u32 str_buffer_size, init_mode mode )
@@ -438,7 +425,7 @@ void line_edit_control::on_key_press( int dik )
 	m_repeat_mode = false;
 	m_rep_time    = 0.0f;
 	
-	update_key_states( );
+//	update_key_states( );
 	update_bufs();
 }
 
@@ -446,7 +433,7 @@ void line_edit_control::on_key_press( int dik )
 
 void line_edit_control::on_key_hold( int dik )
 {
-	update_key_states( );
+//	update_key_states( );
 	update_bufs();
 	switch ( dik )
 	{
@@ -476,13 +463,13 @@ void line_edit_control::on_key_release( int dik )
 	m_rep_time      = 0.0f;
 	m_last_key_time = 0.0f;
 
-	update_key_states( );
+//	update_key_states( );
 	update_bufs		( );
 }
 
 void line_edit_control::on_frame()
 {
-	update_key_states	( );
+//	update_key_states	( );
 
 	u32   fr_time = Device.dwTimeContinual;
 	float dt      = (fr_time - m_last_frame_time) * 0.001f;

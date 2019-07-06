@@ -49,8 +49,11 @@ void requests_poll::add_request(request_ptr_t fcgx_request)
 
 	profile_data	tmp_profdata;
 	m_cache_sync.lock();
+	
+	std::clog << "searching user: " << tmp_user_name << std::endl;
 	if (m_profiles_cache.search(tmp_user_name, tmp_profdata))
 	{
+		std::clog << "user found in cache" << std::endl;
 		m_cache_sync.unlock();
 		fetch_profile_request tmp_request(fcgx_request, tmp_user_name);
 		tmp_request.complete_success(tmp_profdata);
@@ -60,6 +63,7 @@ void requests_poll::add_request(request_ptr_t fcgx_request)
 
 	//trying to search name in cache ..
 	//adding request to processor queue ..
+	std::clog << "adding request..." << std::endl;
 	add_new_request(fcgx_request, tmp_user_name);
 }
 
@@ -78,8 +82,7 @@ void requests_poll::start_work()
 }
 
 bool requests_poll::request_processor(sake_processor* sproc)
-{
-		
+{	
 	bool is_active = false;
 	m_new_request_sync.lock();
 	is_active = !m_active_requests.empty();
@@ -90,6 +93,7 @@ bool requests_poll::request_processor(sake_processor* sproc)
 		sproc->think(gamespy_think_time);
 		if (sproc->is_result_ready())
 		{
+			std::clog << "gamespy sake results are ready !" << std::endl;
 			process_result(sproc);
 		} else
 		{
@@ -102,6 +106,8 @@ bool requests_poll::request_processor(sake_processor* sproc)
 		xray::sleep(wait_train_time_ms);
 		return true;
 	}
+
+	std::clog << "detected new work ! initializing fetch query." << std::endl;
 	
 	m_new_request_sync.lock();
 	sproc->begin_fetch();
@@ -112,6 +118,7 @@ bool requests_poll::request_processor(sake_processor* sproc)
 	}
 	sproc->fetch();
 	m_active_requests = m_new_requests;
+	std::clog << "active request size is: " << m_active_requests.size() << std::endl;
 	m_new_requests.clear();
 	m_new_request_sync.unlock();
 	
@@ -121,7 +128,7 @@ bool requests_poll::request_processor(sake_processor* sproc)
 
 void requests_poll::process_result(sake_processor* sproc)
 {
-	bool need_sort			= false;
+	bool need_sort		= false;
 	bool cleared_expired	= false;
 	m_new_request_sync.lock();
 	for (requests_t::iterator i = m_active_requests.begin(),

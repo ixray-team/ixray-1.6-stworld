@@ -11,16 +11,13 @@
 #include "xr_level_controller.h"
 #include "game_cl_base.h"
 #include "../Include/xrRender/Kinematics.h"
-#include "ai_object_location.h"
 #include "../xrphysics/mathutils.h"
-#include "object_broker.h"
 #include "player_hud.h"
 #include "gamepersistent.h"
 #include "effectorFall.h"
 #include "debug_renderer.h"
 #include "static_cast_checked.hpp"
 #include "clsid_game.h"
-#include "weaponBinocularsVision.h"
 #include "ui/UIWindow.h"
 #include "ui/UIXmlInit.h"
 #include "Torch.h"
@@ -30,6 +27,18 @@
 
 BOOL	b_toggle_weapon_aim		= FALSE;
 extern CUIXml*	pWpnScopeXml;
+
+bool CWeapon::install_upgrade_impl		( LPCSTR section, bool test )
+{
+	R_ASSERT(0);
+	return false;
+}
+
+bool CWeapon::install_upgrade_ammo_class( LPCSTR section, bool test )
+{
+	R_ASSERT(0);
+	return false;
+}
 
 CWeapon::CWeapon()
 {
@@ -53,8 +62,6 @@ CWeapon::CWeapon()
 
 	m_zoom_params.m_fCurrentZoomFactor			= g_fov;
 	m_zoom_params.m_fZoomRotationFactor			= 0.f;
-	m_zoom_params.m_pVision						= NULL;
-	m_zoom_params.m_pNight_vision				= NULL;
 
 	m_pCurrentAmmo			= NULL;
 
@@ -69,8 +76,6 @@ CWeapon::CWeapon()
 	m_StrapOffset.identity	();
 	m_strapped_mode			= false;
 	m_can_be_strapped		= false;
-	m_ef_main_weapon_type	= u32(-1);
-	m_ef_weapon_type		= u32(-1);
 	m_UIScope				= NULL;
 	m_set_next_ammoType_on_reload = undefined_ammo_type;
 	m_crosshair_inertion	= 0.f;
@@ -106,8 +111,7 @@ void CWeapon::UpdateXForm	()
 	CEntityAlive*			E = smart_cast<CEntityAlive*>(H_Parent());
 	
 	if (!E) {
-		if (!IsGameTypeSingle())
-			UpdatePosition	(H_Parent()->XFORM());
+		UpdatePosition		(H_Parent()->XFORM());
 
 		return;
 	}
@@ -468,14 +472,7 @@ void CWeapon::Load		(LPCSTR section)
 
 	m_bHasTracers			= !!READ_IF_EXISTS(pSettings, r_bool, section, "tracers", true);
 	m_u8TracerColorID		= READ_IF_EXISTS(pSettings, r_u8, section, "tracers_color_ID", u8(-1));
-
-	string256						temp;
-	for (int i=egdNovice; i<egdCount; ++i) 
-	{
-		strconcat					(sizeof(temp),temp,"hit_probability_",get_token_name(difficulty_type_token,i));
-		m_hit_probability[i]		= READ_IF_EXISTS(pSettings,r_float,section,temp,1.f);
-	}
-
+	m_hit_probability		= READ_IF_EXISTS(pSettings,r_float,section,"hit_probability_novice",1.f);
 	
 	m_zoom_params.m_bUseDynamicZoom				= READ_IF_EXISTS(pSettings,r_bool,section,"scope_dynamic_zoom",FALSE);
 	m_zoom_params.m_sUseZoomPostprocess			= 0;
@@ -756,10 +753,7 @@ void CWeapon::OnHiddenItem ()
 {
 	m_BriefInfo_CalcFrame = 0;
 
-	if(IsGameTypeSingle())
-		SwitchState(eHiding);
-	else
-		SwitchState(eHidden);
+	SwitchState					(eHidden);
 
 	OnZoomOut();
 	inherited::OnHiddenItem		();
@@ -811,59 +805,17 @@ void CWeapon::UpdateCL		()
 	UpdateFlameParticles	();
 	UpdateFlameParticles2	();
 
-	if(!IsGameTypeSingle())
-		make_Interpolation		();
-	
-	if( (GetNextState()==GetState()) && IsGameTypeSingle() && H_Parent()==Level().CurrentEntity())
-	{
-		CActor* pActor	= smart_cast<CActor*>(H_Parent());
-		if(pActor && !pActor->AnyMove() && this==pActor->inventory().ActiveItem())
-		{
-			if (hud_adj_mode==0 && 
-				GetState()==eIdle && 
-				(Device.dwTimeGlobal-m_dw_curr_substate_time>20000) && 
-				!IsZoomed()&&
-				g_player_hud->attached_item(1)==NULL)
-			{
-				if(AllowBore())
-					SwitchState		(eBore);
-
-				ResetSubStateTime	();
-			}
-		}
-	}
-
-	if(m_zoom_params.m_pNight_vision && !need_renderable())
-	{
-		if(!m_zoom_params.m_pNight_vision->IsActive())
-		{
-			CActor *pA = smart_cast<CActor *>(H_Parent());
-			R_ASSERT(pA);
-			CTorch* pTorch = smart_cast<CTorch*>( pA->inventory().ItemFromSlot(TORCH_SLOT) );
-			if ( pTorch && pTorch->GetNightVisionStatus() )
-			{
-				m_bRememberActorNVisnStatus = pTorch->GetNightVisionStatus();
-				pTorch->SwitchNightVision(false, false);
-			}
-			m_zoom_params.m_pNight_vision->Start(m_zoom_params.m_sUseZoomPostprocess, pA, false);
-		}
-
-	}
-	else if(m_bRememberActorNVisnStatus)
+	make_Interpolation		();
+	if(m_bRememberActorNVisnStatus)
 	{
 		m_bRememberActorNVisnStatus = false;
 		EnableActorNVisnAfterZoom();
 	}
-
-	if(m_zoom_params.m_pVision)
-		m_zoom_params.m_pVision->Update();
 }
+
 void CWeapon::EnableActorNVisnAfterZoom()
 {
 	CActor *pA = smart_cast<CActor *>(H_Parent());
-	if(IsGameTypeSingle() && !pA)
-		pA = g_actor;
-
 	if(pA)
 	{
 		CTorch* pTorch = smart_cast<CTorch*>( pA->inventory().ItemFromSlot(TORCH_SLOT) );
@@ -1047,7 +999,6 @@ void CWeapon::SpawnAmmo(u32 boxCurr, LPCSTR ammoSect, u32 ParentID)
 		l_pA->m_boxSize				= (u16)pSettings->r_s32(ammoSect, "box_size");
 		D->s_name					= ammoSect;
 		D->set_name_replace			("");
-//.		D->s_gameid					= u8(GameID());
 		D->s_RP						= 0xff;
 		D->ID						= 0xffff;
 		if (ParentID == 0xffffffff)	
@@ -1055,10 +1006,8 @@ void CWeapon::SpawnAmmo(u32 boxCurr, LPCSTR ammoSect, u32 ParentID)
 		else
 			D->ID_Parent			= (u16)ParentID;
 
-		D->ID_Phantom				= 0xffff;
 		D->s_flags.assign			(M_SPAWN_OBJECT_LOCAL);
 		D->RespawnTime				= 0;
-		l_pA->m_tNodeID				= g_dedicated_server ? u32(-1) : ai_location().level_vertex_id();
 
 		if(boxCurr == 0xffffffff) 	
 			boxCurr					= l_pA->m_boxSize;
@@ -1375,26 +1324,8 @@ void CWeapon::OnZoomIn()
 	EnableHudInertion					(FALSE);
 
 	
-	//if(m_zoom_params.m_bZoomDofEnabled && !IsScopeAttached())
-	//	GamePersistent().SetEffectorDOF	(m_zoom_params.m_ZoomDof);
-
 	if(GetHUDmode())
 		GamePersistent().SetPickableEffectorDOF(true);
-
-	if(m_zoom_params.m_sUseBinocularVision.size() && IsScopeAttached() && NULL==m_zoom_params.m_pVision) 
-		m_zoom_params.m_pVision	= xr_new<CBinocularsVision>(m_zoom_params.m_sUseBinocularVision/*"wpn_binoc"*/);
-
-	if(m_zoom_params.m_sUseZoomPostprocess.size() && IsScopeAttached()) 
-	{
-		CActor *pA = smart_cast<CActor *>(H_Parent());
-		if(pA)
-		{
-			if(NULL==m_zoom_params.m_pNight_vision)
-			{
-				m_zoom_params.m_pNight_vision	= xr_new<CNightVisionEffector>(m_zoom_params.m_sUseZoomPostprocess/*"device_torch"*/);
-			}
-		}
-	}
 }
 
 void CWeapon::OnZoomOut()
@@ -1410,13 +1341,6 @@ void CWeapon::OnZoomOut()
 		GamePersistent().SetPickableEffectorDOF(false);
 
 	ResetSubStateTime					();
-
-	xr_delete							(m_zoom_params.m_pVision);
-	if(m_zoom_params.m_pNight_vision)
-	{
-		m_zoom_params.m_pNight_vision->Stop(100000.0f, false);
-		xr_delete(m_zoom_params.m_pNight_vision);
-	}
 }
 
 CUIWindow* CWeapon::ZoomTexture()
@@ -1517,8 +1441,6 @@ void CWeapon::reload			(LPCSTR section)
 	else
 		m_can_be_strapped	= false;
 
-	m_ef_main_weapon_type	= READ_IF_EXISTS(pSettings,r_u32,section,"ef_main_weapon_type",u32(-1));
-	m_ef_weapon_type		= READ_IF_EXISTS(pSettings,r_u32,section,"ef_weapon_type",u32(-1));
 }
 
 void CWeapon::create_physic_shell()
@@ -1563,7 +1485,6 @@ int		g_iWeaponRemove = 1;
 
 bool CWeapon::NeedToDestroyObject()	const
 {
-	if (GameID() == eGameIDSingle) return false;
 	if (Remote()) return false;
 	if (H_Parent()) return false;
 	if (g_iWeaponRemove == -1) return false;
@@ -1708,17 +1629,6 @@ void CWeapon::SetAmmoElapsed(int ammo_count)
 	};
 }
 
-u32	CWeapon::ef_main_weapon_type	() const
-{
-	VERIFY	(m_ef_main_weapon_type != u32(-1));
-	return	(m_ef_main_weapon_type);
-}
-
-u32	CWeapon::ef_weapon_type	() const
-{
-	VERIFY	(m_ef_weapon_type != u32(-1));
-	return	(m_ef_weapon_type);
-}
 
 bool CWeapon::IsNecessaryItem	    (const shared_str& item_sect)
 {
@@ -1744,24 +1654,12 @@ bool CWeapon::render_item_ui_query()
 
 void CWeapon::render_item_ui()
 {
-	if(m_zoom_params.m_pVision)
-		m_zoom_params.m_pVision->Draw();
-
 	ZoomTexture()->Update	();
 	ZoomTexture()->Draw		();
 }
 
 bool CWeapon::unlimited_ammo() 
 { 
-	if (IsGameTypeSingle())
-	{
-		if(m_pInventory)
-		{
-			return inventory_owner().unlimited_ammo() && m_DefaultCartridge.m_flags.test(CCartridge::cfCanBeUnlimited);
-		}else
-			return false;
-	}
-
 	return ((GameID() == eGameIDDeathmatch) && 
 			m_DefaultCartridge.m_flags.test(CCartridge::cfCanBeUnlimited)); 
 			
@@ -1848,8 +1746,7 @@ void CWeapon::debug_draw_firedeps()
 
 const float &CWeapon::hit_probability	() const
 {
-	VERIFY					((g_SingleGameDifficulty >= egdNovice) && (g_SingleGameDifficulty <= egdMaster)); 
-	return					(m_hit_probability[egdNovice]);
+	return					(m_hit_probability);
 }
 
 void CWeapon::OnStateSwitch	(u32 S)

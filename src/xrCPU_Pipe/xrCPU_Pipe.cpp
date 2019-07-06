@@ -52,5 +52,6 @@ extern "C" {
 			// We can use threading
 			T->skin4W	= xrSkin4W_thread;
 		}
+
 	}
 };

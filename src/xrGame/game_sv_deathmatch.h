@@ -103,7 +103,6 @@ public:
 				virtual				~game_sv_Deathmatch		();
 	virtual		void				Create					(shared_str &options);
 
-	virtual		LPCSTR				type_name				() const { return "deathmatch";};
 	virtual		void				net_Export_State		(NET_Packet& P, ClientID id_to);
 
 	virtual		void				OnEvent					(NET_Packet &tNetPacket, u16 type, u32 time, ClientID sender );
@@ -205,7 +204,7 @@ public:
 	// adtitional methods for predicates
 	void		__stdcall			RespawnPlayerAsSpectator(IClient* client);
 protected:
-	virtual		void				WriteGameState			(CInifile& ini, LPCSTR sect, bool bRoundResult);
+//	virtual		void				WriteGameState			(CInifile& ini, LPCSTR sect, bool bRoundResult);
 	shared_str m_not_free_ammo_str;
 	virtual	bool CanChargeFreeAmmo(char const * ammo_section);
 };

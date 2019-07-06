@@ -10,9 +10,7 @@
 
 XRCORE_API void VerifyPath	(LPCSTR path);
 
-//#define FS_DEBUG
-
-#ifdef FS_DEBUG
+#ifdef DEBUG
 	XRCORE_API	extern	u32		g_file_mapped_memory;
 	XRCORE_API	extern	u32		g_file_mapped_count;
 	XRCORE_API			void	dump_file_mappings		();

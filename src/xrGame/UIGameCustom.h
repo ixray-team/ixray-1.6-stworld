@@ -1,6 +1,5 @@
 #pragma once
 
-#include "script_export_space.h"
 #include "object_interfaces.h"
 #include "inventory_space.h"
 #include "gametype_chooser.h"
@@ -16,7 +15,6 @@ class CUIStatic;
 class CUIWindow;
 class CUIXml;
 class CUIActorMenu;
-class CUIPdaWnd;			
 struct KillMessageStruct;
 class CUIMainIngameWnd;
 class CUIMessagesWindow;
@@ -73,8 +71,7 @@ public:
 	const SGameTypeMaps&		GetMapListFor	(const EGameIDs game_id);
 	const GAME_WEATHERS&		GetGameWeathers	();
 };
-
-extern CMapListHelper	gMapListHelper;
+extern CMapListHelper gMapListHelper;
 
 class CUIGameCustom :public DLL_Pure, public CDialogHolder
 {
@@ -86,7 +83,6 @@ protected:
 	st_vec									m_custom_statics;
 
 	CUIActorMenu*		m_ActorMenu;
-	CUIPdaWnd*			m_PdaMenu;
 
 	bool				m_bShowGameIndicators;
 
@@ -107,11 +103,8 @@ public:
 	virtual void _BCL	OnFrame					();
 	
 	IC CUIActorMenu&	ActorMenu				() const { return *m_ActorMenu; }
-	IC CUIPdaWnd&		PdaMenu					() const { return *m_PdaMenu;   }
 			bool		ShowActorMenu			();
 			void		HideActorMenu			();
-			bool		ShowPdaMenu				();
-			void		HidePdaMenu				();
 			void		ShowMessagesWindow		();
 			void		HideMessagesWindow		();
 
@@ -138,10 +131,6 @@ public:
 	
 	void				OnConnected				();
 
-	void				UpdatePda				();
-	void				update_fake_indicators	(u8 type, float power);
-	void				enable_fake_indicators	(bool enable);
-
-	DECLARE_SCRIPT_REGISTER_FUNCTION
 }; // class CUIGameCustom
+
 extern CUIGameCustom*		CurrentGameUI();

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "WeaponCustomPistol.h"
-#include "script_export_space.h"
 #include "../xrEngine/xr_collide_form.h"
 
 class CWeaponKnife: public CWeapon {
@@ -31,13 +30,13 @@ protected:
 	ALife::EHitType		m_eHitType;
 
 	ALife::EHitType		m_eHitType_1;
-	Fvector4			fvHitPower_1;
-	Fvector4			fvHitPowerCritical_1;
+	float				fvHitPower_1;
+	float				fvHitPowerCritical_1;
 	float				fHitImpulse_1;
 
 	ALife::EHitType		m_eHitType_2;
-	Fvector4			fvHitPower_2;
-	Fvector4			fvHitPowerCritical_2;
+	float				fvHitPower_2;
+	float				fvHitPowerCritical_2;
 	float				fHitImpulse_2;
 
 	float				fCurrentHit;
@@ -186,8 +185,4 @@ private:
 	void		fill_shots_list			(victims_shapes_list_t & victims_shapres,
 										 Fsphere const & query,
 										 shot_targets_t & dest_shots);
-	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
-add_to_type_list(CWeaponKnife)
-#undef script_type_list
-#define script_type_list save_type_list(CWeaponKnife)

@@ -24,8 +24,9 @@ void CRender::level_Load(IReader *fs)
 	IReader*						chunk;
 
 	// Shaders
-//	g_pGamePersistent->LoadTitle		("st_loading_shaders");
 	g_pGamePersistent->LoadTitle		();
+
+	if	(!g_dedicated_server)	
 	{
 		chunk = fs->open_chunk		(fsL_SHADERS);
 		R_ASSERT2					(chunk,"Level doesn't builded correctly.");
@@ -47,22 +48,24 @@ void CRender::level_Load(IReader *fs)
 	}
 
 	// Components
+	if	(!g_dedicated_server)	
+	{
+		L_Shadows					= xr_new<CLightShadows>		();
+		L_Projector					= xr_new<CLightProjector>	();
+		L_DB						= xr_new<CLight_DB>			();
+		L_Glows						= xr_new<CGlowManager>		();
+		Wallmarks					= xr_new<CWallmarksEngine>	();
+		Details						= xr_new<CDetailManager>	();
 
-	L_Shadows					= xr_new<CLightShadows>		();
-	L_Projector					= xr_new<CLightProjector>	();
-	L_DB						= xr_new<CLight_DB>			();
-	L_Glows						= xr_new<CGlowManager>		();
-	Wallmarks					= xr_new<CWallmarksEngine>	();
-	Details						= xr_new<CDetailManager>	();
-
-	rmFar						();
-	rmNormal					();
+		rmFar						();
+		rmNormal					();
+	}
 
 	marker						= 0;
 
-	if	(!g_dedicated_server)	{
+	if	(!g_dedicated_server)	
+	{
 		// VB,IB,SWI
-//		g_pGamePersistent->LoadTitle("st_loading_geometry");
 		g_pGamePersistent->LoadTitle();
 		CStreamReader				*geom = FS.rs_open	("$level$","level.geom");
 		LoadBuffers					(geom);
@@ -70,29 +73,29 @@ void CRender::level_Load(IReader *fs)
 		FS.r_close					(geom);
 
 		// Visuals
-//		g_pGamePersistent->LoadTitle("st_loading_spatial_db");
 		g_pGamePersistent->LoadTitle();
 		chunk						= fs->open_chunk(fsL_VISUALS);
 		LoadVisuals					(chunk);
 		chunk->close				();
 
 		// Details
-//		g_pGamePersistent->LoadTitle("st_loading_details");
 		g_pGamePersistent->LoadTitle();
 		Details->Load				();
 	}
 	
 	// Sectors
-//	g_pGamePersistent->LoadTitle("st_loading_sectors_portals");
 	g_pGamePersistent->LoadTitle();
-	LoadSectors					(fs);
 
-	// HOM
-	HOM.Load					();
+	if	(!g_dedicated_server)	
+	{
+		LoadSectors					(fs);
 
-	// Lights
-	//pApp->LoadTitle				("Loading lights...");
-	LoadLights					(fs);
+		// HOM
+		HOM.Load					();
+
+		// Lights
+		LoadLights					(fs);
+	}
 
 	// End
 	pApp->LoadEnd				();
@@ -110,7 +113,8 @@ void CRender::level_Unload		()
 	HOM.Unload					();
 
 	//*** Details
-	Details->Unload				();
+	if(!g_dedicated_server)
+		Details->Unload				();
 
 	//*** Sectors
 	// 1.
@@ -127,8 +131,11 @@ void CRender::level_Unload		()
 	Portals.clear_and_free		();
 
 	//*** Lights
-	L_Glows->Unload				();
-	L_DB->Unload				();
+	if(!g_dedicated_server)
+		L_Glows->Unload				();
+
+	if(!g_dedicated_server)
+		L_DB->Unload				();
 
 	//*** Visuals
 	for (I=0; I<Visuals.size(); I++)	{
@@ -185,7 +192,6 @@ void CRender::LoadBuffers	(CStreamReader *base_fs)
 		{
 			// decl
 
-//			D3DVERTEXELEMENT9	*dcl = (D3DVERTEXELEMENT9*) fs->pointer();
 			u32					buffer_size = (MAXD3DDECLLENGTH+1)*sizeof(D3DVERTEXELEMENT9);
 			D3DVERTEXELEMENT9	*dcl = (D3DVERTEXELEMENT9*)_alloca(buffer_size);
 			fs->r				(dcl,buffer_size);
@@ -208,10 +214,7 @@ void CRender::LoadBuffers	(CStreamReader *base_fs)
 			HW.stats_manager.increment_stats		( vCount*vSize, enum_stats_buffer_type_vertex, D3DPOOL_MANAGED);
 			R_CHK				(VB[i]->Lock(0,0,(void**)&pData,0));
 			fs->r				(pData,vCount*vSize);
-//			CopyMemory			(pData,fs->pointer(),vCount*vSize);	//.???? copy while skip T&B
 			VB[i]->Unlock		();
-
-//			fs->advance			(vCount*vSize);
 		}
 		fs->close				();
 	} else {
@@ -234,11 +237,8 @@ void CRender::LoadBuffers	(CStreamReader *base_fs)
 			R_CHK				(HW.pDevice->CreateIndexBuffer(iCount*2,dwUsage,D3DFMT_INDEX16,D3DPOOL_MANAGED,&IB[i],0));
 			HW.stats_manager.increment_stats		( iCount*2, enum_stats_buffer_type_index, D3DPOOL_MANAGED);
 			R_CHK				(IB[i]->Lock(0,0,(void**)&pData,0));
-//			CopyMemory			(pData,fs->pointer(),iCount*2);
 			fs->r				(pData,iCount*2);
 			IB[i]->Unlock		();
-
-//			fs->advance			(iCount*2);
 		}
 		fs->close				();
 	}

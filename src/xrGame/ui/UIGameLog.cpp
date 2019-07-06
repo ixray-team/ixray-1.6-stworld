@@ -8,8 +8,8 @@
 #include "stdafx.h"
 #include "UIGameLog.h"
 #include "UIXmlInit.h"
-#include "UIPdaMsgListItem.h"
 #include "UIPdaKillMessage.h"
+#include "UIPdaMsgListItem.h"
 #include "UILines.h"
 
 CUIGameLog::CUIGameLog()

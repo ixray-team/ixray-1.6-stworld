@@ -2,7 +2,7 @@
 #include "MainMenu.h"
 #include "UI/UIDialogWnd.h"
 #include "ui/UIMessageBoxEx.h"
-#include "../xrEngine/xr_IOConsole.h"
+#include "../xrEngine/xr_ioc_cmd.h"
 #include "../xrEngine/IGame_Level.h"
 #include "../xrEngine/CameraManager.h"
 #include "xr_Level_controller.h"
@@ -23,10 +23,8 @@
 
 #include "ui/UICDkey.h"
 
-#include <shellapi.h>
-#pragma comment(lib, "shell32.lib")
-
-#include "object_broker.h"
+//#include <shellapi.h>
+//#pragma comment(lib, "shell32.lib")
 
 #include "account_manager.h"
 #include "login_manager.h"
@@ -71,7 +69,6 @@ CMainMenu::CMainMenu	()
 	m_screenshotFrame				= u32(-1);
 	g_pGamePersistent->m_pMainMenu	= this;
 	if (Device.b_is_Ready)			OnDeviceCreate();  	
-	ReadTextureInfo					();
 	CUIXmlInit::InitColorDefs		();
 	g_btnHint						= NULL;
 	g_statHint						= NULL;
@@ -146,26 +143,7 @@ CMainMenu::~CMainMenu	()
 	delete_data						(m_pMB_ErrDlgs);	
 }
 
-void CMainMenu::ReadTextureInfo()
-{
-	FS_FileSet fset;
-	FS.file_list(fset, "$game_config$", FS_ListFiles,"ui\\textures_descr\\*.xml");
-	FS_FileSetIt fit	= fset.begin();
-	FS_FileSetIt fit_e	= fset.end();
-
-	for( ;fit!=fit_e; ++fit)
-	{
-    	string_path	fn1, fn2,fn3;
-        _splitpath	((*fit).name.c_str(),fn1,fn2,fn3,0);
-		xr_strcat(fn3,".xml");
-
-		CUITextureMaster::ParseShTexInfo(fn3);
-	}
-
-}
-
 extern ENGINE_API BOOL	bShowPauseString;
-extern bool				IsGameTypeSingle();
 
 void CMainMenu::Activate	(bool bActivate)
 {
@@ -175,7 +153,7 @@ void CMainMenu::Activate	(bool bActivate)
 		(m_screenshotFrame == Device.dwFrame-1) ||
 		(m_screenshotFrame == Device.dwFrame+1))	return;
 
-	bool b_is_single				= IsGameTypeSingle();
+	bool b_is_single				= false;
 
 	if(g_dedicated_server && bActivate) return;
 
@@ -189,11 +167,11 @@ void CMainMenu::Activate	(bool bActivate)
 
 		if(!ReloadUI())				return;
 
-		m_Flags.set					(flRestoreConsole,Console->bVisible);
+		m_Flags.set					(flRestoreConsole,pConsole->bVisible);
 
 		if(b_is_single)	m_Flags.set	(flRestorePause,Device.Paused());
 
-		Console->Hide				();
+		pConsole->Hide				();
 
 
 		if(b_is_single)
@@ -214,7 +192,7 @@ void CMainMenu::Activate	(bool bActivate)
 		};
 		Device.seqRender.Add				(this, 4); // 1-console 2-cursor 3-tutorial
 
-		Console->Execute					("stat_memory");
+		pConsoleCommands->Execute					("stat_memory");
 	}else{
 		m_deactivated_frame					= Device.dwFrame;
 		m_Flags.set							(flActive,				FALSE);
@@ -222,14 +200,14 @@ void CMainMenu::Activate	(bool bActivate)
 
 		Device.seqRender.Remove				(this);
 
-		bool b = !!Console->bVisible;
+		bool b = !!pConsole->bVisible;
 		if(b){
-			Console->Hide					();
+			pConsole->Hide					();
 		}
 
 		IR_Release							();
 		if(b){
-			Console->Show					();
+			pConsole->Show					();
 		}
 
 		if(m_startDialog->IsShown())
@@ -245,7 +223,7 @@ void CMainMenu::Activate	(bool bActivate)
 			Device.seqRender.Add			(g_pGameLevel);
 		};
 		if(m_Flags.test(flRestoreConsole))
-			Console->Show			();
+			pConsole->Show			();
 
 		if(b_is_single)
 		{
@@ -263,7 +241,7 @@ void CMainMenu::Activate	(bool bActivate)
 		if(m_Flags.test(flNeedVidRestart))
 		{
 			m_Flags.set			(flNeedVidRestart, FALSE);
-			Console->Execute	("vid_restart");
+			pConsoleCommands->Execute	("vid_restart");
 		}
 	}
 }
@@ -280,7 +258,7 @@ bool CMainMenu::ReloadUI()
 	if(!dlg) 
 	{
 		m_Flags.set				(flActive|flNeedChangeCapture,FALSE);
-		return false;
+		return					false;
 	}
 	xr_delete					(m_startDialog);
 	m_startDialog				= smart_cast<CUIDialogWnd*>(dlg);
@@ -342,7 +320,7 @@ void	CMainMenu::IR_OnKeyboardPress(int dik)
 
 	if( is_binded(kCONSOLE, dik) )
 	{
-		Console->Show();
+		pConsole->Show();
 		return;
 	}
 	if (DIK_F12 == dik){
@@ -464,7 +442,7 @@ void CMainMenu::OnFrame()
 		};
 
 		if(m_Flags.test(flRestoreConsole))
-			Console->Show			();
+			pConsole->Show			();
 	}
 
 	if(IsActive() || m_sPDProgress.IsInProgress)
@@ -503,8 +481,8 @@ void CMainMenu::Screenshot(IRender_interface::ScreenshotMode mode, LPCSTR name)
 			Device.seqRender.Add	(g_pGameLevel);
 		};
 		m_screenshotFrame			= Device.dwFrame+1;
-		m_Flags.set					(flRestoreConsole,		Console->bVisible);
-		Console->Hide				();
+		m_Flags.set					(flRestoreConsole,		pConsole->bVisible);
+		pConsole->Hide				();
 	}
 }
 
@@ -671,7 +649,7 @@ void	CMainMenu::OnRunDownloadedPatch			(CUIWindow*, void*)
 	xr_strcpy					(g_sLaunchOnExit_app,*m_sPatchFileName);
 	xr_strcpy					(g_sLaunchOnExit_params,"");
 	xr_strcpy					(g_sLaunchWorkingFolder, "");
-	Console->Execute		("quit");
+	pConsoleCommands->Execute		("quit");
 }
 
 void CMainMenu::CancelDownload()

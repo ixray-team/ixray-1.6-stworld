@@ -8,8 +8,6 @@
 #include "UIFrameLineWnd.h"
 #include "UIEditBox.h"
 #include "UI3tButton.h"
-#include "mixed_delegate.h"
-
 
 class CUIXml;
 class CGameSpy_Browser;
@@ -29,7 +27,7 @@ enum enum_connect_error
 	ece_unique_nick_expired
 };//enum enum_connect_errors
 
-typedef mixed_delegate<void (enum_connect_error, char const *)> connect_error_cb;
+typedef fastdelegate::FastDelegate< void (enum_connect_error, char const *) > connect_error_cb;
 
 class SServerFilters{
 public:
@@ -65,7 +63,6 @@ public:
 			void	ShowServerInfo();			
 	virtual	void	RefreshList();
 
-			void	on_game_spy_browser_destroy	(CGameSpy_Browser* browser);
 
 protected:
 			bool IsValidItem(ServerInfo& item);
@@ -110,8 +107,6 @@ protected:
 
 	CUIMessageBoxEx* m_message_box;
 
-	CGameSpy_Browser*	m_GSBrowser;	
-
 	shared_str						m_sort_func;
 	xr_vector<int>					m_tmp_srv_lst;
 	struct SrvItem{
@@ -136,5 +131,4 @@ protected:
 
 private:
 	connect_error_cb			m_connect_cb;
-	inline	CGameSpy_Browser&	browser			() const;
 };

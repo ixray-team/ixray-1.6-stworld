@@ -77,7 +77,7 @@ void WeaponUsageStatistic::SaveData()
 		break;
 	};
 	GetLocalTime(&Time);	
-	xr_sprintf(mFileName, "(%s)_(%s)_%02d.%02d.%02d_%02d.%02d.%02d.wus", *(Level().name()), GameType, Time.wMonth, Time.wDay, Time.wYear, Time.wHour, Time.wMinute, Time.wSecond);
+	xr_sprintf(mFileName, "(%s)_(%s)_%02d.%02d.%02d_%02d.%02d.%02d.wus", *(Level().map_name()), GameType, Time.wMonth, Time.wDay, Time.wYear, Time.wHour, Time.wMinute, Time.wSecond);
 
 
 	//---------------------------------------------------------

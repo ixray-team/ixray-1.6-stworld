@@ -249,7 +249,7 @@ protected:
 public:
 	virtual							~CSound_manager_interface(){}
 
-	static void						_create					(int stage);
+	static void						_create					(int stage, bool nosound);
 	static void						_destroy				( );
 
 	virtual void					_restart				( )																						= 0;

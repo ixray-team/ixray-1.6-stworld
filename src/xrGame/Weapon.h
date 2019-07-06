@@ -9,7 +9,6 @@
 #include "Actor_Flags.h"
 #include "../Include/xrRender/KinematicsAnimated.h"
 #include "firedeps.h"
-#include "game_cl_single.h"
 #include "first_bullet_controller.h"
 
 #include "CameraRecoil.h"
@@ -21,8 +20,6 @@ class CSE_ALifeItemWeaponAmmo;
 class CWeaponMagazined;
 class CParticlesObject;
 class CUIWindow;
-class CBinocularsVision;
-class CNightVisionEffector;
 
 class CWeapon : public CHudItemObject,
 				public CShootingObject
@@ -211,8 +208,6 @@ protected:
 		BOOL			m_bUseDynamicZoom;
 		shared_str		m_sUseZoomPostprocess;
 		shared_str		m_sUseBinocularVision;
-		CBinocularsVision*		m_pVision;
-		CNightVisionEffector*	m_pNight_vision;
 
 	} m_zoom_params;
 	
@@ -453,13 +448,6 @@ public:
 		bool				unlimited_ammo				();
 	IC	bool				can_be_strapped				() const {return m_can_be_strapped;};
 
-protected:
-	u32						m_ef_main_weapon_type;
-	u32						m_ef_weapon_type;
-
-public:
-	virtual u32				ef_main_weapon_type	() const;
-	virtual u32				ef_weapon_type		() const;
 
 protected:
 	// This is because when scope is attached we can't ask scope for these params
@@ -484,7 +472,7 @@ protected:
 	virtual bool			install_upgrade_impl		( LPCSTR section, bool test );
 
 private:
-	float					m_hit_probability[egdCount];
+	float					m_hit_probability;
 
 public:
 	const float				&hit_probability			() const;

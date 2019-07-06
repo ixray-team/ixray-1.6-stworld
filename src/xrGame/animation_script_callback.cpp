@@ -1,7 +1,6 @@
-#include	"pch_script.h"
+#include	"stdafx.h"
 
 #include	"animation_script_callback.h"
-#include	"script_callback_ex.h"
 #include	"gameobject.h"
 #include	"game_object_space.h"
 #include	"../Include/xrRender/KinematicsAnimated.h"
@@ -89,7 +88,6 @@ void	anim_script_callback::update( CGameObject &O )
 			return;
 	if(!on_end && !on_begin)
 		return;
-	O.callback		(GameObject::eScriptAnimation)	( on_end );
 	on_end		= false;
 	on_begin	= false;
 }

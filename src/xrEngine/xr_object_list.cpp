@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "igame_level.h"
-#include "igame_persistent.h"
+#include "IGame_ObjectPool.h"
 
 #include "xrSheduler.h"
 #include "xr_object_list.h"
@@ -278,7 +278,10 @@ void CObjectList::Update		(bool bForce)
 			Objects::iterator dIte	= destroy_queue.end();
 			for (;dIt!=dIte; ++dIt) {
 				(*It).m_Callback(*dIt);
+
+				#ifndef DEDICATED_SERVER
 				g_hud->net_Relcase	(*dIt);
+				#endif //#ifndef DEDICATED_SERVER
 			}
 		}
 
@@ -304,11 +307,6 @@ void CObjectList::net_Register		(CObject* O)
 	R_ASSERT		(O->ID() < 0xffff);
 
 	map_NETID[O->ID()] = O;
-	
-	
-
-//.	map_NETID.insert(mk_pair(O->ID(),O));
-	//Msg			("-------------------------------- Register: %s",O->cName());
 }
 
 void CObjectList::net_Unregister	(CObject* O)
@@ -316,13 +314,6 @@ void CObjectList::net_Unregister	(CObject* O)
 	//R_ASSERT		(O->ID() < 0xffff);
 	if (O->ID() < 0xffff)				//demo_spectator can have 0xffff
 		map_NETID[O->ID()] = NULL;
-/*
-	xr_map<u32,CObject*>::iterator	it = map_NETID.find(O->ID());
-	if ((it!=map_NETID.end()) && (it->second == O))	{
-		// Msg			("-------------------------------- Unregster: %s",O->cName());
-		map_NETID.erase(it);
-	}
-*/
 }
 
 int	g_Dump_Export_Obj = 0;
@@ -333,6 +324,7 @@ u32	CObjectList::net_Export			(NET_Packet* _Packet,	u32 start, u32 max_object_si
 
 	NET_Packet& Packet	= *_Packet;
 	u32			position;
+
 	for (; start<objects_active.size() + objects_sleeping.size(); start++)			{
 		CObject* P = (start<objects_active.size()) ? objects_active[start] : objects_sleeping[start-objects_active.size()];
 		if (P->net_Relevant() && !P->getDestroy())	{			
@@ -354,8 +346,6 @@ u32	CObjectList::net_Export			(NET_Packet* _Packet,	u32 start, u32 max_object_si
 				Msg("* %s : %d", *(P->cNameSect()), size);
 			}
 			Packet.w_chunk_close8	(position);
-//			if (0==(--count))		
-//				break;
 			if (max_object_size >= (NET_PacketSizeLimit - Packet.w_tell()))
 				break;
 		}
@@ -391,14 +381,6 @@ void CObjectList::net_Import		(NET_Packet* Packet)
 	if (g_Dump_Import_Obj) Msg("------------------- ");
 }
 
-/*
-CObject* CObjectList::net_Find(u16 ID)
-{
-
-	xr_map<u32,CObject*>::iterator	it = map_NETID.find(ID);
-	return (it==map_NETID.end())?0:it->second;
-}
-*/
 void CObjectList::Load		()
 {
 	R_ASSERT				(/*map_NETID.empty() &&*/ objects_active.empty() && destroy_queue.empty() && objects_sleeping.empty());
@@ -440,7 +422,7 @@ void CObjectList::Unload	( )
 
 CObject*	CObjectList::Create				( LPCSTR	name	)
 {
-	CObject*	O				= g_pGamePersistent->ObjectPool.create(name);
+	CObject*	O				= Game_ObjectPool::create(name);
 //	Msg("CObjectList::Create [%x]%s", O, name);
 	objects_sleeping.push_back	(O);
 	return						O;
@@ -502,7 +484,7 @@ void		CObjectList::Destroy			( CObject*	O		)
 			FATAL							("! Unregistered object being destroyed");
 	}
 
-	g_pGamePersistent->ObjectPool.destroy	(O);
+	Game_ObjectPool::destroy(O);
 }
 
 void CObjectList::relcase_register		(RELCASE_CALLBACK cb, int *ID)

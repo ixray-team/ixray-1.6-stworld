@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "UIXmlInit.h"
-#include "../level.h"
 #include "../string_table.h"
 #include "UIFrameWindow.h"
 #include "UICheckButton.h"
@@ -11,16 +10,13 @@
 #include "UITabControl.h"
 #include "UILabel.h"
 #include "UIAnimatedStatic.h"
-#include "uixmlinit.h"
 #include "UIListBox.h"
 #include "UIComboBox.h"
 #include "UITrackBar.h"
 #include "UIHint.h"
-#include "game_base_space.h"
 
 #include "UITextureMaster.h"
 #include "UIDragDropListEx.h"
-#include "UIDragDropReferenceList.h"
 #include "UItabButtonMP.h"
 #include "UILines.h"
 
@@ -918,15 +914,6 @@ bool CUIXmlInit::InitAnimatedStatic(CUIXml &xml_doc, const char *path, int index
 	pWnd->SetAnimPos(0.0f);
 	if (play) pWnd->Play();
 
-	return true;
-}
-
-bool CUIXmlInit::InitSleepStatic(CUIXml &xml_doc, const char *path, int index, CUISleepStatic *pWnd)
-{
-	R_ASSERT4(xml_doc.NavigateToNode(path,index), "XML node not found", path, xml_doc.m_xml_file_name);
-
-	InitStatic(xml_doc, path, index, pWnd);
-    
 	return true;
 }
 

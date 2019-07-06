@@ -1,8 +1,6 @@
-#include "pch_script.h"
+#include "stdafx.h"
 #include "UIOptionsItem.h"
 #include "UIOptionsManagerScript.h"
-
-using namespace luabind;
 
 void CUIOptionsManagerScript::SetCurrentValues(const char* group){
 	CUIOptionsItem::GetOptionsManager()->SetCurrentValues(group);
@@ -37,20 +35,3 @@ bool CUIOptionsManagerScript::NeedVidRestart()
 	return CUIOptionsItem::GetOptionsManager()->NeedVidRestart();
 }
 
-#pragma optimize("s",on)
-void CUIOptionsManagerScript::script_register(lua_State *L)
-{
-	module(L)
-		[
-			class_<CUIOptionsManagerScript>("COptionsManager")
-			.def(						constructor<>())
-			.def("SaveBackupValues",	&CUIOptionsManagerScript::SaveBackupValues )
-			.def("SetCurrentValues",	&CUIOptionsManagerScript::SetCurrentValues )
-			.def("SaveValues",			&CUIOptionsManagerScript::SaveValues )
-			.def("UndoGroup",			&CUIOptionsManagerScript::UndoGroup )
-			.def("OptionsPostAccept",	&CUIOptionsManagerScript::OptionsPostAccept )
-			.def("SendMessage2Group",	&CUIOptionsManagerScript::SendMessage2Group )
-			.def("NeedSystemRestart",	&CUIOptionsManagerScript::NeedSystemRestart )
-			.def("NeedVidRestart",		&CUIOptionsManagerScript::NeedVidRestart )
-		];
-}

@@ -226,13 +226,13 @@ void game_sv_ArtefactHunt::OnPlayerKillPlayer(game_PlayerState* ps_killer, game_
 void game_sv_ArtefactHunt::OnPlayerReady(ClientID id)
 {
 	xrClientData* xrCData	=	m_server->ID_to_client(id);
-	if (!xrCData || !xrCData->owner) return;
+	if (!xrCData || !xrCData->owner_) return;
 	//	if	(GAME_PHASE_INPROGRESS == phase) return;
 	switch (m_phase)
 	{
 	case GAME_PHASE_INPROGRESS:
 		{			
-			CSE_Abstract* pOwner	= xrCData->owner;
+			CSE_Abstract* pOwner	= xrCData->owner_;
 			CSE_Spectator* pS		= smart_cast<CSE_Spectator*>(pOwner);
 
 			if (pS && (Get_ReinforcementTime() != 0 && !xrCData->ps->m_bPayForSpawn) && (m_dwWarmUp_CurTime ==0)) 
@@ -247,7 +247,7 @@ void game_sv_ArtefactHunt::OnPlayerReady(ClientID id)
 void	game_sv_ArtefactHunt::OnPlayerBuySpawn		(ClientID sender)
 {
 	xrClientData* xrCData	=	m_server->ID_to_client(sender);
-	if (!xrCData || !xrCData->owner) return;
+	if (!xrCData || !xrCData->owner_) return;
 	if (!xrCData->ps->testFlag(GAME_PLAYER_FLAG_VERY_VERY_DEAD)) return;
 	if (xrCData->ps->m_bPayForSpawn) return;
 	xrCData->ps->m_bPayForSpawn = true;
@@ -741,7 +741,7 @@ void game_sv_ArtefactHunt::OnArtefactOnBase(ClientID id_who)
 	};
 	//-----------------------------------------------
 	signal_Syncronize();
-	AskAllToUpdateStatistics();
+	//AskAllToUpdateStatistics();
 	//-----------------------------------------------
 	Artefact_PrepareForSpawn();
 	//-----------------------------------------------
@@ -1066,7 +1066,7 @@ void game_sv_ArtefactHunt::RespawnAllNotAlivePlayers()
 			if (ps->testFlag(GAME_PLAYER_FLAG_VERY_VERY_DEAD) && !ps->testFlag(GAME_PLAYER_FLAG_SPECTATOR) )
 			{
 				m_owner->RespawnPlayer(l_pC->ID, true);
-				m_owner->SpawnWeaponsForActor(l_pC->owner, ps);
+				m_owner->SpawnWeaponsForActor(l_pC->owner_, ps);
 				m_owner->Check_ForClearRun(ps);
 			};
 		}
@@ -1161,12 +1161,12 @@ void	game_sv_ArtefactHunt::MoveAllAlivePlayers			()
 				return;
 
 			if (!l_pC->net_Ready || ps->testFlag(GAME_PLAYER_FLAG_VERY_VERY_DEAD) || ps->IsSkip())	return;
-			CSE_ALifeCreatureActor	*pA	=	smart_cast<CSE_ALifeCreatureActor*>(l_pC->owner);
+			CSE_ALifeCreatureActor	*pA	=	smart_cast<CSE_ALifeCreatureActor*>(l_pC->owner_);
 			CActor* pActor = smart_cast<CActor*> (Level().Objects.net_Find(ps->GameID));
 			if (!pA || !pActor) return;
 
 			if (!ps->testFlag(GAME_PLAYER_FLAG_ONBASE)) 
-				m_owner->assign_RP(l_pC->owner, ps);
+				m_owner->assign_RP(l_pC->owner_, ps);
 			//-----------------------------------------------
 			Fvector Pos = pA->o_Position;
 			Fvector Angle = pA->o_Angle;
@@ -1252,7 +1252,7 @@ void	game_sv_ArtefactHunt::ReplicatePlayersStateToPlayer(ClientID CID)
 				return;
 
 			if (!l_pC->net_Ready || ps->testFlag(GAME_PLAYER_FLAG_VERY_VERY_DEAD) || ps->IsSkip())	return;		
-			CSE_ALifeCreatureActor	*pA	=	smart_cast<CSE_ALifeCreatureActor*>(l_pC->owner);
+			CSE_ALifeCreatureActor	*pA	=	smart_cast<CSE_ALifeCreatureActor*>(l_pC->owner_);
 			if(!pA)			return;
 			//-----------------------------------------------
 			NET_Packet P;
@@ -1369,11 +1369,6 @@ void	game_sv_ArtefactHunt::check_Player_for_Invincibility	(game_PlayerState* ps)
 void	game_sv_ArtefactHunt::Check_ForClearRun		(game_PlayerState* ps)
 {
 	if (!ps) return;
-	/*if (!ps->m_bClearRun)
-	{
-		ps->m_bClearRun = true;
-		return;
-	};*/
 	TeamStruct* pTeam		= GetTeamData(u8(ps->team));
 	if (!pTeam) return;	
 
@@ -1488,12 +1483,12 @@ void	game_sv_ArtefactHunt::SwapTeams					()
 	g_sv_tdm_bAutoTeamSwap = old_team_swap;
 };
 
-void game_sv_ArtefactHunt::WriteGameState(CInifile& ini, LPCSTR sect, bool bRoundResult)
-{
-	inherited::WriteGameState(ini, sect, bRoundResult);
-
-	ini.w_u32		(sect,"artefacts_limit", Get_ArtefactsCount());
-}
+//void game_sv_ArtefactHunt::WriteGameState(CInifile& ini, LPCSTR sect, bool bRoundResult)
+//{
+//	inherited::WriteGameState(ini, sect, bRoundResult);
+//
+//	ini.w_u32		(sect,"artefacts_limit", Get_ArtefactsCount());
+//}
 
 /*void game_sv_ArtefactHunt::DestroyAllPlayerItems(ClientID id_who)	//except rukzak
 {

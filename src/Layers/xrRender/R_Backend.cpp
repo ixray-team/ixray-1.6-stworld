@@ -127,7 +127,12 @@ void CBackend::OnDeviceCreate	()
 	//CreateConstantBuffers();
 #endif	//	USE_DX10
 
-	CreateQuadIB		();
+#ifndef _EDITOR
+	if(!g_dedicated_server)
+#endif //#ifndef _EDITOR
+        {
+	        CreateQuadIB	 ();
+        }
 
 	// streams
 	Vertex.Create		();

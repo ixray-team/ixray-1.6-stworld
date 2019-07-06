@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "xrserver.h"
 #include "xrmessages.h"
+#include "../xrEngine/igame_persistent.h"
 
 void xrServer::Perform_game_export	()
 {
@@ -35,8 +36,8 @@ void xrServer::Export_game_type(IClient* CL)
 {
 	NET_Packet			P;
 	u32					mode = net_flags(TRUE,TRUE);
-	P.w_begin			(M_SV_CONFIG_NEW_CLIENT);
-	P.w_stringZ			(game->type_name() );
-	SendTo				(CL->ID,P,mode);
+	P.w_begin			( M_SV_CONFIG_NEW_CLIENT );
+	P.w_stringZ			( g_pGamePersistent->GameTypeStr() );
+	SendTo				( CL->ID, P, mode );
 }
 

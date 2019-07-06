@@ -7,15 +7,12 @@
 // Copyright 2005 GSC Game World
 
 #include "StdAfx.h"
-bool		IsGameTypeSingle();
 #include "UIMessagesWindow.h"
 #include "UIGameLog.h"
 #include "UIChatWnd.h"
 #include "xrUIXmlParser.h"
 #include "UIXmlInit.h"
 #include "UIInventoryUtilities.h"
-#include "../game_news.h"
-#include "UIPdaMsgListItem.h"
 
 CUIMessagesWindow::CUIMessagesWindow()
 :m_pChatLog(NULL),m_pChatWnd(NULL),m_pGameLog(NULL)
@@ -66,11 +63,6 @@ void CUIMessagesWindow::Init(float x, float y, float width, float height)
 	m_pGameLog->SetAutoDelete				(true);
 	m_pGameLog->Show						(true);
 	AttachChild								(m_pGameLog);
-	if ( IsGameTypeSingle() )
-	{
-		CUIXmlInit::InitScrollView			(xml, "sp_log_list", 0, m_pGameLog);
-	}
-	else
 	{
 		u32									color;
 		CGameFont*							pFont;
@@ -111,29 +103,6 @@ void CUIMessagesWindow::Init(float x, float y, float width, float height)
 		m_pChatWnd->Init					(xml);
 	}	
 
-}
-
-void CUIMessagesWindow::AddIconedPdaMessage(GAME_NEWS_DATA* news)
-{
-	CUIPdaMsgListItem *pItem			= m_pGameLog->AddPdaMessage();
-	
-	LPCSTR time_str = InventoryUtilities::GetTimeAsString( news->receive_time, InventoryUtilities::etpTimeToMinutes ).c_str();
-	pItem->UITimeText.SetText			(time_str);
-	pItem->UITimeText.AdjustWidthToText	();
-	Fvector2 p							= pItem->UICaptionText.GetWndPos();
-	p.x									= pItem->UITimeText.GetWndPos().x + pItem->UITimeText.GetWidth() + 3.0f;
-	pItem->UICaptionText.SetWndPos		(p);
-	pItem->UICaptionText.SetTextST		(news->news_caption.c_str());
-	pItem->UIMsgText.SetTextST			(news->news_text.c_str());
-	pItem->UIMsgText.AdjustHeightToText	();
-	
-    pItem->SetColorAnimation			("ui_main_msgs_short", LA_ONLYALPHA|LA_TEXTCOLOR|LA_TEXTURECOLOR, float(news->show_time));
-	pItem->UIIcon.InitTexture			(news->texture_name.c_str());
-	
-	float h1 = _max( pItem->UIIcon.GetHeight(), pItem->UIMsgText.GetWndPos().y + pItem->UIMsgText.GetHeight() );
-	pItem->SetHeight( h1 + 3.0f );
-
-	m_pGameLog->SendMessage(pItem,CHILD_CHANGED_SIZE);
 }
 
 void CUIMessagesWindow::AddChatMessage(shared_str msg, shared_str author)

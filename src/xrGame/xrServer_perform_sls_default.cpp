@@ -39,7 +39,7 @@ void xrServer::SLS_Default	()
 #ifdef USE_DESIGNER_KEY
 			CSE_Abstract			*entity = 
 #endif
-				Process_spawn(P,clientID);
+				Process_spawn(P, clientID);
 #ifdef USE_DESIGNER_KEY
 			if (_designer) {
 				CSE_ALifeCreatureActor	*actor = smart_cast<CSE_ALifeCreatureActor*>(entity);

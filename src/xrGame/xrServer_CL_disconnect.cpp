@@ -1,7 +1,5 @@
 #include "stdafx.h"
 #include "xrserver.h"
-#include "game_sv_single.h"
-#include "alife_simulator.h"
 #include "xrserver_objects.h"
 #include "level.h"
 
@@ -36,8 +34,18 @@ void xrServer::OnCL_Disconnected	(IClient* CL)
 		for (; I!=E; ++I)
 		{
 			CSE_Abstract*	entity		= I->second;
-			if (entity->owner == CL)	PerformMigration	(entity,(xrClientData*)CL,SelectBestClientToMigrateTo(entity,TRUE));
+			if (entity->owner == CL)
+			{
+				//R_ASSERT(0);
+				// migration code was here
+			}
 		}
+		//for (; I!=E; ++I)
+		//{
+		//	CSE_Abstract*	entity		= I->second;
+		//	if (entity->owner == CL)	PerformMigration	(entity,(xrClientData*)CL,SelectBestClientToMigrateTo(entity,TRUE));
+		//}
+
 	} else {
 		// Destroy entities
 		while (!entities.empty())		{

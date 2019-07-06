@@ -239,9 +239,9 @@ HRESULT		xrIDirect3DDevice9::GetDepthStencilSurface( IDirect3DSurface9** ppZSten
 { 
 	APIDEBUG("xrIDirect3DDevice9::GetDepthStencilSurface");  
 
-	*ppZStencilSurface = NULL;
-	xrIDirect3DSurface9* I = new xrIDirect3DSurface9(this, 0, 0, D3DFORMAT(0), D3DMULTISAMPLE_TYPE(0),0);
-	*ppZStencilSurface = I;
+	//*ppZStencilSurface = NULL;
+	//xrIDirect3DSurface9* I = new xrIDirect3DSurface9(this, 0, 0, D3DFORMAT(0), D3DMULTISAMPLE_TYPE(0),0);
+	//*ppZStencilSurface = I;
 
 	return HRESULT_Proc(S_OK); 
 };

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "rewarding_state_events.h"
 #include "game_state_accumulator.h"
-#include "profile_data_types.h"
+//.#include "profile_data_types.h"
 #include "ammunition_groups.h"
 #include "bone_groups.h"
 

@@ -7,7 +7,6 @@
 #include "../../xrEngine/render.h"
 #endif
 
-#include "../../xrEngine/tntQAVI.h"
 #include "../../xrEngine/xrTheora_Surface.h"
 
 #include "dxRenderDeviceRender.h"
@@ -30,7 +29,6 @@ void resptrcode_texture::create(LPCSTR _name)
 CTexture::CTexture		()
 {
 	pSurface			= NULL;
-	pAVI				= NULL;
 	pTheora				= NULL;
 	desc_cache			= 0;
 	seqMSPF				= 0;
@@ -68,7 +66,6 @@ ID3DBaseTexture*	CTexture::surface_get	()
 void CTexture::PostLoad	()
 {
 	if (pTheora)				bind		= fastdelegate::FastDelegate1<u32>(this,&CTexture::apply_theora);
-	else if (pAVI)				bind		= fastdelegate::FastDelegate1<u32>(this,&CTexture::apply_avi);
 	else if (!seqDATA.empty())	bind		= fastdelegate::FastDelegate1<u32>(this,&CTexture::apply_seq);
 	else						bind		= fastdelegate::FastDelegate1<u32>(this,&CTexture::apply_normal);
 }
@@ -103,25 +100,7 @@ void CTexture::apply_theora	(u32 dwStage)
 	}
 	CHK_DX(HW.pDevice->SetTexture(dwStage,pSurface));
 };
-void CTexture::apply_avi	(u32 dwStage)	
-{
-	if (pAVI->NeedUpdate()){
-		R_ASSERT(D3DRTYPE_TEXTURE == pSurface->GetType());
-		ID3DTexture2D*	T2D		= (ID3DTexture2D*)pSurface;
 
-		// AVI
-		D3DLOCKED_RECT R;
-		R_CHK	(T2D->LockRect(0,&R,NULL,0));
-		R_ASSERT(R.Pitch == int(pAVI->m_dwWidth*4));
-		//		R_ASSERT(pAVI->DecompressFrame((u32*)(R.pBits)));
-		BYTE* ptr; pAVI->GetFrame(&ptr);
-		CopyMemory(R.pBits,ptr,pAVI->m_dwWidth*pAVI->m_dwHeight*4);
-		//		R_ASSERT(pAVI->GetFrame((BYTE*)(&R.pBits)));
-
-		R_CHK	(T2D->UnlockRect(0));
-	}
-	CHK_DX(HW.pDevice->SetTexture(dwStage,pSurface));
-};
 void CTexture::apply_seq	(u32 dwStage)	{
 	// SEQ
 	u32	frame		=RDEVICE.dwTimeContinual/seqMSPF; //RDEVICE.dwTimeGlobal
@@ -205,37 +184,6 @@ void CTexture::Load		()
 
 			}
 		} 
-		else if (FS.exist(fn,"$game_textures$",*cName,".avi"))
-		{
-			// AVI
-			pAVI = xr_new<CAviPlayerCustom>();
-
-			if (!pAVI->Load(fn)) 
-			{
-				xr_delete(pAVI);
-				FATAL				("Can't open video stream");
-			} 
-			else 
-			{
-				flags.MemoryUsage	= pAVI->m_dwWidth*pAVI->m_dwHeight*4;
-
-				// Now create texture
-				ID3DTexture2D*	pTexture = 0;
-				HRESULT hrr = HW.pDevice->CreateTexture(
-					pAVI->m_dwWidth,pAVI->m_dwHeight,1,0,D3DFMT_A8R8G8B8,D3DPOOL_MANAGED,
-					&pTexture,NULL
-					);
-				pSurface	= pTexture;
-				if (FAILED(hrr))
-				{
-					FATAL		("Invalid video stream");
-					R_CHK		(hrr);
-					xr_delete	(pAVI);
-					pSurface = 0;
-				}
-
-			}
-		} 
 		else if (FS.exist(fn,"$game_textures$",*cName,".seq"))
 		{
 			// Sequence
@@ -315,7 +263,6 @@ void CTexture::Unload	()
 
 	_RELEASE								(pSurface);
 
-	xr_delete		(pAVI);
 	xr_delete		(pTheora);
 
 	bind			= fastdelegate::FastDelegate1<u32>(this,&CTexture::apply_load);

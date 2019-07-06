@@ -1,5 +1,7 @@
 #pragma once
 
+//#define ENGINE_BUILD
+
 #pragma warning(disable:4995)
 #include "../xrEngine/stdafx.h"
 #include "DPlay/dplay8.h"
@@ -22,4 +24,5 @@
 #include "../xrEngine/xr_object.h"
 #include "../xrEngine/igame_level.h"
 #include "../xrphysics/xrphysics.h"
+#include "../xrServerEntities/object_broker.h"
 #include "smart_cast.h"

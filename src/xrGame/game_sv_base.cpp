@@ -1,19 +1,12 @@
 #include "stdafx.h"
 #include "LevelGameDef.h"
-#include "script_process.h"
 #include "xrServer_Objects_ALife_Monsters.h"
-#include "script_engine.h"
-#include "script_engine_space.h"
 #include "level.h"
 #include "xrserver.h"
-#include "ai_space.h"
-#include "game_sv_event_queue.h"
-#include "../xrEngine/XR_IOConsole.h"
 #include "../xrEngine/xr_ioc_cmd.h"
 #include "string_table.h"
 
-#include "debug_renderer.h"
-#include "xrGameSpyServer.h"
+//#include "xrGameSpyServer.h"
 
 ENGINE_API	bool g_dedicated_server;
 
@@ -91,7 +84,7 @@ u16					game_sv_GameState::get_id_2_eid				(ClientID id)
 {
 	xrClientData*	C	= (xrClientData*)m_server->ID_to_client	(id);
 	if (0==C)			return 0xffff;
-	CSE_Abstract*	E	= C->owner;
+	CSE_Abstract*	E	= C->owner_;
 	if (0==E)			return 0xffff;
 	return E->ID;
 }
@@ -188,7 +181,7 @@ xr_vector<u16>*		game_sv_GameState::get_children				(ClientID id)
 {
 	xrClientData*	C	= (xrClientData*)m_server->ID_to_client	(id);
 	if (0==C)			return 0;
-	CSE_Abstract* E	= C->owner;
+	CSE_Abstract* E	= C->owner_;
 	if (0==E)			return 0;
 	return	&(E->children);
 }
@@ -289,20 +282,18 @@ struct player_exporter
 	}
 };
 
-void game_sv_GameState::net_Export_State						(NET_Packet& P, ClientID to)
+void game_sv_GameState::net_Export_State( NET_Packet& P, ClientID to )
 {
 	// Generic
 	P.w_clientID	(to);
-	P.w_s32			(m_type);
+	u32 gt = g_pGamePersistent->GameType();
+	P.w_s32			(gt);
 	P.w_u16			(m_phase);
 	P.w_s32			(m_round);
 	P.w_u32			(m_start_time);
 	P.w_u8			(u8(g_sv_base_iVotingEnabled&0xff));
 	P.w_u8			(u8(net_sv_control_hit));
 	P.w_u8			(u8(g_bCollectStatisticData));
-
-	// Players
-//	u32	p_count			= get_players_count() - ((g_dedicated_server)? 1 : 0);
 
 	xrClientData*		tmp_client = static_cast<xrClientData*>(
 		m_server->GetClientByID(to));
@@ -364,7 +355,7 @@ void game_sv_GameState::OnPlayerDisconnect		(ClientID id_who, LPSTR, u16 )
 }
 
 static float							rpoints_Dist [TEAM_COUNT] = {1000.f, 1000.f, 1000.f, 1000.f};
-void game_sv_GameState::Create					(shared_str &options)
+void game_sv_GameState::Create(shared_str &options)
 {
 	string_path	fn_game;
 	m_item_respawner.clear_respawns();
@@ -392,19 +383,14 @@ void game_sv_GameState::Create					(shared_str &options)
 				if(type==rptItemSpawn)
 					O->r_stringZ		(rp_profile);
 
+				EGameIDs gt				= g_pGamePersistent->GameType();
+
 				if (GameType != EGameIDs(u16(-1)))
 				{
-					if ((Type() == eGameIDCaptureTheArtefact) && (GameType & eGameIDCaptureTheArtefact))
-					{
-						team = team - 1;
-						R_ASSERT2( ((team >= 0) && (team < 4)) || 
-							(type != rptActorSpawn), 
-							"Problem with CTA Team indexes. Propably you have added rpoint of team 0 for cta game type.");
-					}
-					if ((!(GameType & eGameIDDeathmatch) && (Type() == eGameIDDeathmatch)) ||
-						(!(GameType & eGameIDTeamDeathmatch) && (Type() == eGameIDTeamDeathmatch))	||
-						(!(GameType & eGameIDArtefactHunt) && (Type() == eGameIDArtefactHunt)) ||
-						(!(GameType & eGameIDCaptureTheArtefact) && (Type() == eGameIDCaptureTheArtefact))
+					if ((!(GameType & eGameIDDeathmatch) && (gt == eGameIDDeathmatch)) ||
+						(!(GameType & eGameIDTeamDeathmatch) && (gt == eGameIDTeamDeathmatch))	||
+						(!(GameType & eGameIDArtefactHunt) && (gt == eGameIDArtefactHunt)) ||
+						(!(GameType & eGameIDCaptureTheArtefact) && (gt == eGameIDCaptureTheArtefact))
 						)
 					{
 						continue;
@@ -438,24 +424,6 @@ void game_sv_GameState::Create					(shared_str &options)
 		FS.r_close	(F);
 	}
 
-	if (!g_dedicated_server)
-	{
-		// loading scripts
-		ai().script_engine().remove_script_process(ScriptEngine::eScriptProcessorGame);
-		string_path					S;
-		FS.update_path				(S,"$game_config$","script.ltx");
-		CInifile					*l_tpIniFile = xr_new<CInifile>(S);
-		R_ASSERT					(l_tpIniFile);
-
-		if( l_tpIniFile->section_exist( type_name() ) )
-			if (l_tpIniFile->r_string(type_name(),"script"))
-				ai().script_engine().add_script_process(ScriptEngine::eScriptProcessorGame,xr_new<CScriptProcess>("game",l_tpIniFile->r_string(type_name(),"script")));
-			else
-				ai().script_engine().add_script_process(ScriptEngine::eScriptProcessorGame,xr_new<CScriptProcess>("game",""));
-
-		xr_delete					(l_tpIniFile);
-	}
-
 	//---------------------------------------------------------------------
 	ConsoleCommands_Create();
 	//---------------------------------------------------------------------
@@ -471,7 +439,7 @@ void game_sv_GameState::Create					(shared_str &options)
 		sscanf		(strstr(Core.Params,svcfg_ltx_name)+sz,"%[^ ] ",svcfg_name);
 //		if (FS.exist(svcfg_name))
 		{
-			Console->ExecuteScript(svcfg_name);
+			pConsoleCommands->ExecuteScript(svcfg_name);
 		}
 	};
 	//---------------------------------------------------------------------
@@ -486,7 +454,7 @@ void	game_sv_GameState::ReadOptions				(shared_str &options)
 //.	if (!FS.exist(MAPROT_LIST))
 	FS.update_path(MAPROT_LIST, "$app_data_root$", MAPROT_LIST_NAME);
 	if (FS.exist(MAPROT_LIST))
-		Console->ExecuteScript(MAPROT_LIST);
+		pConsoleCommands->ExecuteScript(MAPROT_LIST);
 	
 	g_sv_base_iVotingEnabled = get_option_i(*options,"vote",(g_sv_base_iVotingEnabled));
 	//---------------------------
@@ -591,23 +559,22 @@ CSE_Abstract*		game_sv_GameState::spawn_begin				(LPCSTR N)
 {
 	CSE_Abstract*	A	=   F_entity_Create(N);	R_ASSERT(A);	// create SE
 	A->s_name			=   N;							// ltx-def
-//.	A->s_gameid			=	u8(m_type);							// game-type
 	A->s_RP				=	0xFE;								// use supplied
 	A->ID				=	0xffff;								// server must generate ID
 	A->ID_Parent		=	0xffff;								// no-parent
-	A->ID_Phantom		=	0xffff;								// no-phantom
 	A->RespawnTime		=	0;									// no-respawn
 	return A;
 }
 
-CSE_Abstract*		game_sv_GameState::spawn_end				(CSE_Abstract* E, ClientID id)
+CSE_Abstract* game_sv_GameState::spawn_end(CSE_Abstract* E, ClientID id)
 {
-	NET_Packet						P;
-	u16								skip_header;
-	E->Spawn_Write					(P,TRUE);
-	P.r_begin						(skip_header);
-	CSE_Abstract* N = m_server->Process_spawn	(P,id);
-	F_entity_Destroy				(E);
+	NET_Packet			P;
+	u16					skip_header;
+	E->Spawn_Write		(P,TRUE);
+	P.r_begin			(skip_header);
+
+	CSE_Abstract* N		= m_server->Process_spawn(P,id);
+	F_entity_Destroy	(E);
 
 	return N;
 }
@@ -639,25 +606,17 @@ void game_sv_GameState::Update		()
 			xrClientData*	C			= static_cast<xrClientData*>(client);
 			if (!C->ps)
 				return;
-			C->ps->ping					= u16(C->stats.getPing());
+			C->ps->ping					= u16(C->net_Statistic.getPing());
 		}
 	};
 	ping_filler tmp_functor;
 	m_server->ForEachClientDo(tmp_functor);
 	
-	if (!IsGameTypeSingle() && (Phase() == GAME_PHASE_INPROGRESS))
+	if (Phase() == GAME_PHASE_INPROGRESS)
 	{
 		m_item_respawner.update(Level().timeServer());
 	}
-	
-	if (!g_dedicated_server)
-	{
-		if (Level().game) {
-			CScriptProcess				*script_process = ai().script_engine().script_process(ScriptEngine::eScriptProcessorGame);
-			if (script_process)
-				script_process->update	();
-		}
-	}
+
 }
 
 void game_sv_GameState::OnDestroyObject(u16 eid_who)
@@ -681,8 +640,6 @@ game_sv_GameState::game_sv_GameState()
 
 game_sv_GameState::~game_sv_GameState()
 {
-	if (!g_dedicated_server)
-		ai().script_engine().remove_script_process(ScriptEngine::eScriptProcessorGame);
 	xr_delete(m_event_queue);
 
 	SaveMapList();
@@ -730,7 +687,7 @@ void game_sv_GameState::OnHit (u16 id_hitter, u16 id_hitted, NET_Packet& P)
 	};
 }
 
-void game_sv_GameState::OnEvent (NET_Packet &tNetPacket, u16 type, u32 time, ClientID sender )
+void game_sv_GameState::OnEvent(NET_Packet& tNetPacket, u16 type, u32 time, ClientID sender )
 {
 	switch	(type)
 	{	
@@ -753,25 +710,25 @@ void game_sv_GameState::OnEvent (NET_Packet &tNetPacket, u16 type, u32 time, Cli
 
 	case GAME_EVENT_PLAYER_KILLED:
 		{
-		}break	;
+		}break;
+
 	case GAME_EVENT_ON_HIT:
 		{
 			u16		id_dest				= tNetPacket.r_u16();
 			u16     id_src				= tNetPacket.r_u16();
 			CSE_Abstract*	e_src		= get_entity_from_eid	(id_src	);
 
-			if(!e_src)  // && !IsGameTypeSingle() added by andy because of Phantom does not have server entity
+			if(!e_src)
 			{
-				if( IsGameTypeSingle() ) break;
-
 				game_PlayerState* ps	= get_eid(id_src);
 				if (!ps)				break;
 				id_src					= ps->GameID;
 			}
 
-			OnHit(id_src, id_dest, tNetPacket);
+			OnHit						(id_src, id_dest, tNetPacket);
 			m_server->SendBroadcast		(BroadcastCID,tNetPacket,net_flags(TRUE,TRUE));
 		}break;
+
 	case GAME_EVENT_CREATE_CLIENT:
 		{
 			IClient* CL					= (IClient*)m_server->ID_to_client(sender);
@@ -781,28 +738,23 @@ void game_sv_GameState::OnEvent (NET_Packet &tNetPacket, u16 type, u32 time, Cli
 			CL->flags.bConnected		= TRUE;
 			m_server->AttachNewClient	(CL);
 		}break;
+
 	case GAME_EVENT_PLAYER_AUTH:
 		{
 			IClient* CL				=	m_server->ID_to_client		(sender);
 			m_server->OnBuildVersionRespond(CL, tNetPacket);
 		}break;
+
 	case GAME_EVENT_CREATE_PLAYER_STATE:
 		{
 			xrClientData* CL		=	m_server->ID_to_client(sender);
-			R_ASSERT2(CL,
-				make_string("M_CREATE_PLAYER_STATE: client 0x%08x not found", 
-					sender.value()
-				).c_str()
-			);
+			R_ASSERT(CL);
 			CL->ps					= createPlayerState(&tNetPacket);
 			CL->ps->m_online_time	= Level().timeServer();
 			CL->ps->DeathTime		= Device.dwTimeGlobal;
 			
-			if (psNET_direct_connect) //IsGameTypeSingle())
-				break;
-
-			if (Level().IsDemoPlay())
-				break;
+			//if (Level().IsDemoPlay())
+			//	break;
 
 			if (g_dedicated_server && (CL == m_server->GetServerClient()))
 				break;
@@ -819,43 +771,45 @@ void game_sv_GameState::OnEvent (NET_Packet &tNetPacket, u16 type, u32 time, Cli
 
 bool game_sv_GameState::CheckNewPlayer(xrClientData* CL)
 {
-	xrGameSpyServer*		gs_server = smart_cast<xrGameSpyServer*>(m_server);
-	R_ASSERT				(gs_server);
-	
-	char const *			error_msg = NULL;
-	ClientID				tmp_client_id(CL->ID);
-	
-	if (gs_server->IsPublicServer())
-	{
-		if (!CL->ps->m_account.is_online())
-		{
-			error_msg = "mp_please_login";
-		} else
-		{
-			if (FindPlayerName(CL->ps->getName(), CL))
-			{
-				error_msg = "mp_already_logged_in";
-			}
-		}
-	} else
-	{
-		if (CL->ps->m_account.is_online())
-		{
-			error_msg = "mp_use_offline_mode";
-		} else
-		{
-			CheckPlayerName(CL);
-		}
-	}
-
-	if (error_msg)
-	{
-		m_server->SendProfileCreationError(CL, error_msg);
-		if (CL != m_server->GetServerClient()) //CL can be NULL
-			CleanDelayedEventFor(tmp_client_id);
-		return false;
-	}
 	return true;
+
+	//xrGameSpyServer*		gs_server = smart_cast<xrGameSpyServer*>(m_server);
+	//R_ASSERT				(gs_server);
+	//
+	//char const *			error_msg = NULL;
+	//ClientID				tmp_client_id(CL->ID);
+	//
+	//if (gs_server->IsPublicServer())
+	//{
+	//	if (!CL->ps->m_player_account.is_online())
+	//	{
+	//		error_msg = "mp_please_login";
+	//	} else
+	//	{
+	//		if (FindPlayerName(CL->ps->getName(), CL))
+	//		{
+	//			error_msg = "mp_already_logged_in";
+	//		}
+	//	}
+	//} else
+	//{
+	//	if (CL->ps->m_player_account.is_online())
+	//	{
+	//		error_msg = "mp_use_offline_mode";
+	//	} else
+	//	{
+	//		CheckPlayerName(CL);
+	//	}
+	//}
+
+	//if (error_msg)
+	//{
+	//	m_server->SendProfileCreationError(CL, error_msg);
+	//	if (CL != m_server->GetServerClient()) //CL can be NULL
+	//		CleanDelayedEventFor(tmp_client_id);
+	//	return false;
+	//}
+	//return true;
 }
 
 void game_sv_GameState::OnSwitchPhase(u32 old_phase, u32 new_phase)
@@ -867,11 +821,6 @@ void game_sv_GameState::OnSwitchPhase(u32 old_phase, u32 new_phase)
 void game_sv_GameState::AddDelayedEvent(NET_Packet &tNetPacket, u16 type, u32 time, ClientID sender )
 {
 //	OnEvent(tNetPacket,type,time,sender);
-	if (IsGameTypeSingle())
-	{
-		m_event_queue->Create(tNetPacket,type,time,sender);
-		return;
-	}
 	switch (type)
 	{
 	case GAME_EVENT_PLAYER_STARTED:
@@ -1005,22 +954,6 @@ RPoint game_sv_GameState::getRP (u16 team_idx, u32 rp_idx)
 	else 
 		return RPoint();
 };
-
-void game_sv_GameState::teleport_object	(NET_Packet &packet, u16 id)
-{
-}
-
-void game_sv_GameState::add_restriction	(NET_Packet &packet, u16 id)
-{
-}
-
-void game_sv_GameState::remove_restriction(NET_Packet &packet, u16 id)
-{
-}
-
-void game_sv_GameState::remove_all_restrictions	(NET_Packet &packet, u16 id)
-{
-}
 
 void game_sv_GameState::MapRotation_AddMap(LPCSTR MapName, LPCSTR MapVer)
 {
@@ -1301,18 +1234,12 @@ void game_sv_GameState::GenerateNewName			(char const * old_name, char * dest, u
 void game_sv_GameState::CheckPlayerName(xrClientData* CL)
 {
 	R_ASSERT	(CL && CL->ps);
-	R_ASSERT	(!CL->ps->m_account.is_online());
 
-	char const *	current_name = NULL;
-	if (CL->ps->m_account.name().size())	//in case of logging from gamespy login page
-	{
-		current_name = CL->ps->getName();
-	} else
-	{
-		current_name = CL->name.c_str();
-		CL->ps->m_account.set_player_name(current_name);
-	}
-	u32				current_name_length = xr_strlen(current_name);
+	LPCSTR	current_name = NULL;
+	current_name = CL->name.c_str();
+	CL->ps->setName(current_name);
+
+	u32 current_name_length = xr_strlen(current_name);
 
 
 	u32				new_name_dest_size = current_name_length + 16;
@@ -1321,8 +1248,8 @@ void game_sv_GameState::CheckPlayerName(xrClientData* CL)
 
 	while (FindPlayerName(current_name, CL))
 	{
-		GenerateNewName(current_name, new_name_dest, new_name_dest_size);
-		CL->ps->m_account.set_player_name(new_name_dest);
-		current_name = new_name_dest;
+		GenerateNewName	(current_name, new_name_dest, new_name_dest_size);
+		CL->ps->setName	(new_name_dest);
+		current_name	= new_name_dest;
 	}
 }

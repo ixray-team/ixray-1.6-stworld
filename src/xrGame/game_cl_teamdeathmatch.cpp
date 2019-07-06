@@ -9,7 +9,6 @@
 #include "actor.h"
 #include "ui/UIMainIngameWnd.h"
 #include "ui/UISkinSelector.h"
-#include "ui/UIPDAWnd.h"
 #include "ui/UIMapDesc.h"
 #include "game_base_menu_events.h"
 #include "ui/TeamInfo.h"
@@ -59,10 +58,6 @@ game_cl_TeamDeathmatch::game_cl_TeamDeathmatch()
 }
 void game_cl_TeamDeathmatch::Init ()
 {
-//	pInventoryMenu	= xr_new<CUIInventoryWnd>();
-//	pPdaMenu = xr_new<CUIPdaWnd>();
-//	pMapDesc = xr_new<CUIMapDesc>();
-	//-----------------------------------------------------------
 	LoadTeamData(GetTeamMenu(1));
 	LoadTeamData(GetTeamMenu(2));
 }
@@ -93,7 +88,7 @@ void				game_cl_TeamDeathmatch::net_import_state		(NET_Packet& P)
 		{
 			if (teams[0].score != teams[1].score)
 			{
-				if (Level().CurrentViewEntity())
+				if (Level().CurrentViewActor())
 				{
 					if (teams[0].score > teams[1].score)
 						PlaySndMessage(ID_TEAM1_LEAD);
@@ -105,7 +100,7 @@ void				game_cl_TeamDeathmatch::net_import_state		(NET_Packet& P)
 		else
 		{
 			if (teams[0].score == teams[1].score)
-				if (Level().CurrentViewEntity())
+				if (Level().CurrentViewActor())
 					PlaySndMessage(ID_TEAMS_EQUAL);
 		}
 	};
@@ -230,7 +225,7 @@ void game_cl_TeamDeathmatch::OnTeamMenuBack			()
 {
 	if (local_player->testFlag(GAME_PLAYER_FLAG_SPECTATOR))
 	{
-		m_game_ui->ShowServerInfo();
+//.		m_game_ui->ShowServerInfo();
 //.		m_game_ui->StartStopMenu(m_game_ui->m_pMapDesc, true);
 	}
 };
@@ -280,7 +275,7 @@ void game_cl_TeamDeathmatch::OnTeamSelect(int Team)
 
 	if (NeedToSendTeamSelect)
 	{
-		CObject *l_pObj = Level().CurrentEntity();
+		CObject *l_pObj = Level().CurrentActor();
 
 		CGameObject *l_pPlayer = smart_cast<CGameObject*>(l_pObj);
 		if(!l_pPlayer) return;
@@ -440,13 +435,12 @@ void game_cl_TeamDeathmatch::shedule_Update			(u32 dt)
 		}break;
 	case GAME_PHASE_INPROGRESS:
 		{
-			if (local_player && !local_player->IsSkip())
+			if(local_player && !local_player->IsSkip())
 			{			
-				if (Level().CurrentEntity() && smart_cast<CSpectator*>(Level().CurrentEntity()))
+				if (Level().CurrentActor() && smart_cast<CSpectator*>(Level().CurrentActor()))
 				{
 					if (!(pCurBuyMenu && pCurBuyMenu->IsShown()) && 
 						!(pCurSkinMenu && pCurSkinMenu->IsShown()) &&
-						!m_game_ui->IsServerInfoShown() &&
 						(CurrentGameUI() && CurrentGameUI()->GameIndicatorsShown())
 						)
 					{
@@ -714,12 +708,12 @@ void				game_cl_TeamDeathmatch::OnSwitchPhase			(u32 old_phase, u32 new_phase)
 	{
 	case GAME_PHASE_TEAM1_SCORES:
 		{
-			if (Level().CurrentViewEntity())
+			if (Level().CurrentViewActor())
 				PlaySndMessage(ID_TEAM1_WIN);
 		}break;
 	case GAME_PHASE_TEAM2_SCORES:
 		{
-			if (Level().CurrentViewEntity())
+			if (Level().CurrentViewActor())
 				PlaySndMessage(ID_TEAM2_WIN);
 		}break;
 	default:
@@ -800,5 +794,6 @@ LPCSTR game_cl_TeamDeathmatch::GetGameScore(string32&	score_dest)
 void game_cl_TeamDeathmatch::OnConnected()
 {
 	inherited::OnConnected();
-	m_game_ui = smart_cast<CUIGameTDM*>( CurrentGameUI() );
+	if(!g_dedicated_server)
+		m_game_ui = smart_cast<CUIGameTDM*>( CurrentGameUI() );
 }

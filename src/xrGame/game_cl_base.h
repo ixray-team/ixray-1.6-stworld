@@ -18,10 +18,9 @@ struct SZoneMapEntityData{
 
 struct WeaponUsageStatistic;
 
-class	game_cl_GameState	: public game_GameState, public ISheduled
+class game_cl_GameState	: public game_GameState, public ISheduled
 {
 	typedef game_GameState	inherited;
-	shared_str							m_game_type_name;
 protected:
 	CUIGameCustom*						m_game_ui_custom;
 	u16									m_u16VotingEnabled;	
@@ -58,8 +57,6 @@ protected:
 public:
 									game_cl_GameState		();
 	virtual							~game_cl_GameState		();
-				LPCSTR				type_name				() const {return *m_game_type_name;};
-				void				set_type_name			(LPCSTR s);
 	virtual		void				Init					(){};
 	virtual		void				net_import_state		(NET_Packet& P);
 	virtual		void				net_import_update		(NET_Packet& P);

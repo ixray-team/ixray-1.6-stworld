@@ -6,7 +6,6 @@
 //	Description : Damage manager
 ////////////////////////////////////////////////////////////////////////////
 
-
 #include "stdafx.h"
 #include "damage_manager.h"
 #include "../xrEngine/xr_object.h"

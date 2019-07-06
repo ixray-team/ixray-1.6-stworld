@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../inventory_item.h"
-#include "character_info_defs.h"
 
 #include "ui_defs.h"
 
@@ -79,16 +78,4 @@ LPCSTR GetTimePeriodAsString	(LPSTR _buff, u32 buff_sz, ALife::_TIME_ID _from, A
 // Отобразить вес, который несет (*pInvOwner)
 void UpdateWeightStr(CUITextWnd &wnd, CUITextWnd &wnd_max, CInventoryOwner *pInvOwner);
 
-// Функции получения строки-идентификатора ранга и отношения по их числовому идентификатору
-LPCSTR	GetRankAsText				(CHARACTER_RANK_VALUE		rankID);
-LPCSTR	GetReputationAsText			(CHARACTER_REPUTATION_VALUE rankID);
-LPCSTR	GetGoodwillAsText			(CHARACTER_GOODWILL			goodwill);
-
-void	ClearCharacterInfoStrings	();
-
-void	SendInfoToActor				(LPCSTR info_id);
-void	SendInfoToLuaScripts		(shared_str info);
-u32		GetGoodwillColor			(CHARACTER_GOODWILL gw);
-u32		GetRelationColor			(ALife::ERelationType r);
-u32		GetReputationColor			(CHARACTER_REPUTATION_VALUE rv);
 };

@@ -108,7 +108,7 @@ void CTorch::SwitchNightVision(bool vision_on, bool use_sounds)
 
 
 	LPCSTR disabled_names	= pSettings->r_string(cNameSect(),"disabled_maps");
-	LPCSTR curr_map			= *Level().name();
+	LPCSTR curr_map			= Level().map_name().c_str();
 	u32 cnt					= _GetItemCount(disabled_names);
 	bool b_allow			= true;
 	string512				tmp;
@@ -289,16 +289,9 @@ void CTorch::UpdateCL()
 		CActor*			actor = smart_cast<CActor*>(H_Parent());
 		if (actor)		smart_cast<IKinematics*>(H_Parent()->Visual())->CalculateBones_Invalidate	();
 
-		if (H_Parent()->XFORM().c.distance_to_sqr(Device.vCameraPosition)<_sqr(OPTIMIZATION_DISTANCE) || GameID() != eGameIDSingle) {
-			// near camera
-			smart_cast<IKinematics*>(H_Parent()->Visual())->CalculateBones	();
-			M.mul_43				(XFORM(),BI.mTransform);
-		} else {
-			// approximately the same
-			M		= H_Parent()->XFORM		();
-			H_Parent()->Center				(M.c);
-			M.c.y	+= H_Parent()->Radius	()*2.f/3.f;
-		}
+		// near camera
+		smart_cast<IKinematics*>(H_Parent()->Visual())->CalculateBones	();
+		M.mul_43				(XFORM(),BI.mTransform);
 
 		if (actor) 
 		{

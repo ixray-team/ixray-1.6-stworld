@@ -198,7 +198,7 @@
 			MinFrameworkVersion="131072"
 		/>
 		<AssemblyReference
-			RelativePath="..\..\SDK\binaries\Flobbster.Windows.Forms.PropertyGrid.dll"
+			RelativePath="..\..\sdk\binaries\Flobbster.Windows.Forms.PropertyGrid.dll"
 			AssemblyName="Flobbster.Windows.Forms.PropertyGrid, Version=0.0.0.0, processorArchitecture=MSIL"
 			MinFrameworkVersion="131072"
 		/>

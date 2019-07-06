@@ -1,19 +1,16 @@
-#include "pch_script.h"
+#include "stdafx.h"
 #include "inventory.h"
 #include "actor.h"
 #include "CustomOutfit.h"
-#include "trade.h"
 #include "weapon.h"
 
 #include "ui/UIInventoryUtilities.h"
 #include "ui/UIActorMenu.h"
 
 #include "eatable_item.h"
-#include "script_engine.h"
 #include "xrmessages.h"
 #include "xr_level_controller.h"
 #include "level.h"
-#include "ai_space.h"
 #include "entitycondition.h"
 #include "game_base_space.h"
 #include "uigamecustom.h"
@@ -112,7 +109,6 @@ void CInventory::Take(CGameObject *pObj, bool bNotActivate, bool strict_placemen
 	
 	pIItem->m_pInventory				= this;
 	pIItem->SetDropManual				(FALSE);
-	pIItem->AllowTrade					();
 	//if net_Import for pObj arrived then the pObj will pushed to CrPr list (correction prediction)
 	//usually net_Import arrived for objects that not has a parent object..
 	//for unknown reason net_Import arrived for object that has a parent, so correction prediction schema will crash
@@ -191,14 +187,9 @@ void CInventory::Take(CGameObject *pObj, bool bNotActivate, bool strict_placemen
 	{
 		CObject* pActor_owner = smart_cast<CObject*>(m_pOwner);
 
-		if (Level().CurrentViewEntity() == pActor_owner)
+		if (Level().CurrentViewActor() == pActor_owner)
 		{
 			CurrentGameUI()->OnInventoryAction(pIItem, GE_OWNERSHIP_TAKE);
-		}
-		else if(CurrentGameUI()->ActorMenu().GetMenuMode()==mmDeadBodySearch)
-		{
-			if(m_pOwner==CurrentGameUI()->ActorMenu().GetPartner())
-				CurrentGameUI()->OnInventoryAction(pIItem, GE_OWNERSHIP_TAKE);
 		}
 	};
 }
@@ -285,7 +276,7 @@ bool CInventory::DropItem(CGameObject *pObj, bool just_before_destroy, bool dont
 	{
 		CObject* pActor_owner = smart_cast<CObject*>(m_pOwner);
 
-		if (Level().CurrentViewEntity() == pActor_owner)
+		if (Level().CurrentViewActor() == pActor_owner)
 			CurrentGameUI()->OnInventoryAction(pIItem, GE_OWNERSHIP_REJECT);
 	};
 	pObj->H_SetParent(0, dont_create_shell);
@@ -300,19 +291,13 @@ bool CInventory::Slot(u16 slot_id, PIItem pIItem, bool bNotActivate, bool strict
 	if(ItemFromSlot(slot_id) == pIItem)
 		return false;
 
-	if (!IsGameTypeSingle())
+	u16 real_parent = pIItem->object().H_Parent() ? pIItem->object().H_Parent()->ID() : u16(-1);
+	if (GetOwner()->object_id() != real_parent)
 	{
-		u16 real_parent = pIItem->object().H_Parent() ? pIItem->object().H_Parent()->ID() : u16(-1);
-		if (GetOwner()->object_id() != real_parent)
-		{
-			Msg("! WARNING: CL: actor [%d] tries to place to slot not own item [%d], that has parent [%d]",
-				GetOwner()->object_id(), pIItem->object_id(), real_parent);
-			return false;
-		}
+		Msg("! WARNING: CL: actor [%d] tries to place to slot not own item [%d], that has parent [%d]",
+			GetOwner()->object_id(), pIItem->object_id(), real_parent);
+		return false;
 	}
-
-
-//.	Msg("To Slot %s[%d]", *pIItem->object().cName(), pIItem->object().ID());
 
 	if(!strict_placement && !CanPutInSlot(pIItem,slot_id)) 
 	{
@@ -336,34 +321,25 @@ bool CInventory::Slot(u16 slot_id, PIItem pIItem, bool bNotActivate, bool strict
 	//удалить из рюкзака или пояса
 	TIItemContainer::iterator it_ruck = std::find(m_ruck.begin(), m_ruck.end(), pIItem);
 	TIItemContainer::iterator it_belt = std::find(m_belt.begin(), m_belt.end(), pIItem);
-	if (!IsGameTypeSingle())
+	if (it_ruck != m_ruck.end())
 	{
-		if (it_ruck != m_ruck.end())
-		{
-			m_ruck.erase(it_ruck);
-			R_ASSERT(it_belt == m_belt.end());
-		} else if(it_belt != m_belt.end())
-		{
-			m_belt.erase(it_belt);
-			R_ASSERT(it_ruck == m_ruck.end());
-		} else
-		{
-			u16 real_parent = pIItem->object().H_Parent() ? pIItem->object().H_Parent()->ID() : u16(-1);
-			R_ASSERT2(GetOwner()->object_id() == real_parent,
-				make_string("! ERROR: CL: actor [%d] doesn't contain [%d], real parent is [%d]", 
-					GetOwner()->object_id(), pIItem->object_id(), real_parent).c_str()
-			);
-		}
-#ifdef MP_LOGGING
-		Msg("--- Actor [%d] places to slot item [%d]", GetOwner()->object_id(), pIItem->object_id());
-#endif //#ifdef MP_LOGGING
+		m_ruck.erase(it_ruck);
+		R_ASSERT(it_belt == m_belt.end());
+	} else if(it_belt != m_belt.end())
+	{
+		m_belt.erase(it_belt);
+		R_ASSERT(it_ruck == m_ruck.end());
 	} else
 	{
-		if (it_ruck != m_ruck.end())
-			m_ruck.erase(it_ruck);
-		if (it_belt != m_belt.end())
-			m_belt.erase(it_belt);
+		u16 real_parent = pIItem->object().H_Parent() ? pIItem->object().H_Parent()->ID() : u16(-1);
+		R_ASSERT2(GetOwner()->object_id() == real_parent,
+			make_string("! ERROR: CL: actor [%d] doesn't contain [%d], real parent is [%d]", 
+				GetOwner()->object_id(), pIItem->object_id(), real_parent).c_str()
+		);
 	}
+#ifdef MP_LOGGING
+	Msg("--- Actor [%d] places to slot item [%d]", GetOwner()->object_id(), pIItem->object_id());
+#endif //#ifdef MP_LOGGING
 
 	bool in_slot = InSlot(pIItem);
 	if(in_slot && (pIItem->CurrSlot()!=slot_id)) 
@@ -435,15 +411,12 @@ bool CInventory::Ruck(PIItem pIItem, bool strict_placement)
 {
 	if(!strict_placement && !CanPutInRuck(pIItem)) return false;
 
-	if (!IsGameTypeSingle())
+	u16 real_parent = pIItem->object().H_Parent() ? pIItem->object().H_Parent()->ID() : u16(-1);
+	if (GetOwner()->object_id() != real_parent)
 	{
-		u16 real_parent = pIItem->object().H_Parent() ? pIItem->object().H_Parent()->ID() : u16(-1);
-		if (GetOwner()->object_id() != real_parent)
-		{
-			Msg("! WARNING: CL: actor [%d] tries to place to ruck not own item [%d], that has parent [%d]",
-				GetOwner()->object_id(), pIItem->object_id(), real_parent);
-			return false;
-		}
+		Msg("! WARNING: CL: actor [%d] tries to place to ruck not own item [%d], that has parent [%d]",
+			GetOwner()->object_id(), pIItem->object_id(), real_parent);
+		return false;
 	}
 	
 	bool in_slot = InSlot(pIItem);
@@ -461,18 +434,15 @@ bool CInventory::Ruck(PIItem pIItem, bool strict_placement)
 		if(m_belt.end() != it) 
 			m_belt.erase(it);
 
-		if (!IsGameTypeSingle())
-		{
-			u16 item_parent_id = pIItem->object().H_Parent() ? pIItem->object().H_Parent()->ID() : u16(-1) ;
-			u16 inventory_owner_id = GetOwner()->object_id();
-			R_ASSERT2(item_parent_id == inventory_owner_id,
-				make_string("! ERROR: CL: Actor[%d] tries to place to ruck not own item [%d], real item owner is [%d]",
-				inventory_owner_id, pIItem->object_id(), item_parent_id).c_str()
-			);
+		u16 item_parent_id = pIItem->object().H_Parent() ? pIItem->object().H_Parent()->ID() : u16(-1) ;
+		u16 inventory_owner_id = GetOwner()->object_id();
+		R_ASSERT2(item_parent_id == inventory_owner_id,
+			make_string("! ERROR: CL: Actor[%d] tries to place to ruck not own item [%d], real item owner is [%d]",
+			inventory_owner_id, pIItem->object_id(), item_parent_id).c_str()
+		);
 #ifdef MP_LOGGING
-			Msg("--- Actor [%d] place to ruck item [%d]", inventory_owner_id, pIItem->object_id());
+		Msg("--- Actor [%d] place to ruck item [%d]", inventory_owner_id, pIItem->object_id());
 #endif
-		}
 	}
 	
 	m_ruck.insert									(m_ruck.end(), pIItem); 
@@ -648,12 +618,12 @@ bool CInventory::Action(u16 cmd, u32 flags)
 		
 		case kDROP:		
 			{
-				if ((flags & CMD_STOP) && !IsGameTypeSingle())
+				if (flags & CMD_STOP)
 				{
 					PIItem tmp_item = ActiveItem();
 					if (tmp_item)
 					{
-						tmp_item->DenyTrade();
+//						tmp_item->DenyTrade();
 					}
 				}
 				SendActionEvent	(cmd, flags);
@@ -690,7 +660,7 @@ bool CInventory::Action(u16 cmd, u32 flags)
 	case kWPN_6:
 		{
 			b_send_event = true;
-			if (cmd == kWPN_6 && !IsGameTypeSingle()) return false;
+			if (cmd == kWPN_6) return false;
 			
 			u16 slot = u16(cmd - kWPN_1 + 1);
 			if ( flags & CMD_START )
@@ -704,7 +674,7 @@ bool CInventory::Action(u16 cmd, u32 flags)
 			if(flags&CMD_START)
 			{
                 if(GetActiveSlot() == ARTEFACT_SLOT &&
-					ActiveItem() /*&& IsGameTypeSingle()*/)
+					ActiveItem())
 				{
 					Activate(NO_ACTIVE_SLOT);
 				}else {
@@ -725,20 +695,11 @@ void CInventory::ActiveWeapon( u16 slot )
 	// weapon is in active slot
 	if ( GetActiveSlot() == slot && ActiveItem() )
 	{
-		if ( IsGameTypeSingle() )
-			Activate(NO_ACTIVE_SLOT);
-		else
-			ActivateNextItemInActiveSlot();
-
+		ActivateNextItemInActiveSlot();
 		return;
 	}
 	Activate(slot);
 /*
-	if ( IsGameTypeSingle() )
-	{
-		Activate(slot);
-		return;
-	}
 	if ( GetActiveSlot() == slot )
 	{
 		return;
@@ -763,7 +724,7 @@ void CInventory::Update()
 		if(m_iActiveSlot!=m_iNextActiveSlot)
 		{
 			CObject* pActor_owner = smart_cast<CObject*>(m_pOwner);
-			if (Level().CurrentViewEntity() == pActor_owner)
+			if (Level().CurrentViewActor() == pActor_owner)
 			{
 				if(	(m_iNextActiveSlot!=NO_ACTIVE_SLOT) && 
 					 ItemFromSlot(m_iNextActiveSlot)	&&
@@ -849,7 +810,7 @@ void CInventory::UpdateDropItem(PIItem pIItem)
 	if( pIItem->GetDropManual() )
 	{
 		pIItem->SetDropManual(FALSE);
-		pIItem->DenyTrade();
+//		pIItem->DenyTrade();
 
 		if ( OnServer() ) 
 		{
@@ -1031,8 +992,7 @@ CInventoryItem *CInventory::get_object_by_id(ALife::_OBJECT_ID tObjectID)
 
 //скушать предмет 
 #include "game_object_space.h"
-#include "script_callback_ex.h"
-#include "script_game_object.h"
+
 bool CInventory::Eat(PIItem pIItem)
 {
 	//устанаовить съедобна ли вещь
@@ -1056,9 +1016,6 @@ bool CInventory::Eat(PIItem pIItem)
 #ifdef MP_LOGGING
 	Msg( "--- Actor [%d] use or eat [%d][%s]", entity_alive->ID(), pItemToEat->object().ID(), pItemToEat->object().cNameSect().c_str() );
 #endif // MP_LOGGING
-
-	if(IsGameTypeSingle() && Actor()->m_inventory == this)
-		Actor()->callback(GameObject::eUseObject)((smart_cast<CGameObject*>(pIItem))->lua_game_object());
 
 	if(pItemToEat->Empty())
 	{
@@ -1167,7 +1124,6 @@ CInventoryItem	*CInventory::tpfGetObjectByIndex(int iIndex)
                 return	(*l_it);
 	}
 	else {
-		ai().script_engine().script_log	(ScriptStorage::eLuaMessageTypeError,"invalid inventory index!");
 		return	(0);
 	}
 	R_ASSERT	(false);
@@ -1230,7 +1186,7 @@ void  CInventory::AddAvailableItems(TIItemContainer& items_container, bool for_t
 	for(TIItemContainer::const_iterator it = m_ruck.begin(); m_ruck.end() != it; ++it) 
 	{
 		PIItem pIItem = *it;
-		if(!for_trade || pIItem->CanTrade())
+		if(!for_trade /*|| pIItem->CanTrade()*/ )
 			items_container.push_back(pIItem);
 	}
 
@@ -1239,7 +1195,7 @@ void  CInventory::AddAvailableItems(TIItemContainer& items_container, bool for_t
 		for(TIItemContainer::const_iterator it = m_belt.begin(); m_belt.end() != it; ++it) 
 		{
 			PIItem pIItem = *it;
-			if(!for_trade || pIItem->CanTrade())
+			if(!for_trade /*|| pIItem->CanTrade()*/)
 				items_container.push_back(pIItem);
 		}
 	}
@@ -1251,7 +1207,7 @@ void  CInventory::AddAvailableItems(TIItemContainer& items_container, bool for_t
 		for(;I<=E;++I)
 		{
 			PIItem item = ItemFromSlot(I);
-			if(item && (!for_trade || item->CanTrade())  )
+			if(item && (!for_trade /*|| item->CanTrade()*/)  )
 			{
 				if(!SlotIsPersistent(I) || item->BaseSlot()==GRENADE_SLOT )
 					items_container.push_back(item);
@@ -1262,18 +1218,7 @@ void  CInventory::AddAvailableItems(TIItemContainer& items_container, bool for_t
 
 bool CInventory::isBeautifulForActiveSlot	(CInventoryItem *pIItem)
 {
-	if (!IsGameTypeSingle()) 
-		return (true);
-
-	u16 I = FirstSlot();
-	u16 E = LastSlot();
-	for(;I<=E;++I)
-	{
-		PIItem item = ItemFromSlot(I);
-		if (item && item->IsNecessaryItem(pIItem))
-			return		(true);
-	}
-	return				(false);
+	return (true);
 }
 
 //.#include "WeaponHUD.h"
@@ -1295,7 +1240,7 @@ void CInventory::Items_SetCurrentEntityHud(bool current_entity)
 //call this only via Actor()->SetWeaponHideState()
 void CInventory::SetSlotsBlocked(u16 mask, bool bBlock)
 {
-	R_ASSERT(OnServer() || Level().IsDemoPlayStarted());
+	R_ASSERT(OnServer());
 
 	for(u16 i = FirstSlot(), ie = LastSlot(); i <= ie; ++i)
 	{

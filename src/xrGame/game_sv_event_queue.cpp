@@ -22,7 +22,7 @@ GameEventQueue::~GameEventQueue()
 }
 
 static u32 LastTimeCreate = 0;
-GameEvent*		GameEventQueue::Create	()
+GameEvent* GameEventQueue::Create()
 {
 	GameEvent*	ge			= 0;
 	cs.Enter		();
@@ -45,7 +45,7 @@ GameEvent*		GameEventQueue::Create	()
 	return	ge;
 }
 
-GameEvent*		GameEventQueue::CreateSafe	(NET_Packet& P, u16 type, u32 time, ClientID clientID)
+GameEvent* GameEventQueue::CreateSafe(NET_Packet& P, u16 type, u32 time, ClientID clientID)
 {
 	if (m_blocked_clients.size())
 	{
@@ -60,7 +60,7 @@ GameEvent*		GameEventQueue::CreateSafe	(NET_Packet& P, u16 type, u32 time, Clien
 	return Create(P, type, time, clientID);
 }
 
-GameEvent*		GameEventQueue::Create	(NET_Packet& P, u16 type, u32 time, ClientID clientID)
+GameEvent* GameEventQueue::Create(NET_Packet& P, u16 type, u32 time, ClientID clientID)
 {
 	GameEvent*	ge			= 0;
 	cs.Enter		();
@@ -87,7 +87,8 @@ GameEvent*		GameEventQueue::Create	(NET_Packet& P, u16 type, u32 time, ClientID 
 	cs.Leave		();
 	return			ge;
 }
-GameEvent*		GameEventQueue::Retreive	()
+
+GameEvent* GameEventQueue::Retreive	()
 {
 	GameEvent*	ge			= 0;
 	cs.Enter		();
@@ -111,7 +112,7 @@ GameEvent*		GameEventQueue::Retreive	()
 	return	ge;
 }
 
-void			GameEventQueue::Release	()
+void GameEventQueue::Release	()
 {
 	cs.Enter		();
 	R_ASSERT		(!ready.empty());

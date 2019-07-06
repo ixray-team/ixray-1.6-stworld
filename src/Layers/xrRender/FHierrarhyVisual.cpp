@@ -42,6 +42,12 @@ void FHierrarhyVisual::Release()
 void FHierrarhyVisual::Load(const char* N, IReader *data, u32 dwFlags)
 {
 	dxRender_Visual::Load(N,data,dwFlags);
+	
+#ifndef _EDITOR
+	if(g_dedicated_server)
+		return;
+#endif //#ifndef _EDITOR
+
 	if (data->find_chunk(OGF_CHILDREN_L)) 
 	{
 		// From Link

@@ -188,7 +188,7 @@ void CtaGameArtefact::PH_A_CrPr()
 /*
 void CtaGameArtefact::net_Export(NET_Packet& P) 
 {	
-	if (H_Parent() || IsGameTypeSingle()) 
+	if (H_Parent())
 	{
 		P.w_u8				(0);
 		return;

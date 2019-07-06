@@ -1,5 +1,5 @@
 
-#include "pch_script.h"
+#include "stdafx.h"
 #include "UIInventoryUtilities.h"
 #include "../WeaponAmmo.h"
 #include "../UIStaticItem.h"
@@ -11,12 +11,8 @@
 #include "../Inventory.h"
 #include "../InventoryOwner.h"
 
-#include "../InfoPortion.h"
 #include "game_base_space.h"
 #include "../actor.h"
-
-#include "../ai_space.h"
-#include "../../xrServerEntities/script_engine.h"
 
 #include "../Include/xrRender/UIShader.h"
 
@@ -53,13 +49,6 @@ ui_shader	*g_OutfitUpgradeIconsShader	= NULL;
 ui_shader	*g_WeaponUpgradeIconsShader	= NULL;
 ui_shader	*g_tmpWMShader				= NULL;
 static CUIStatic*	GetUIStatic				();
-
-typedef				std::pair<CHARACTER_RANK_VALUE, shared_str>	CharInfoStringID;
-DEF_MAP				(CharInfoStrings, CHARACTER_RANK_VALUE, shared_str);
-
-CharInfoStrings		*charInfoReputationStrings	= NULL;
-CharInfoStrings		*charInfoRankStrings		= NULL;
-CharInfoStrings		*charInfoGoodwillStrings	= NULL;
 
 void InventoryUtilities::CreateShaders()
 {
@@ -399,197 +388,4 @@ void InventoryUtilities::UpdateWeightStr(CUITextWnd &wnd, CUITextWnd &wnd_max, C
 
 	xr_sprintf		(buf, "(max %.1f %s)", max, kg_str);
 	wnd_max.SetText	(buf);
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-void LoadStrings(CharInfoStrings *container, LPCSTR section, LPCSTR field)
-{
-	R_ASSERT(container);
-
-	LPCSTR				cfgRecord	= pSettings->r_string(section, field);
-	u32					count		= _GetItemCount(cfgRecord);
-	R_ASSERT3			(count%2, "there're must be an odd number of elements", field);
-	string64			singleThreshold;
-	ZeroMemory			(singleThreshold, sizeof(singleThreshold));
-	int					upBoundThreshold	= 0;
-	CharInfoStringID	id;
-
-	for (u32 k = 0; k < count; k += 2)
-	{
-		_GetItem(cfgRecord, k, singleThreshold);
-		id.second = singleThreshold;
-
-		_GetItem(cfgRecord, k + 1, singleThreshold);
-		if(k+1!=count)
-			sscanf(singleThreshold, "%i", &upBoundThreshold);
-		else
-			upBoundThreshold	+= 1;
-
-		id.first = upBoundThreshold;
-
-		container->insert(id);
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-void InitCharacterInfoStrings()
-{
-	if (charInfoReputationStrings && charInfoRankStrings) return;
-
-	if (!charInfoReputationStrings)
-	{
-		// Create string->Id DB
-		charInfoReputationStrings	= xr_new<CharInfoStrings>();
-		// Reputation
-		LoadStrings(charInfoReputationStrings, relationsLtxSection, reputationgField);
-	}
-
-	if (!charInfoRankStrings)
-	{
-		// Create string->Id DB
-		charInfoRankStrings			= xr_new<CharInfoStrings>();
-		// Ranks
-		LoadStrings(charInfoRankStrings, relationsLtxSection, ratingField);
-	}
-
-	if (!charInfoGoodwillStrings)
-	{
-		// Create string->Id DB
-		charInfoGoodwillStrings			= xr_new<CharInfoStrings>();
-		// Goodwills
-		LoadStrings(charInfoGoodwillStrings, relationsLtxSection, goodwillField);
-	}
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-void InventoryUtilities::ClearCharacterInfoStrings()
-{
-	xr_delete(charInfoReputationStrings);
-	xr_delete(charInfoRankStrings);
-	xr_delete(charInfoGoodwillStrings);
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-LPCSTR InventoryUtilities::GetRankAsText(CHARACTER_RANK_VALUE rankID)
-{
-	InitCharacterInfoStrings();
-	CharInfoStrings::const_iterator cit = charInfoRankStrings->upper_bound(rankID);
-	if(charInfoRankStrings->end() == cit)
-		return charInfoRankStrings->rbegin()->second.c_str();
-	return cit->second.c_str();
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-LPCSTR InventoryUtilities::GetReputationAsText(CHARACTER_REPUTATION_VALUE rankID)
-{
-	InitCharacterInfoStrings();
-
-	CharInfoStrings::const_iterator cit = charInfoReputationStrings->upper_bound(rankID);
-	if(charInfoReputationStrings->end() == cit)
-		return charInfoReputationStrings->rbegin()->second.c_str();
-
-	return cit->second.c_str();
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-LPCSTR InventoryUtilities::GetGoodwillAsText(CHARACTER_GOODWILL goodwill)
-{
-	InitCharacterInfoStrings();
-
-	CharInfoStrings::const_iterator cit = charInfoGoodwillStrings->upper_bound(goodwill);
-	if(charInfoGoodwillStrings->end() == cit)
-		return charInfoGoodwillStrings->rbegin()->second.c_str();
-
-	return cit->second.c_str();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-// специальная функция для передачи info_portions при нажатии кнопок UI 
-// (для tutorial)
-void InventoryUtilities::SendInfoToActor(LPCSTR info_id)
-{
-	if (GameID() != eGameIDSingle) return;
-	
-	CActor* actor = smart_cast<CActor*>(Level().CurrentEntity());
-	if(actor)
-	{
-		actor->TransferInfo(info_id, true);
-	}
-}
-
-void InventoryUtilities::SendInfoToLuaScripts(shared_str info)
-{
-	if (GameID() != eGameIDSingle) return;
-	if ( info == shared_str("ui_talk_show") )
-	{
-		int mode = 10; // now Menu is Talk Dialog (show)
-		luabind::functor<void>	funct;
-		R_ASSERT( ai().script_engine().functor( "pda.actor_menu_mode", funct ) );
-		funct( mode );
-	}
-	if ( info == shared_str("ui_talk_hide") )
-	{
-		int mode = 11; // Talk Dialog hide
-		luabind::functor<void>	funct;
-		R_ASSERT( ai().script_engine().functor( "pda.actor_menu_mode", funct ) );
-		funct( mode );
-	}
-}
-
-u32 InventoryUtilities::GetGoodwillColor(CHARACTER_GOODWILL gw)
-{
-	u32 res = 0xffc0c0c0;
-	if(gw==NEUTRAL_GOODWILL){
-		res = 0xffc0c0c0;
-	}else
-	if(gw>1000){
-		res = 0xff00ff00;
-	}else
-	if(gw<-1000){
-		res = 0xffff0000;
-	}
-	return res;
-}
-
-u32 InventoryUtilities::GetReputationColor(CHARACTER_REPUTATION_VALUE rv)
-{
-	u32 res = 0xffc0c0c0;
-	if(rv==NEUTAL_REPUTATION){
-		res = 0xffc0c0c0;
-	}else
-	if(rv>50){
-		res = 0xff00ff00;
-	}else
-	if(rv<-50){
-		res = 0xffff0000;
-	}
-	return res;
-}
-
-u32	InventoryUtilities::GetRelationColor(ALife::ERelationType relation)
-{
-	switch(relation) {
-	case ALife::eRelationTypeFriend:
-		return 0xff00ff00;
-		break;
-	case ALife::eRelationTypeNeutral:
-		return 0xffc0c0c0;
-		break;
-	case ALife::eRelationTypeEnemy:
-		return  0xffff0000;
-		break;
-	default:
-		NODEFAULT;
-	}
-#ifdef DEBUG
-	return 0xffffffff;
-#endif
 }

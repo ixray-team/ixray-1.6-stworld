@@ -1,5 +1,7 @@
 #pragma once
 
+#include "PHCollisionDamageReceiver.h"
+
 class CDestroyablePhysicsObject :
 public	 CPhysicObject,
 public	 CPHDestroyable,

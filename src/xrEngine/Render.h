@@ -178,8 +178,6 @@ public:
 	s32								m_skinning;
 	s32								m_MSAASample;
 
-	BENCH_SEC_SCRAMBLEMEMBER1
-
 	// data
 	CFrustum						ViewBase;
 	CFrustum*						View;
@@ -195,9 +193,6 @@ public:
 	virtual	void					destroy					()											= 0;
 	virtual	void					reset_begin				()											= 0;
 	virtual	void					reset_end				()											= 0;
-
-	BENCH_SEC_SCRAMBLEVTBL1
-	BENCH_SEC_SCRAMBLEVTBL3
 
 	virtual	void					level_Load				(IReader*)									= 0;
 	virtual void					level_Unload			()											= 0;
@@ -270,7 +265,7 @@ public:
 //	virtual void 					model_Delete			(IRender_DetailModel* & F)					= 0;
 	virtual void					model_Logging			(BOOL bEnable)								= 0;
 	virtual void					models_Prefetch			()											= 0;
-	virtual void					models_Clear			(BOOL b_complete)							= 0;
+	virtual void					ClearPool				(BOOL b_complete)							= 0;
 
 	// Occlusion culling
 	virtual BOOL					occ_visible				(vis_data&	V)								= 0;

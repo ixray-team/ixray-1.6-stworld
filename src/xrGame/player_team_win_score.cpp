@@ -38,7 +38,9 @@ void player_team_win_score::save_round_scores()
 	if (!tmp_local_player)
 		return;
 
-	switch (Game().Type())
+	EGameIDs gt = g_pGamePersistent->GameType();
+
+	switch (gt)
 	{
 	case eGameIDCaptureTheArtefact:
 		{

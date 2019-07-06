@@ -41,11 +41,11 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="0"
 				EnableFiberSafeOptimizations="true"
 				AdditionalIncludeDirectories="../../../sdk/include/stlport;../../../sdk/include/"
 				PreprocessorDefinitions="MSAA_DX10_1;MSAA_SAMPLES=4;USE_MSAA;GBUFFER_OPTIMIZATION;WIN32;DEBUG;_WINDOWS;_USRDLL;XRRENDER_R4_EXPORTS;_SECURE_SCL=0;USE_DX11;USE_RESOURCE_DEBUGGER"
-				MinimalRebuild="true"
 				ExceptionHandling="1"
 				BasicRuntimeChecks="3"
 				SmallerTypeCheck="true"
@@ -60,7 +60,6 @@
 				ObjectFile="$(IntDir)/"
 				ProgramDataBaseFileName="$(IntDir)/"
 				WarningLevel="4"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -137,6 +136,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="2"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
@@ -162,7 +162,6 @@
 				ObjectFile="$(IntDir)/"
 				ProgramDataBaseFileName="$(IntDir)/"
 				WarningLevel="4"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -178,7 +177,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib d3dx11.lib D3DCompiler.lib d3d11.lib dxgi.lib nvapi.lib atimgpud_s_x86.lib dxerr.lib d3d10.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;C:\Program Files (x86)\Microsoft DirectX SDK (March 2009)\Lib\x86\&quot;;..\..\..\sdk\libraries;..\..\..\..\libraries;"
+				AdditionalLibraryDirectories="..\..\..\sdk\libraries;..\..\..\..\libraries;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
 				GenerateMapFile="false"
@@ -240,6 +239,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="3"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
@@ -262,7 +262,6 @@
 				ObjectFile="$(IntDir)/"
 				ProgramDataBaseFileName="$(IntDir)/"
 				WarningLevel="4"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -278,7 +277,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib d3dx11.lib D3DCompiler.lib d3d11.lib dxgi.lib nvapi.lib atimgpud_s_x86.lib dxerr.lib d3d10.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;C:\Program Files (x86)\Microsoft DirectX SDK (March 2009)\Lib\x86\&quot;;..\..\..\sdk\libraries;..\..\..\..\libraries;"
+				AdditionalLibraryDirectories="..\..\..\sdk\libraries;..\..\..\..\libraries;"
 				GenerateDebugInformation="true"
 				GenerateMapFile="false"
 				MapFileName="$(OutDir)/$(ProjectName).map"

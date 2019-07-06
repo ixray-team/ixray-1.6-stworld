@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "../xrEngine/xr_ioconsole.h"
+#include "../xrEngine/xr_ioc_cmd.h"
 #include "customzone.h"
 #include "hit.h"
 #include "PHDestroyable.h"
@@ -12,11 +12,11 @@
 #include "../xrEngine/igame_persistent.h"
 #include "../xrengine/xr_collide_form.h"
 #include "artefact.h"
-#include "ai_object_location.h"
 #include "../Include/xrRender/Kinematics.h"
 #include "zone_effector.h"
 #include "breakableobject.h"
 #include "GamePersistent.h"
+#include "../xrEngine/Environment.h"
 
 #define WIND_RADIUS (4*Radius())	//расстояние до актера, когда появляется ветер 
 #define FASTMODE_DISTANCE (50.f)	//distance to camera from sphere, when zone switches to fast update sequence
@@ -44,7 +44,6 @@ CCustomZone::CCustomZone(void)
 	m_dwAffectFrameNum			= 0;
 	m_fBlowoutWindPowerMax = m_fStoreWindPower = 0.f;
 	m_fDistanceToCurEntity		= flt_max;
-	m_ef_weapon_type			= u32(-1);
 	m_owner_id					= u32(-1);
 
 	m_actor_effector			= NULL;
@@ -278,9 +277,6 @@ void CCustomZone::Load(LPCSTR section)
 	if(use)
 		m_fSecondaryHitPower	= pSettings->r_float(section,"secondary_hit_power");
 
-	m_ef_anomaly_type			= pSettings->r_u32(section,"ef_anomaly_type");
-	m_ef_weapon_type			= pSettings->r_u32(section,"ef_weapon_type");
-	
 	m_zone_flags.set			(eAffectPickDOF, pSettings->r_bool (section, "pick_dof_effector"));
 }
 
@@ -319,12 +315,8 @@ BOOL CCustomZone::net_Spawn(CSE_Abstract* DC)
 		m_pIdleLight->set_shadow(!!m_zone_flags.test(eIdleLightShadow));
 
 		if(m_zone_flags.test(eIdleLightVolumetric))
-		{
-			//m_pIdleLight->set_type				(IRender_Light::SPOT);
 			m_pIdleLight->set_volumetric		(true);
-		}
-	}
-	else
+	}else
 		m_pIdleLight = NULL;
 
 	if ( m_zone_flags.test(eBlowoutLight) ) 
@@ -336,18 +328,14 @@ BOOL CCustomZone::net_Spawn(CSE_Abstract* DC)
 
 	setEnabled					(TRUE);
 
-	PlayIdleParticles			();
+	if(!g_dedicated_server)
+		PlayIdleParticles			();
 
 	m_iPreviousStateTime		= m_iStateTime = 0;
 
 	m_dwLastTimeMoved			= Device.dwTimeGlobal;
 	m_vPrevPos.set				(Position());
 
-
-	if(spawn_ini() && spawn_ini()->line_exist("fast_mode","always_fast"))
-	{
-		m_zone_flags.set(eAlwaysFastmode, spawn_ini()->r_bool("fast_mode","always_fast"));
-	}
 	return						(TRUE);
 }
 
@@ -459,7 +447,7 @@ void CCustomZone::UpdateWorkload	(u32 dt)
 	default: NODEFAULT;
 	}
 
-	if (Level().CurrentEntity()) 
+	if (Level().CurrentActor()) 
 	{
 		Fvector P			= Device.vCameraPosition;
 		P.y					-= 0.9f;
@@ -553,7 +541,7 @@ void CCustomZone::shedule_Update(u32 dt)
 
 	UpdateOnOffState	();
 
-	if( !IsGameTypeSingle() && Local() )
+	if( Local() )
 	{
 		if(Device.dwTimeGlobal > m_ttl)
 			DestroyObject ();
@@ -659,6 +647,9 @@ float CCustomZone::Power(float dist, float nearest_shape_radius)
 
 void CCustomZone::PlayIdleParticles(bool bIdleLight)
 {
+	if(g_dedicated_server)
+		return;
+
 	m_idle_sound.play_at_pos(0, Position(), true);
 
 	if(*m_sIdleParticles)
@@ -1149,15 +1140,18 @@ bool CCustomZone::Enable()
 
 	o_switch_2_fast();
 
-	for(OBJECT_INFO_VEC_IT it = m_ObjectInfoMap.begin(); 
-		m_ObjectInfoMap.end() != it; ++it) 
+	if(!g_dedicated_server)
 	{
-		CGameObject* pObject = (*it).object;
-		if (!pObject) continue;
-		PlayEntranceParticles(pObject);
-		PlayObjectIdleParticles(pObject);
+		for(OBJECT_INFO_VEC_IT it = m_ObjectInfoMap.begin(); 
+			m_ObjectInfoMap.end() != it; ++it) 
+		{
+			CGameObject* pObject = (*it).object;
+			if (!pObject) continue;
+			PlayEntranceParticles(pObject);
+			PlayObjectIdleParticles(pObject);
+		}
+		PlayIdleParticles	();
 	}
-	PlayIdleParticles	();
 	return				true;
 };
 
@@ -1234,16 +1228,6 @@ void CCustomZone::UpdateWind()
 	}
 }
 
-u32	CCustomZone::ef_anomaly_type() const
-{
-	return	(m_ef_anomaly_type);
-}
-
-u32	CCustomZone::ef_weapon_type() const
-{
-	VERIFY	(m_ef_weapon_type != u32(-1));
-	return	(m_ef_weapon_type);
-}
 
 void CCustomZone::CreateHit	(	u16 id_to, 
 								u16 id_from, 
@@ -1289,9 +1273,9 @@ void CCustomZone::net_Relcase(CObject* O)
 
 void CCustomZone::enter_Zone(SZoneObjectInfo& io)
 {
-	if(m_zone_flags.test(eAffectPickDOF) && Level().CurrentEntity())
+	if(m_zone_flags.test(eAffectPickDOF) && Level().CurrentActor())
 	{
-		if(io.object->ID()==Level().CurrentEntity()->ID())
+		if(io.object->ID()==Level().CurrentActor()->ID())
 			GamePersistent().SetPickableEffectorDOF(true);
 	}
 }
@@ -1300,9 +1284,9 @@ void CCustomZone::exit_Zone	(SZoneObjectInfo& io)
 {
 	StopObjectIdleParticles(io.object);
 
-	if(m_zone_flags.test(eAffectPickDOF) && Level().CurrentEntity())
+	if(m_zone_flags.test(eAffectPickDOF) && Level().CurrentActor())
 	{
-		if(io.object->ID()==Level().CurrentEntity()->ID())
+		if(io.object->ID()==Level().CurrentActor()->ID())
 			GamePersistent().SetPickableEffectorDOF(false);
 	}
 }
@@ -1503,20 +1487,3 @@ void CCustomZone::o_switch_2_slow				()
 	processing_deactivate		();
 }
 
-void CCustomZone::save							(NET_Packet &output_packet)
-{
-	inherited::save			(output_packet);
-	output_packet.w_u8		(static_cast<u8>(m_eZoneState));
-}
-
-void CCustomZone::load							(IReader &input_packet)
-{
-	inherited::load			(input_packet);	
-
-	CCustomZone::EZoneState temp = static_cast<CCustomZone::EZoneState>(input_packet.r_u8());
-
-	if (temp == eZoneStateDisabled)
-		m_eZoneState = eZoneStateDisabled;
-	else
-		m_eZoneState = eZoneStateIdle;
-}

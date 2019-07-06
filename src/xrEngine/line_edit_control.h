@@ -8,8 +8,6 @@
 #ifndef LINE_EDIT_CONTROL_H_INCLUDED
 #define LINE_EDIT_CONTROL_H_INCLUDED
 
-//#include <boost/noncopyable.hpp>
-
 namespace text_editor
 {
 
@@ -47,12 +45,12 @@ enum init_mode
 	im_count
 };// init_mode
 
+typedef  fastdelegate::FastDelegate0<void>	Callback;
 
 class ENGINE_API line_edit_control
 {
 private:
 	typedef  text_editor::base						Base;
-	typedef  fastdelegate::FastDelegate0<void>	Callback;
 
 public:
 					line_edit_control	( u32 str_buffer_size );
@@ -89,7 +87,6 @@ private:
 					line_edit_control	( line_edit_control const& );
 	line_edit_control const& operator=	( line_edit_control const& );
 
-			void	update_key_states	();
 			void	update_bufs			();
 
 	void xr_stdcall	undo_buf			();

@@ -1,11 +1,9 @@
-#include "pch_script.h"
+#include "stdafx.h"
 #include "InventoryBox.h"
 #include "level.h"
 #include "actor.h"
 #include "game_object_space.h"
 
-#include "script_callback_ex.h"
-#include "script_game_object.h"
 #include "ui/UIActorMenu.h"
 #include "uigamecustom.h"
 #include "inventory_item.h"
@@ -37,17 +35,6 @@ void CInventoryBox::OnEvent(NET_Packet& P, u16 type)
 			itm->H_SetParent		(this);
 			itm->setVisible			(FALSE);
 			itm->setEnabled			(FALSE);
-
-			CInventoryItem *pIItem	= smart_cast<CInventoryItem*>(itm);
-			VERIFY					(pIItem);
-			if( CurrentGameUI() )
-			{
-				if(CurrentGameUI()->ActorMenu().GetMenuMode()==mmDeadBodySearch)
-				{
-					if(this==CurrentGameUI()->ActorMenu().GetInvBox())
-						CurrentGameUI()->OnInventoryAction(pIItem, GE_OWNERSHIP_TAKE);
-				}
-			};
 		}break;
 
 	case GE_TRADE_SELL:
@@ -65,11 +52,6 @@ void CInventoryBox::OnEvent(NET_Packet& P, u16 type)
 
 			itm->H_SetParent	(NULL, dont_create_shell);
 
-			if( m_in_use )
-			{
-				CGameObject* GO		= smart_cast<CGameObject*>(itm);
-				Actor()->callback(GameObject::eInvBoxItemTake)( this->lua_game_object(), GO->lua_game_object() );
-			}
 		}break;
 	};
 }
@@ -89,14 +71,13 @@ BOOL CInventoryBox::net_Spawn(CSE_Abstract* DC)
 	inherited::net_Spawn	(DC);
 	setVisible				(TRUE);
 	setEnabled				(TRUE);
-	set_tip_text			("inventory_box_use");
 	
 	CSE_ALifeInventoryBox*	pSE_box = smart_cast<CSE_ALifeInventoryBox*>(DC);
-	if ( /*IsGameTypeSingle() &&*/ pSE_box )
+	if ( pSE_box )
 	{
 		m_can_take = pSE_box->m_can_take;
 		m_closed   = pSE_box->m_closed;
-		set_tip_text( pSE_box->m_tip_text.c_str() );
+		//set_tip_text( pSE_box->m_tip_text.c_str() );
 	}
 
 	return					TRUE;
@@ -131,11 +112,11 @@ void CInventoryBox::set_closed( bool status, LPCSTR reason )
 
 	if ( reason && xr_strlen( reason ) )
 	{
-		set_tip_text( reason );
+		//set_tip_text( reason );
 	}
 	else
 	{
-		set_tip_text( "inventory_box_use" );
+		//set_tip_text( "inventory_box_use" );
 	}
 	SE_update_status();
 }
@@ -146,6 +127,6 @@ void CInventoryBox::SE_update_status()
 	CGameObject::u_EventGen( P, GE_INV_BOX_STATUS, ID() );
 	P.w_u8( (m_can_take)? 1 : 0 );
 	P.w_u8( (m_closed)? 1 : 0 );
-	P.w_stringZ( tip_text() );
+//	P.w_stringZ( tip_text() );
 	CGameObject::u_EventSend( P );
 }

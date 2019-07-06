@@ -228,7 +228,7 @@ void CCustomDetector::shedule_Update(u32 dt)
 
 bool CCustomDetector::IsWorking()
 {
-	return m_bWorking && H_Parent() && H_Parent()==Level().CurrentViewEntity();
+	return m_bWorking && H_Parent() && H_Parent()==Level().CurrentViewActor();
 }
 
 void CCustomDetector::UpfateWork()
@@ -243,12 +243,6 @@ void CCustomDetector::UpdateVisibility()
 	attachable_hud_item* i0		= g_player_hud->attached_item(0);
 	if(i0 && HudItemData())
 	{
-		bool bClimb			= ( (Actor()->MovingState()&mcClimb) != 0 );
-		if(bClimb)
-		{
-			HideDetector		(true);
-			m_bNeedActivation	= true;
-		}else
 		{
 			CWeapon* wpn			= smart_cast<CWeapon*>(i0->m_parent_hud_item);
 			if(wpn)
@@ -265,8 +259,6 @@ void CCustomDetector::UpdateVisibility()
 	if(m_bNeedActivation)
 	{
 		attachable_hud_item* i0		= g_player_hud->attached_item(0);
-		bool bClimb					= ( (Actor()->MovingState()&mcClimb) != 0 );
-		if(!bClimb)
 		{
 			CHudItem* huditem		= (i0)?i0->m_parent_hud_item : NULL;
 			bool bChecked			= !huditem || CheckCompatibilityInt(huditem, 0);
@@ -281,7 +273,7 @@ void CCustomDetector::UpdateCL()
 {
 	inherited::UpdateCL();
 
-	if(H_Parent()!=Level().CurrentEntity() )			return;
+	if(H_Parent()!=Level().CurrentActor() )			return;
 
 	UpdateVisibility		();
 	if( !IsWorking() )		return;

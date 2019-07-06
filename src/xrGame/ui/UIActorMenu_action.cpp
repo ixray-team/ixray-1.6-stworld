@@ -9,11 +9,9 @@
 #include "UIActorMenu.h"
 #include "UIActorStateInfo.h"
 #include "../actor.h"
-#include "../uigamesp.h"
 #include "../inventory.h"
 #include "../inventory_item.h"
 #include "../InventoryBox.h"
-#include "object_broker.h"
 #include "UIInventoryUtilities.h"
 #include "game_cl_base.h"
 
@@ -22,7 +20,6 @@
 #include "UICharacterInfo.h"
 #include "UIItemInfo.h"
 #include "UIDragDropListEx.h"
-#include "UIInventoryUpgradeWnd.h"
 #include "UI3tButton.h"
 #include "UIBtnHint.h"
 #include "UIMessageBoxEx.h"
@@ -63,13 +60,6 @@ public:
 	}
 
 };
-void CUIActorMenu::OnDragItemOnTrash(CUIDragItem* item, bool b_receive)
-{
-	if(b_receive && !CurrentIItem()->IsQuestItem())
-		item->SetCustomDraw(xr_new<CUITrashIcon>());
-	else
-		item->SetCustomDraw(NULL);
-}
 
 bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 {
@@ -90,19 +80,6 @@ bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 	}
 	switch(t_new)
 	{
-	case iTrashSlot:
-		{
-			if(CurrentIItem()->IsQuestItem())
-				return true;
-
-			if(t_old==iQuickSlot)	
-			{
-				old_owner->RemoveItem(itm, false);
-				return true;
-			}
-			SendEvent_Item_Drop		(CurrentIItem(), m_pActorInvOwner->object_id());
-			SetCurrentItem			(NULL);
-		}break;
 	case iActorSlot:
 		{
 			//.			if(GetSlotList(CurrentIItem()->GetSlot())==new_owner)
@@ -117,26 +94,6 @@ bool CUIActorMenu::OnItemDrop(CUICellItem* itm)
 	case iActorBelt:
 		{
 			ToBelt	(itm, true);
-		}break;
-	case iActorTrade:
-		{
-			ToActorTrade(itm, true);
-		}break;
-	case iPartnerTrade:
-		{
-			if(t_old!=iPartnerTradeBag)	
-				return false;
-			ToPartnerTrade(itm, true);
-		}break;
-	case iPartnerTradeBag:
-		{
-			if(t_old!=iPartnerTrade)	
-				return false;
-			ToPartnerTradeBag(itm, true);
-		}break;
-	case iDeadBodyBag:
-		{
-			ToDeadBodyBag(itm, true);
 		}break;
 	case iQuickSlot:
 		{
@@ -168,63 +125,30 @@ bool CUIActorMenu::OnItemDbClick(CUICellItem* itm)
 	{
 	case iActorSlot:
 		{
-			if ( m_currMenuMode == mmDeadBodySearch )
-				ToDeadBodyBag	( itm, false );
-			else
-				ToBag			( itm, false );
+			ToBag			( itm, false );
 			break;
 		}
 	case iActorBag:
 		{
-			if ( m_currMenuMode == mmTrade )
+			if(TryUseItem( itm ))
 			{
-				ToActorTrade( itm, false );
 				break;
-			}else
-				if ( m_currMenuMode == mmDeadBodySearch )
-				{
-					ToDeadBodyBag( itm, false );
-					break;
-				}
-				if(m_currMenuMode!=mmUpgrade && TryUseItem( itm ))
-				{
-					break;
-				}
-				if ( TryActiveSlot( itm ) )
-				{
-					break;
-				}
-				PIItem iitem_to_place = (PIItem)itm->m_pData;
-				if ( !ToSlot( itm, false, iitem_to_place->BaseSlot() ) )
-				{
-					if ( !ToBelt( itm, false ) )
-					{
-						ToSlot( itm, true, iitem_to_place->BaseSlot() );
-					}
-				}
+			}
+			if ( TryActiveSlot( itm ) )
+			{
 				break;
+			}
+			PIItem iitem_to_place = (PIItem)itm->m_pData;
+			if ( !ToSlot( itm, false, iitem_to_place->BaseSlot() ) )
+			{
+				if ( !ToBelt( itm, false ) )
+				{
+					ToSlot( itm, true, iitem_to_place->BaseSlot() );
+				}
+			}
+			break;
 		}
 	case iActorBelt:
-		{
-			ToBag( itm, false );
-			break;
-		}
-	case iActorTrade:
-		{
-			ToBag( itm, false );
-			break;
-		}
-	case iPartnerTradeBag:
-		{
-			ToPartnerTrade( itm, false );
-			break;
-		}
-	case iPartnerTrade:
-		{
-			ToPartnerTradeBag( itm, false );
-			break;
-		}
-	case iDeadBodyBag:
 		{
 			ToBag( itm, false );
 			break;
@@ -316,7 +240,7 @@ bool CUIActorMenu::OnKeyboardAction(int dik, EUIMessages keyboard_action)
 	InfoCurItem( NULL );
 	if ( is_binded(kDROP, dik) )
 	{
-		if ( WINDOW_KEY_PRESSED == keyboard_action && CurrentIItem() && !CurrentIItem()->IsQuestItem()
+		if ( WINDOW_KEY_PRESSED == keyboard_action && CurrentIItem()
 			&& CurrentIItem()->parent_id()==m_pActorInvOwner->object_id() )
 		{
 
@@ -366,14 +290,7 @@ void CUIActorMenu::OnPressUserKey()
 	{
 	case mmUndefined:		break;
 	case mmInventory:		break;
-	case mmTrade:			
 //		OnBtnPerformTrade( this, 0 );
-		break;
-	case mmUpgrade:			
-		TrySetCurUpgrade();
-		break;
-	case mmDeadBodySearch:	
-		TakeAllFromPartner( this, 0 );
 		break;
 	default:
 		R_ASSERT(0);
@@ -395,21 +312,6 @@ void CUIActorMenu::OnMesBoxYes( CUIWindow*, void* )
 		break;
 	case mmInventory:
 		break;
-	case mmTrade:
-		break;
-	case mmUpgrade:
-		if ( m_repair_mode )
-		{
-			RepairEffect_CurItem();
-			m_repair_mode = false;
-		}
-		else
-		{
-			m_pUpgradeWnd->OnMesBoxYes();
-		}
-		break;
-	case mmDeadBodySearch:
-		break;
 	default:
 		R_ASSERT(0);
 		break;
@@ -424,13 +326,6 @@ void CUIActorMenu::OnMesBoxNo(CUIWindow*, void*)
 	case mmUndefined:
 		break;
 	case mmInventory:
-		break;
-	case mmTrade:
-		break;
-	case mmUpgrade:
-		m_repair_mode = false;
-		break;
-	case mmDeadBodySearch:
 		break;
 	default:
 		R_ASSERT(0);

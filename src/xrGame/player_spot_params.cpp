@@ -34,7 +34,8 @@ u32 const player_spots_with_top_enemy_divider::get_top_enemy_player_score()
 		return 0;
 
 	s8 enemy_team = -1;
-	switch (Game().Type())
+
+	switch (g_pGamePersistent->GameType())
 	{
 	case eGameIDCaptureTheArtefact:
 		{

@@ -3,7 +3,6 @@
 #include "UIGameDM.h"
 
 #include "ui/UISkinSelector.h"
-#include "ui/UIPdaWnd.h"
 #include "ui/UIMapDesc.h"
 #include "ui/KillMessageStruct.h"
 #include "level.h"
@@ -21,7 +20,6 @@
 #include "ui/UIActorMenu.h"
 #include "ui/UIHelper.h"
 #include "UITeamPanels.h"
-#include "object_broker.h"
 
 #define MSGS_OFFS 510
 

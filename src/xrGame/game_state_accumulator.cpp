@@ -53,7 +53,7 @@ void game_state_accumulator::init_player(game_PlayerState* local_player)
 		tmp_trade_wnd = smart_cast<CUIMpTradeWnd*>(tmp_dm_game->GetBuyWnd());
 	} else
 	{
-		R_ASSERT(Game().Type() == eGameIDCaptureTheArtefact);
+		R_ASSERT(g_pGamePersistent->GameType() == eGameIDCaptureTheArtefact);
 		CUIGameCTA* tmp_cta_ui	= smart_cast<CUIGameCTA*>(CurrentGameUI());
 		VERIFY(tmp_cta_ui);
 		tmp_trade_wnd			= smart_cast<CUIMpTradeWnd*>(tmp_cta_ui->GetBuyWnd());
@@ -511,7 +511,7 @@ bool game_state_accumulator::is_enemies	(game_PlayerState const * left_player,
 	if (left_player == right_player)
 		return false;
 
-	if (Game().Type() == eGameIDDeathmatch)
+	if (g_pGamePersistent->GameType() == eGameIDDeathmatch)
 		return true;
 
 	if (left_player->team != right_player->team)

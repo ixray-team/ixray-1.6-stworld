@@ -11,61 +11,41 @@
 #include "PHMovementControl.h"
 #include "../xrphysics/PhysicsShell.h"
 #include "InventoryOwner.h"
+#include "InventoryBox.h"
 #include "../xrEngine/StatGraph.h"
-#include "PhraseDialogManager.h"
 #include "ui_defs.h"
-
 #include "step_manager.h"
-#include "script_export_space.h"
 
 using namespace ACTOR_DEFS;
 
-class CInfoPortion;
-struct GAME_NEWS_DATA;
 class CActorCondition;
 class CCustomOutfit;
-class CGameTaskRegistryWrapper;
-class CGameNewsRegistryWrapper;
 class CCharacterPhysicsSupport;
 class CActorCameraManager;
 // refs
 class ENGINE_API CCameraBase;
 class ENGINE_API CBoneInstance;
 class ENGINE_API CBlend;
-class CWeaponList;
 class CEffectorBobbing;
-class CHolderCustom;
-class CUsableScriptObject;
 
 struct SShootingEffector;
 struct SSleepEffector;
-class  CSleepEffectorPP;
 class CInventoryBox;
-
 class	CHudItem;
 class   CArtefact;
 
 struct SActorMotions;
-struct SActorVehicleAnims;
 class  CActorCondition;
 class SndShockEffector;
-class CActorFollowerMngr;
-
 struct CameraRecoil;
 class CCameraShotEffector;
 class CActorInputHandler;
-
-class CActorMemory;
-class CActorStatisticMgr;
-
-class CLocationManager;
 
 class	CActor: 
 	public CEntityAlive, 
 	public IInputReceiver,
 	public Feel::Touch,
 	public CInventoryOwner,
-	public CPhraseDialogManager,
 	public CStepManager,
 	public Feel::Sound
 #ifdef DEBUG
@@ -90,7 +70,6 @@ public:
 	virtual	CCharacterPhysicsSupport*	character_physics_support	()						{return m_pPhysics_support;}
 	virtual	CCharacterPhysicsSupport*	character_physics_support	() const				{return m_pPhysics_support;}
 	virtual CPHDestroyable*				ph_destroyable				()						;
-			CHolderCustom*				Holder						()						{return m_holder;}
 public:
 
 	virtual void						Load				( LPCSTR section );
@@ -113,46 +92,11 @@ public:
 
 
 public:
-	virtual bool OnReceiveInfo		(shared_str info_id) const;
-	virtual void OnDisableInfo		(shared_str info_id) const;
-
-	virtual void	 NewPdaContact		(CInventoryOwner*);
-	virtual void	 LostPdaContact		(CInventoryOwner*);
-
-#ifdef DEBUG
-	void			 DumpTasks();
-#endif
-
-struct SDefNewsMsg{
-		GAME_NEWS_DATA*	news_data;
-		u32				time;
-		bool operator < (const SDefNewsMsg& other) const {return time>other.time;}
-	};
-	xr_vector<SDefNewsMsg> m_defferedMessages;
-	void UpdateDefferedMessages();	
-public:	
-	void			AddGameNews_deffered	 (GAME_NEWS_DATA& news_data, u32 delay);
-	virtual void	AddGameNews				 (GAME_NEWS_DATA& news_data);
-protected:
-	CActorStatisticMgr*				m_statistic_manager;
-public:
-	virtual void StartTalk			(CInventoryOwner* talk_partner);
-			void RunTalkDialog		(CInventoryOwner* talk_partner, bool disable_break);
-	CActorStatisticMgr&				StatisticMgr()	{return *m_statistic_manager;}
-	CGameNewsRegistryWrapper		*game_news_registry;
 	CCharacterPhysicsSupport		*m_pPhysics_support;
 
 	virtual LPCSTR	Name        () const {return CInventoryOwner::Name();}
 
 public:
-	//PhraseDialogManager
-	virtual void ReceivePhrase				(DIALOG_SHARED_PTR& phrase_dialog);
-	virtual void UpdateAvailableDialogs		(CPhraseDialogManager* partner);
-	virtual void TryToTalk					();
-			bool OnDialogSoundHandlerStart	(CInventoryOwner *inv_owner, LPCSTR phrase);
-			bool OnDialogSoundHandlerStop	(CInventoryOwner *inv_owner);
-
-
 	virtual void reinit			();
 	virtual void reload			(LPCSTR section);
 	virtual bool use_bolts		() const;
@@ -243,18 +187,9 @@ public:
 	s32						GetShotRndSeed			()	{ return m_ShotRndSeed;	};
 
 public:
-	void					detach_Vehicle			();
-	void					steer_Vehicle			(float angle);
-	void					attach_Vehicle			(CHolderCustom* vehicle);
 
 	virtual bool			can_attach				(const CInventoryItem *inventory_item) const;
 protected:
-	CHolderCustom*			m_holder;
-	u16						m_holderID;
-	bool					use_Holder				(CHolderCustom* holder);
-
-	bool					use_Vehicle				(CHolderCustom* object);
-	bool					use_MountedWeapon		(CHolderCustom* object);
 	void					ActorUse				();
 
 protected:
@@ -341,25 +276,13 @@ public:
 	virtual BOOL			feel_touch_on_contact		(CObject* O);
 
 	CGameObject*			ObjectWeLookingAt			() {return m_pObjectWeLookingAt;}
-	CInventoryOwner*		PersonWeLookingAt			() {return m_pPersonWeLookingAt;}
 	LPCSTR					GetDefaultActionForObject	() {return *m_sDefaultObjAction;}
 protected:
-	CUsableScriptObject*	m_pUsableObject;
-	// Person we're looking at
-	CInventoryOwner*		m_pPersonWeLookingAt;
-	CHolderCustom*			m_pVehicleWeLookingAt;
+
 	CGameObject*			m_pObjectWeLookingAt;
-	CInventoryBox*			m_pInvBoxWeLookingAt;
 
 	// Tip for action for object we're looking at
 	shared_str				m_sDefaultObjAction;
-	shared_str				m_sCharacterUseAction;
-	shared_str				m_sDeadCharacterUseAction;
-	shared_str				m_sDeadCharacterUseOrDragAction;
-	shared_str				m_sDeadCharacterDontUseAction;
-	shared_str				m_sCarCharacterUseAction;
-	shared_str				m_sInventoryItemUseAction;
-	shared_str				m_sInventoryBoxUseAction;
 	
 //	shared_str				m_quick_use_slots[4];
 	//режим подбирания предметов
@@ -434,7 +357,7 @@ public:
 public:
 	virtual void						g_WeaponBones		(int &L, int &R1, int &R2);
 	virtual void						g_fireParams		(const CHudItem* pHudItem, Fvector& P, Fvector& D);
-	virtual bool						g_stateFire			() {return ! ((mstate_wishful & mcLookout) && !IsGameTypeSingle() );}
+	virtual bool						g_stateFire			() {return !(mstate_wishful & mcLookout);}
 
 	virtual BOOL						g_State				(SEntityState& state) const;
 	virtual	float						GetWeaponAccuracy	() const;
@@ -493,11 +416,7 @@ public:
 	virtual void						net_Destroy			();
 	virtual BOOL						net_Relevant		();//	{ return getSVU() | getLocal(); };		// relevant for export to server
 	virtual	void						net_Relcase			( CObject* O );					//
-	virtual void xr_stdcall				on_requested_spawn  (CObject *object);
-	//object serialization
-	virtual void						save				(NET_Packet &output_packet);
-	virtual void						load				(IReader &input_packet);
-	virtual void						net_Save			(NET_Packet& P)																	;
+
 	virtual	BOOL						net_SaveRelevant	()																				;
 protected:
 	xr_deque<net_update>	NET;
@@ -582,7 +501,6 @@ public:
 
 	virtual void			SpawnAmmoForWeapon		(CInventoryItem *pIItem);
 	virtual void			RemoveAmmoForWeapon		(CInventoryItem *pIItem);
-	virtual	void			spawn_supplies			();
 	virtual bool			human_being				() const
 	{
 		return				(true);
@@ -602,13 +520,13 @@ public:
 	// Controlled Routines
 	//////////////////////////////////////////////////////////////////////////
 
-			void			set_input_external_handler			(CActorInputHandler *handler);
-			bool			input_external_handler_installed	() const {return (m_input_external_handler != 0);}
+//			void			set_input_external_handler			(CActorInputHandler *handler);
+//			bool			input_external_handler_installed	() const {return (m_input_external_handler != 0);}
 			
 	IC		void			lock_accel_for						(u32 time){m_time_lock_accel = Device.dwTimeGlobal + time;}
 
 private:	
-	CActorInputHandler		*m_input_external_handler;
+//	CActorInputHandler		*m_input_external_handler;
 	u32						m_time_lock_accel;
 
 	/////////////////////////////////////////
@@ -647,8 +565,6 @@ protected:
 public:
 	IC		CActorCondition		&conditions					() const;
 	virtual DLL_Pure			*_construct					();
-	virtual bool				natural_weapon				() const {return false;}
-	virtual bool				natural_detector			() const {return false;}
 	virtual bool				use_center_to_aim			() const;
 protected:
 	u16							m_iLastHitterID;
@@ -692,16 +608,8 @@ protected:
 	//step manager
 	virtual bool				is_on_ground					();
 
-private:
-	CActorMemory				*m_memory;
-
 public:
-	IC		CActorMemory		&memory							() const {VERIFY(m_memory); return(*m_memory); };
-
-	void						OnDifficultyChanged				();
-
 	IC float					HitProbability					() {return m_hit_probability;}
-	virtual	CVisualMemoryManager*visual_memory					() const;
 
 	virtual	BOOL				BonePassBullet					(int boneID);
 	virtual	void				On_B_NotCurrentEntity			();
@@ -711,23 +619,10 @@ private:
 			BOOL				CanPickItem						(const CFrustum& frustum, const Fvector& from, CObject* item);
 	xr_vector<ISpatial*>		ISpatialResult;
 
-private:
-	CLocationManager				*m_location_manager;
-
-public:
-	IC		const CLocationManager	&locations					() const
-	{
-		VERIFY						(m_location_manager);
-		return						(*m_location_manager);
-	}
-
-private:
-	ALife::_OBJECT_ID	m_holder_id;
 
 public:
 	virtual bool				register_schedule				() const {return false;}
-	virtual	bool				is_ai_obstacle					() const;
-	
+
 			float				GetRestoreSpeed					(ALife::EConditionRestoreType const& type);
 
 public:
@@ -745,17 +640,10 @@ private:
 	bool					m_disabled_hitmarks;
 	bool					m_inventory_disabled;
 //static CPhysicsShell		*actor_camera_shell;
-
-DECLARE_SCRIPT_REGISTER_FUNCTION
 };
-add_to_type_list(CActor)
-#undef script_type_list
-#define script_type_list save_type_list(CActor)
 
 extern bool		isActorAccelerated			(u32 mstate, bool ZoomMode);
 
 IC	CActorCondition	&CActor::conditions	() const{ VERIFY(m_entity_condition); return(*m_entity_condition);}
 
-extern CActor*		g_actor;
-CActor*				Actor		();
 extern const float	s_fFallTime;

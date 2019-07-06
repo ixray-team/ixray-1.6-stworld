@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "../../xrParticles/psystem.h"
+#include "../../xrEngine/psystem.h"
 
 #ifndef _EDITOR
 #include "../../xrServerEntities/smart_cast.h"

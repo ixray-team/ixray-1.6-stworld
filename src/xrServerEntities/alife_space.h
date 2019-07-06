@@ -187,9 +187,6 @@ xr_token							hit_types_token							[ ];
 #endif
 	DEFINE_VECTOR	(int,						INT_VECTOR,						INT_IT);
 	DEFINE_VECTOR	(_OBJECT_ID,				OBJECT_VECTOR,					OBJECT_IT);
-	DEFINE_VECTOR	(CSE_ALifeInventoryItem*,	ITEM_P_VECTOR,					ITEM_P_IT);
-	DEFINE_VECTOR	(CSE_ALifeItemWeapon*,		WEAPON_P_VECTOR,				WEAPON_P_IT);
-	DEFINE_VECTOR	(CSE_ALifeSchedulable*,		SCHEDULE_P_VECTOR,				SCHEDULE_P_IT);
 
 	DEFINE_MAP		(_OBJECT_ID,				CSE_ALifeDynamicObject*,		D_OBJECT_P_MAP,				D_OBJECT_P_PAIR_IT);
 	DEFINE_MAP		(_STORY_ID,					CSE_ALifeDynamicObject*,		STORY_P_MAP,				STORY_P_PAIR_IT);

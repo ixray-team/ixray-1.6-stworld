@@ -2,7 +2,6 @@
 
 #include "inventory_item_object.h"
 #include "hudsound.h"
-#include "script_export_space.h"
 
 class CLAItem;
 class CNightVisionEffector;
@@ -73,18 +72,12 @@ protected:
 
 public:
 
-	virtual bool			use_parent_ai_locations	() const
-	{
-		return				(!H_Parent());
-	}
 	virtual void	create_physic_shell		();
 	virtual void	activate_physic_shell	();
 	virtual void	setup_physic_shell		();
 
 	virtual void	afterDetach				();
 	virtual void	renderable_Render		();
-
-	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 
 class CNightVisionEffector
@@ -105,7 +98,3 @@ public:
 	void		OnDisabled	(CActor* pA, bool play_sound=true);
 	void		PlaySounds	(EPlaySounds which);
 };
-
-add_to_type_list(CTorch)
-#undef script_type_list
-#define script_type_list save_type_list(CTorch)
