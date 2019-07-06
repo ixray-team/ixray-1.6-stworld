@@ -46,7 +46,7 @@ void client_session::handle_write				( read_handler_type const& functor, boost::
 	read_async						( functor );
 }
 
-void client_session::send_message				( xray::lobby_client_message_types_enum const message_type, read_handler_type const& functor )
+void client_session::send_message				( xray::login_client_message_types_enum const message_type, read_handler_type const& functor )
 {
 	u8 const message_type_to_send	= (u8)message_type;
 	boost::asio::async_write		(
@@ -137,7 +137,7 @@ void client_session::process_client_initiation	(
 	)
 {
 	if ( !bytes_transferred ) {
-		send_message				( lobby_client_invalid_message_type, &client_session::process_client_initiation );
+		send_message				( login_client_invalid_message_type, &client_session::process_client_initiation );
 		return;
 	}
 
